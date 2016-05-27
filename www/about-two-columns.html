@@ -1,0 +1,692 @@
+<html>
+  <head>
+    <meta  content="text/html; charset=windows-1252"  http-equiv="content-type">
+    <!-- <script src="//code.jquery.com/jquery-1.12.0.min.js"></script> -->
+    <script  src="shared/jquery.js"  type="text/javascript"></script>
+    <script  src="shared/shiny.js"  type="text/javascript"></script>
+    <link  href="shared/bootstrap/css/bootstrap.min.css"  rel="stylesheet">
+    <link  rel="stylesheet"  type="text/css"  href="css/ilincs.css">
+    <script>
+
+   $(function(){
+     $("#includeNav").load("html/nav.html");
+     $("#includeFooter").load("html/footer.html");
+   });
+   </script>
+    <!--Above from the simple About-->
+    <!--Below from the description document-->
+    <style>
+#content {
+  margin-left:  40%;
+}
+#navbar {
+  float: left;
+  position: fixed;
+  width: 20%;
+}
+</style> <style  type="text/css">.lst-kix_c6mggzy9bkhi-7>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-7}ol.lst-kix_lx3h5q6cjds-3{list-style-type:none}ol.lst-kix_lx3h5q6cjds-2{list-style-type:none}ol.lst-kix_lx3h5q6cjds-5.start{counter-reset:lst-ctn-kix_lx3h5q6cjds-5 0}.lst-kix_qnsw2cr2b80j-8>li:before{content:"\0025a0  "}.lst-kix_ixtk3xu5n7qn-8>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-8}ol.lst-kix_c6mggzy9bkhi-3.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-3 0}.lst-kix_qnsw2cr2b80j-6>li:before{content:"\0025cf  "}.lst-kix_lx3h5q6cjds-8>li{counter-increment:lst-ctn-kix_lx3h5q6cjds-8}.lst-kix_qnsw2cr2b80j-7>li:before{content:"\0025cb  "}.lst-kix_qnsw2cr2b80j-1>li:before{content:"\0025cb  "}ol.lst-kix_ixtk3xu5n7qn-4.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-4 0}.lst-kix_qnsw2cr2b80j-0>li:before{content:"\0025cf  "}.lst-kix_qnsw2cr2b80j-2>li:before{content:"\0025a0  "}.lst-kix_qnsw2cr2b80j-5>li:before{content:"\0025a0  "}.lst-kix_qnsw2cr2b80j-4>li:before{content:"\0025cb  "}.lst-kix_qnsw2cr2b80j-3>li:before{content:"\0025cf  "}ul.lst-kix_jw98yuw3jje1-8{list-style-type:none}ul.lst-kix_jw98yuw3jje1-7{list-style-type:none}ol.lst-kix_lx3h5q6cjds-4.start{counter-reset:lst-ctn-kix_lx3h5q6cjds-4 0}ul.lst-kix_jw98yuw3jje1-6{list-style-type:none}ul.lst-kix_jw98yuw3jje1-5{list-style-type:none}ul.lst-kix_jw98yuw3jje1-4{list-style-type:none}ul.lst-kix_jw98yuw3jje1-3{list-style-type:none}ul.lst-kix_jw98yuw3jje1-2{list-style-type:none}ol.lst-kix_c6mggzy9bkhi-2.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-2 0}ul.lst-kix_jw98yuw3jje1-1{list-style-type:none}ul.lst-kix_jw98yuw3jje1-0{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-2{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-1{list-style-type:none}ol.lst-kix_c6mggzy9bkhi-8.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-8 0}ul.lst-kix_qnsw2cr2b80j-0{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-6{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-5{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-4{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-3{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-8{list-style-type:none}ul.lst-kix_qnsw2cr2b80j-7{list-style-type:none}.lst-kix_c6mggzy9bkhi-5>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-5}.lst-kix_jw98yuw3jje1-0>li:before{content:"\0025cf  "}.lst-kix_ixtk3xu5n7qn-1>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-1}ol.lst-kix_lx3h5q6cjds-8{list-style-type:none}ol.lst-kix_lx3h5q6cjds-7{list-style-type:none}ol.lst-kix_lx3h5q6cjds-6{list-style-type:none}.lst-kix_ixtk3xu5n7qn-4>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-4}ol.lst-kix_lx3h5q6cjds-5{list-style-type:none}.lst-kix_jw98yuw3jje1-1>li:before{content:"\0025cb  "}ol.lst-kix_lx3h5q6cjds-4{list-style-type:none}.lst-kix_jw98yuw3jje1-2>li:before{content:"\0025a0  "}.lst-kix_jw98yuw3jje1-4>li:before{content:"\0025cb  "}.lst-kix_jw98yuw3jje1-3>li:before{content:"\0025cf  "}.lst-kix_lx3h5q6cjds-4>li{counter-increment:lst-ctn-kix_lx3h5q6cjds-4}.lst-kix_cqitspa334da-6>li:before{content:"\0025cf  "}.lst-kix_jw98yuw3jje1-5>li:before{content:"\0025a0  "}ol.lst-kix_c6mggzy9bkhi-7.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-7 0}.lst-kix_cqitspa334da-4>li:before{content:"\0025cb  "}.lst-kix_jw98yuw3jje1-7>li:before{content:"\0025cb  "}.lst-kix_c6mggzy9bkhi-0>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-0}ol.lst-kix_ixtk3xu5n7qn-5.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-5 0}.lst-kix_cqitspa334da-2>li:before{content:"\0025a0  "}.lst-kix_k1hefpyt8qdu-1>li:before{content:"\0025cb  "}.lst-kix_lx3h5q6cjds-3>li{counter-increment:lst-ctn-kix_lx3h5q6cjds-3}.lst-kix_ixtk3xu5n7qn-3>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-3}.lst-kix_cqitspa334da-0>li:before{content:"\0025cf  "}.lst-kix_k1hefpyt8qdu-3>li:before{content:"\0025cf  "}.lst-kix_ixtk3xu5n7qn-0>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-0,decimal) ". "}.lst-kix_ixtk3xu5n7qn-2>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-2,lower-roman) ". "}.lst-kix_k1hefpyt8qdu-5>li:before{content:"\0025a0  "}.lst-kix_ixtk3xu5n7qn-4>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-4,
+lower-latin) ". "}.lst-kix_lx3h5q6cjds-2>li{counter-increment:lst-ctn-kix_lx3h5q6cjds-2}.lst-kix_lx3h5q6cjds-7>li:before{content:"" counter(lst-ctn-kix_lx3h5q6cjds-7,lower-latin) ". "}.lst-kix_k1hefpyt8qdu-7>li:before{content:"\0025cb  "}.lst-kix_ixtk3xu5n7qn-2>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-2}ul.lst-kix_c6mggzy9bkhi-1{list-style-type:none}.lst-kix_ixtk3xu5n7qn-8>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-8,lower-roman) ". "}.lst-kix_ixtk3xu5n7qn-6>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-6,decimal) ". "}.lst-kix_qkescwycupop-7>li:before{content:"\0025cb  "}.lst-kix_4vw5dpxrimee-5>li:before{content:"\0025a0  "}.lst-kix_qkescwycupop-1>li:before{content:"\0025cb  "}.lst-kix_c6mggzy9bkhi-4>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-4,lower-latin) ". "}.lst-kix_c6mggzy9bkhi-6>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-6,decimal) ". "}.lst-kix_4vw5dpxrimee-3>li:before{content:"\0025cf  "}.lst-kix_4vw5dpxrimee-7>li:before{content:"\0025cb  "}.lst-kix_4vw5dpxrimee-1>li:before{content:"\0025cb  "}.lst-kix_qkescwycupop-5>li:before{content:"\0025a0  "}.lst-kix_c6mggzy9bkhi-0>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-0,decimal) ". "}.lst-kix_c6mggzy9bkhi-2>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-2,lower-roman) ". "}.lst-kix_c6mggzy9bkhi-8>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-8,lower-roman) ". "}ol.lst-kix_ixtk3xu5n7qn-3.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-3 0}.lst-kix_qkescwycupop-3>li:before{content:"\0025cf  "}.lst-kix_9dbpnvhyro1-6>li:before{content:"\0025cf  "}.lst-kix_9dbpnvhyro1-8>li:before{content:"\0025a0  "}ol.lst-kix_c6mggzy9bkhi-5.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-5 0}.lst-kix_lx3h5q6cjds-5>li:before{content:"" counter(lst-ctn-kix_lx3h5q6cjds-5,lower-roman) ". "}.lst-kix_lx3h5q6cjds-3>li:before{content:"" counter(lst-ctn-kix_lx3h5q6cjds-3,decimal) ". "}ul.lst-kix_k1hefpyt8qdu-8{list-style-type:none}ul.lst-kix_k1hefpyt8qdu-7{list-style-type:none}ol.lst-kix_ixtk3xu5n7qn-2.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-2 0}.lst-kix_lx3h5q6cjds-1>li:before{content:"\0025cb  "}ul.lst-kix_k1hefpyt8qdu-0{list-style-type:none}.lst-kix_4v4tuo10gdxg-7>li:before{content:"\0025cb  "}ul.lst-kix_k1hefpyt8qdu-2{list-style-type:none}ul.lst-kix_k1hefpyt8qdu-1{list-style-type:none}ul.lst-kix_k1hefpyt8qdu-4{list-style-type:none}.lst-kix_4v4tuo10gdxg-5>li:before{content:"\0025a0  "}ul.lst-kix_k1hefpyt8qdu-3{list-style-type:none}ul.lst-kix_k1hefpyt8qdu-6{list-style-type:none}ul.lst-kix_k1hefpyt8qdu-5{list-style-type:none}.lst-kix_4v4tuo10gdxg-3>li:before{content:"\0025cf  "}.lst-kix_4v4tuo10gdxg-1>li:before{content:"\0025cb  "}.lst-kix_cqitspa334da-8>li:before{content:"\0025a0  "}ol.lst-kix_c6mggzy9bkhi-4.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-4 0}ol.lst-kix_ixtk3xu5n7qn-1.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-1 0}ol.lst-kix_lx3h5q6cjds-2.start{counter-reset:lst-ctn-kix_lx3h5q6cjds-2 0}.lst-kix_c6mggzy9bkhi-6>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-6}ol.lst-kix_c6mggzy9bkhi-0.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-0 0}ol.lst-kix_ixtk3xu5n7qn-7{list-style-type:none}ol.lst-kix_ixtk3xu5n7qn-6{list-style-type:none}.lst-kix_9dbpnvhyro1-0>li:before{content:"\0025cf  "}ol.lst-kix_ixtk3xu5n7qn-8{list-style-type:none}ol.lst-kix_ixtk3xu5n7qn-7.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-7 0}ul.lst-kix_9dbpnvhyro1-6{list-style-type:none}ul.lst-kix_9dbpnvhyro1-5{list-style-type:none}.lst-kix_9dbpnvhyro1-4>li:before{content:"\0025cb  "}ul.lst-kix_9dbpnvhyro1-4{list-style-type:none}ul.lst-kix_9dbpnvhyro1-3{list-style-type:none}ul.lst-kix_9dbpnvhyro1-2{list-style-type:none}.lst-kix_9dbpnvhyro1-5>li:before{content:"\0025a0  "}ol.lst-kix_c6mggzy9bkhi-6.start{counter-reset:lst-ctn-kix_c6mggzy9bkhi-6 0}ul.lst-kix_9dbpnvhyro1-1{list-style-type:none}ol.lst-kix_lx3h5q6cjds-8.start{counter-reset:lst-ctn-kix_lx3h5q6cjds-8 0}ul.lst-kix_9dbpnvhyro1-0{list-style-type:none}ul.lst-kix_lx3h5q6cjds-0{list-style-type:none}ul.lst-kix_9dbpnvhyro1-8{list-style-type:none}ul.lst-kix_lx3h5q6cjds-1{list-style-type:none}ul.lst-kix_
+9dbpnvhyro1-7{list-style-type:none}.lst-kix_9dbpnvhyro1-3>li:before{content:"\0025cf  "}ol.lst-kix_ixtk3xu5n7qn-1{list-style-type:none}.lst-kix_9dbpnvhyro1-2>li:before{content:"\0025a0  "}.lst-kix_c6mggzy9bkhi-4>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-4}ol.lst-kix_ixtk3xu5n7qn-0{list-style-type:none}ol.lst-kix_ixtk3xu5n7qn-3{list-style-type:none}.lst-kix_9dbpnvhyro1-1>li:before{content:"\0025cb  "}ol.lst-kix_ixtk3xu5n7qn-2{list-style-type:none}ol.lst-kix_ixtk3xu5n7qn-5{list-style-type:none}ol.lst-kix_ixtk3xu5n7qn-4{list-style-type:none}ul.lst-kix_qkescwycupop-8{list-style-type:none}.lst-kix_lx3h5q6cjds-7>li{counter-increment:lst-ctn-kix_lx3h5q6cjds-7}ul.lst-kix_qkescwycupop-7{list-style-type:none}ul.lst-kix_qkescwycupop-6{list-style-type:none}ul.lst-kix_qkescwycupop-5{list-style-type:none}ul.lst-kix_qkescwycupop-4{list-style-type:none}ul.lst-kix_qkescwycupop-3{list-style-type:none}ul.lst-kix_qkescwycupop-2{list-style-type:none}ul.lst-kix_qkescwycupop-1{list-style-type:none}ul.lst-kix_qkescwycupop-0{list-style-type:none}ul.lst-kix_4vw5dpxrimee-6{list-style-type:none}ul.lst-kix_cqitspa334da-5{list-style-type:none}ul.lst-kix_4vw5dpxrimee-5{list-style-type:none}ul.lst-kix_cqitspa334da-6{list-style-type:none}ul.lst-kix_4vw5dpxrimee-4{list-style-type:none}ul.lst-kix_cqitspa334da-3{list-style-type:none}ul.lst-kix_4vw5dpxrimee-3{list-style-type:none}ul.lst-kix_cqitspa334da-4{list-style-type:none}ul.lst-kix_4vw5dpxrimee-2{list-style-type:none}.lst-kix_c6mggzy9bkhi-8>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-8}ol.lst-kix_lx3h5q6cjds-3.start{counter-reset:lst-ctn-kix_lx3h5q6cjds-3 0}ul.lst-kix_4vw5dpxrimee-1{list-style-type:none}ul.lst-kix_4vw5dpxrimee-0{list-style-type:none}ul.lst-kix_cqitspa334da-7{list-style-type:none}ul.lst-kix_cqitspa334da-8{list-style-type:none}ol.lst-kix_ixtk3xu5n7qn-0.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-0 0}.lst-kix_c6mggzy9bkhi-2>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-2}ul.lst-kix_cqitspa334da-1{list-style-type:none}ul.lst-kix_cqitspa334da-2{list-style-type:none}ul.lst-kix_cqitspa334da-0{list-style-type:none}.lst-kix_ixtk3xu5n7qn-7>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-7}ol.lst-kix_ixtk3xu5n7qn-6.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-6 0}ul.lst-kix_4vw5dpxrimee-8{list-style-type:none}ul.lst-kix_4vw5dpxrimee-7{list-style-type:none}.lst-kix_cqitspa334da-7>li:before{content:"\0025cb  "}.lst-kix_jw98yuw3jje1-6>li:before{content:"\0025cf  "}.lst-kix_jw98yuw3jje1-8>li:before{content:"\0025a0  "}.lst-kix_cqitspa334da-3>li:before{content:"\0025cf  "}.lst-kix_cqitspa334da-5>li:before{content:"\0025a0  "}ol.lst-kix_ixtk3xu5n7qn-8.start{counter-reset:lst-ctn-kix_ixtk3xu5n7qn-8 0}ol.lst-kix_c6mggzy9bkhi-5{list-style-type:none}.lst-kix_k1hefpyt8qdu-0>li:before{content:"\0025cf  "}ol.lst-kix_c6mggzy9bkhi-6{list-style-type:none}ol.lst-kix_c6mggzy9bkhi-7{list-style-type:none}ol.lst-kix_c6mggzy9bkhi-8{list-style-type:none}.lst-kix_k1hefpyt8qdu-4>li:before{content:"\0025cb  "}ol.lst-kix_c6mggzy9bkhi-0{list-style-type:none}.lst-kix_cqitspa334da-1>li:before{content:"\0025cb  "}.lst-kix_k1hefpyt8qdu-2>li:before{content:"\0025a0  "}ol.lst-kix_c6mggzy9bkhi-2{list-style-type:none}ol.lst-kix_c6mggzy9bkhi-3{list-style-type:none}ol.lst-kix_c6mggzy9bkhi-4{list-style-type:none}.lst-kix_k1hefpyt8qdu-8>li:before{content:"\0025a0  "}.lst-kix_ixtk3xu5n7qn-5>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-5}.lst-kix_ixtk3xu5n7qn-1>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-1,lower-latin) ". "}.lst-kix_k1hefpyt8qdu-6>li:before{content:"\0025cf  "}.lst-kix_ixtk3xu5n7qn-3>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-3,decimal) ". "}.lst-kix_lx3h5q6cjds-5>li{counter-increment:lst-ctn-kix_lx3h5q6cjds-5}.lst-kix_lx3h5q6cjds-8>li:before{content:"" counter(lst-ctn-kix_lx3h5q6cjds-8,lower-roman) ". "}.lst-kix_ixtk3xu5n7qn-5>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-5,lower-roman) ". "}.lst-kix_qkescwycupop-6>li:before{content:"\0025cf  "}.lst-kix_qkescwycupop-8>li:before{content:"\0025a0  "}.lst-kix_ixtk3xu5n7qn-7>li:before{content:"" counter(lst-ctn-kix_ixtk3xu5n7qn-7,lower-
+latin) ". "}ul.lst-kix_4v4tuo10gdxg-0{list-style-type:none}.lst-kix_4vw5dpxrimee-6>li:before{content:"\0025cf  "}ul.lst-kix_4v4tuo10gdxg-1{list-style-type:none}.lst-kix_qkescwycupop-2>li:before{content:"\0025a0  "}.lst-kix_4vw5dpxrimee-4>li:before{content:"\0025cb  "}.lst-kix_4vw5dpxrimee-8>li:before{content:"\0025a0  "}.lst-kix_c6mggzy9bkhi-3>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-3,decimal) ". "}.lst-kix_c6mggzy9bkhi-7>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-7,lower-latin) ". "}ol.lst-kix_lx3h5q6cjds-7.start{counter-reset:lst-ctn-kix_lx3h5q6cjds-7 0}ul.lst-kix_4v4tuo10gdxg-8{list-style-type:none}.lst-kix_4vw5dpxrimee-2>li:before{content:"\0025a0  "}ul.lst-kix_4v4tuo10gdxg-6{list-style-type:none}ul.lst-kix_4v4tuo10gdxg-7{list-style-type:none}ul.lst-kix_4v4tuo10gdxg-4{list-style-type:none}ul.lst-kix_4v4tuo10gdxg-5{list-style-type:none}.lst-kix_qkescwycupop-4>li:before{content:"\0025cb  "}ul.lst-kix_4v4tuo10gdxg-2{list-style-type:none}.lst-kix_c6mggzy9bkhi-1>li:before{content:"\0025cb  "}ul.lst-kix_4v4tuo10gdxg-3{list-style-type:none}.lst-kix_9dbpnvhyro1-7>li:before{content:"\0025cb  "}.lst-kix_lx3h5q6cjds-6>li{counter-increment:lst-ctn-kix_lx3h5q6cjds-6}.lst-kix_lx3h5q6cjds-6>li:before{content:"" counter(lst-ctn-kix_lx3h5q6cjds-6,decimal) ". "}.lst-kix_4vw5dpxrimee-0>li:before{content:"\0025cf  "}.lst-kix_c6mggzy9bkhi-3>li{counter-increment:lst-ctn-kix_c6mggzy9bkhi-3}.lst-kix_ixtk3xu5n7qn-0>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-0}.lst-kix_lx3h5q6cjds-4>li:before{content:"" counter(lst-ctn-kix_lx3h5q6cjds-4,lower-latin) ". "}.lst-kix_qkescwycupop-0>li:before{content:"\0025cf  "}.lst-kix_ixtk3xu5n7qn-6>li{counter-increment:lst-ctn-kix_ixtk3xu5n7qn-6}.lst-kix_lx3h5q6cjds-0>li:before{content:"\0025cf  "}.lst-kix_lx3h5q6cjds-2>li:before{content:"" counter(lst-ctn-kix_lx3h5q6cjds-2,lower-roman) ". "}.lst-kix_4v4tuo10gdxg-8>li:before{content:"\0025a0  "}.lst-kix_4v4tuo10gdxg-6>li:before{content:"\0025cf  "}.lst-kix_4v4tuo10gdxg-2>li:before{content:"\0025a0  "}.lst-kix_4v4tuo10gdxg-4>li:before{content:"\0025cb  "}.lst-kix_4v4tuo10gdxg-0>li:before{content:"\0025cf  "}.lst-kix_c6mggzy9bkhi-5>li:before{content:"" counter(lst-ctn-kix_c6mggzy9bkhi-5,lower-roman) ". "}ol.lst-kix_lx3h5q6cjds-6.start{counter-reset:lst-ctn-kix_lx3h5q6cjds-6 0}ol{margin:0;padding:0}table td,table th{padding:0}.c0{margin-left:36pt;orphans:2;widows:2;padding-left:0pt}.c21{padding-top:0pt;padding-bottom:0pt;line-height:1.15;text-align:left}
+    .c22{background-color:#ffffff;max-width:511.2pt;padding:36pt 50.4pt 36pt 50.4pt}.c5{background-color:#ffffff;font-size:9pt;color:#333333}.c1{vertical-align:sub;font-family:"Times New Roman";font-style:italic}.c14{margin-left:72pt;padding-left:0pt}.c16{background-color:#ffffff;color:#121212}.c4{orphans:2;widows:2}.c17{padding:0;margin:0}.c7{color:inherit;text-decoration:inherit}.c2{color:#1155cc;text-decoration:underline}.c18{padding-top:14pt;padding-bottom:4pt}.c20{color:#000000}.c19{font-size:10pt}.c12{font-weight:bold}.c13{font-size:12pt}.c23{text-align:center}.c3{font-style:italic}.c8{page-break-after:avoid}.c24{text-decoration:underline}.c10{font-family:"Times New Roman"}.c11{height:11pt}.c9{font-size:9pt}.c6{vertical-align:sub}.c15{vertical-align:super}.title{padding-top:0pt;color:#000000;font-size:26pt;padding-bottom:3pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}.subtitle{padding-top:0pt;color:#666666;font-size:15pt;padding-bottom:16pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}li{color:#000000;font-size:11pt;font-family:"Arial"}p{margin:0;color:#000000;font-size:11pt;font-family:"Arial"}
+
+    h1{padding-top:14pt;color:#000000;text-decoration:underline;font-size:18pt;padding-bottom:3pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}
+    h2{padding-top:12pt;color:#000000;font-weight:bold;font-size:14pt;padding-bottom:0pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}
+    h3{padding-top:6pt;color:#434343;font-weight:bold;font-size:13pt;padding-bottom:0pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}
+    h4{padding-top:14pt;color:#666666;font-size:12pt;padding-bottom:4pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}
+    h5{padding-top:12pt;color:#666666;font-size:11pt;padding-bottom:4pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}
+    h6{padding-top:12pt;color:#666666;font-size:11pt;padding-bottom:4pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;font-style:italic;orphans:2;widows:2;text-align:left}
+    h1Top{padding-top:0pt;color:#000000;text-decoration:underline;font-size:18pt;padding-bottom:3pt;font-family:"Arial";line-height:1.15;page-break-after:avoid;orphans:2;widows:2;text-align:left}
+
+</style> <title>twocolumns</title>
+  </head>
+  <body>
+    <div  id="includeNav"> </div>
+    <div class="c22">
+    <div  id="container">
+      <div  style="width: 199px;"  id="navbar"><span  style="font-weight: bold;"><span
+             style="font-family: Arial;"><span
+               class="c12"><a
+                 href="#content">Introduction</a><br>
+            </span><span>&nbsp;</span><br>
+            <a  href="#h.59lv7l35vmfq"><span  class="c12">About traditional
+                metrics</span></a><br>
+            <span>&nbsp;<br>
+              <a  href="#h.xnwbiv8sjyzq">A</a></span><span  class="c12"><a  href="#h.xnwbiv8sjyzq">bout
+                GR metrics</a><br>
+              <br>
+            </span><span  class="c12"><a  href="#h.jxm7uvdes7b1">Exploration
+                tool</a><br>
+              <br>
+            </span><a  href="#h.nmbmnok8t8li"><span  class="c12">Online GR
+                calculator</span></a></span></span>
+        <ol  class="c17 lst-kix_c6mggzy9bkhi-0"  start="2">
+        </ol>
+        <span  style="font-weight: bold;"><span  style="font-family: Arial;"> </span></span>
+        <ul  class="c17 lst-kix_c6mggzy9bkhi-1 start">
+        </ul>
+        <span  style="font-weight: bold;"><span  style="font-family: Arial;"> </span></span>
+        <p  class="c4 c11"><span></span></p>
+        <h1  class="c4 c8"  id="h.lvf007a1bk8u"> </h1>
+      </div>
+      <div  style="width: 849px; margin-left: 224.633px;"  id="content">
+        <div> <h1top> <span  style="font-weight: bold; font-family: Arial;">Introduction</span>
+          </h1top> </div>
+        <p  class="c4 c11"><span></span></p>
+        <p  style="width: 871px; margin-left: -2px;"  class="c4"><span>Drug
+            sensitivity and resistance are quantified using </span><span  class="c3">IC</span><span
+             class="c3 c6">50</span><span>&nbsp;or
+            </span><span  class="c3">E</span><span  class="c3 c6">max</span><span>&nbsp;</span><span>values</span><span>,
+            but these metrics suffer from a fundamental flaw when applied to
+            growing cells: they are highly sensitive to the number of divisions
+            that take place over the course of a response assay (see the
+            exploration tool below). Division rate varies across cell lines and
+            experimental conditions. The dependency of </span><span  class="c3">IC</span><span
+             class="c3 c6">50</span><span>&nbsp;and
+            </span><span  class="c3">E</span><span  class="c3 c6">max</span><span>&nbsp;on
+            division rate creates artefactual correlations between genotype and
+            drug sensitivity while obscuring important biological insights and
+            interfering with biomarker discovery. To address this, we derived
+            alternative drug response metrics that are insensitive to division
+            number. These metrics are based on </span><span>estimating growth
+            rate inhibition (GR)</span><span>&nbsp;in the presence of a drug
+            (relative to an untreated control) using endpoint or time-course
+            assays. The latter provides a direct measure of phenomena such as
+            adaptive drug resistance. Theory and experiments published in </span><span>Hafner
+            et al. </span><span>(2016)</span><span>&nbsp;show that </span><span
+             class="c3">GR</span><span
+             class="c3 c6">50</span><span>&nbsp;and
+            </span><span  class="c3">GR</span><span  class="c3 c6">max</span><span
+             class="c3">&nbsp;</span><span>are
+            superior to </span><span  class="c3">IC</span><span  class="c3 c6">50</span><span>&nbsp;and
+            </span><span  class="c3">E</span><span  class="c3 c6">max</span><span>&nbsp;for
+            assessing the effects of drugs on dividing cells. Moreover, adopting
+            GR metrics requires only modest changes in experimental protocols.
+            GR metrics should improve the use of drugs to identify response
+            biomarkers, study mechanisms of cell signaling and growth and
+            identify drugs effective on specific patient-derived tumor cells.
+            Through this website we provide an </span><span>online tool</span><span>&nbsp;to
+            calculate </span><span>GR metrics from user-provided data. </span><span>Scripts
+            are also available on </span><span>GitHub</span><span>.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4 c23"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 661.30px; height: 260.70px;"><img
+               alt="Screen Shot 2016-03-25 at 2.43.16 PM.png"
+               src="images/image03.png"
+               style="width: 661.30px; height: 260.70px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span  class="c9 c12">Exploration Tool.</span><span  class="c9">&nbsp;This
+            interactive model of drug response illustrates the dependency of
+            relative cell count and </span><span  class="c3 c9">IC</span><span
+             class="c3 c9 c6">50</span><span
+             class="c3 c9">/E</span><span
+             class="c3 c9 c6">max</span><span
+             class="c9">&nbsp;metrics
+            on cell division time. Adjust the sliders to alter the model
+            parameters, or select one of buttons to display the output of the
+            model for a defined drug response profile (cytostatic, partial
+            cytostatic, or cytotoxic). (left) Normalized cell count over time at
+            different concentrations of drug; (middle) the resulting IC curve
+            and IC metrics; (right) the resulting GR curve and GR metrics.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>On this website you will find:</span></p>
+        <ul  class="c17 lst-kix_4v4tuo10gdxg-0 start">
+          <li  class="c0"><span>a discussion of </span><span>traditional
+              metrics based on relative cell count</span><span>&nbsp;</span></li>
+          <li  class="c0"><span>a discussion of the new metrics based on </span><span>normalized
+              growth rate inhibition (GR)</span><span>&nbsp;</span></li>
+          <li  class="c0"><span>instructions for calculating GR metrics using
+              our </span><span>online calculator</span></li>
+          <li  class="c0"><span>interactive tools for browsing </span><span>LINCS
+              dose-response datasets</span><span>&nbsp;that were evaluated using
+              GR metrics</span></li>
+        </ul>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>Additional information about calculating GR metrics
+            can be found in the tutorial on the</span><span><a  class="c7"  href="https://www.google.com/url?q=https://github.com/sorgerlab/gr50_tools/blob/master/GR_tools_tutorial.pdf&amp;sa=D&amp;ust=1460076611314000&amp;usg=AFQjCNH7y-NnNXkkVmoLzsZWw_VwDFZhnA">&nbsp;</a></span><span
+             class="c2"><a
+               class="c7"
+               href="https://www.google.com/url?q=https://github.com/sorgerlab/gr50_tools/blob/master/GR_tools_tutorial.pdf&amp;sa=D&amp;ust=1460076611315000&amp;usg=AFQjCNH4JInJkecyzbUj9Wkz7u8ofgvLhw">Sorger
+              lab GR50 Tools Git repository</a></span><span>. Applications of GR
+            metrics are further discussed in </span><span>Hafner et al. (2016)</span><span>.
+          </span><span>Please cite this paper for all applications of GR metrics
+            and/or this online calculator.</span></p>
+        <p  class="c4"><span>&nbsp;</span></p>
+        <h3  class="c4 c8"  id="h.ju4t6rbvcpw1"><span>Funding Sources</span></h3>
+        <p  class="c4"><span>The GR metrics model and the associated
+            computational scripts were developed by members of the Sorger lab at
+            the Harvard Medical School (HMS) LINCS Center, </span><span  class="c16">which
+            is funded by NIH grant U54 HL127365. </span><span>The online GR
+            tools were developed by LINCS-BD2K </span><span  class="c16"></span><span
+             class="c16">Data
+            Coordination and Integration center, which is funded by NIH grant
+            U54HL127624,</span><span> </span><span  class="c16">in
+            collaboration with the HMS LINCS Center.</span></p>
+        <h3  class="c4 c8"  id="h.cz4qiafkw425"><span>References</span></h3>
+        <p  class="c4"><span>1. Hafner, M., Niepel, M., Chung, M., and Sorger,
+            P.K. (in press) Metrics of drug sensitivity and resistance based on
+            growth rate inhibition correct for the confounding effects of
+            variable division rates. </span><span  class="c3">Nat Methods</span><span>.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>-----</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <h1  class="c4 c8"  id="h.59lv7l35vmfq"><span>About traditional metrics</span></h1>
+        <p  class="c4"><span>Commonly, relative cell count at the end of
+            treatment is used to assess drug response. Across a range of
+            concentrations, the measured cell coun</span><span>t</span><span>&nbsp;or
+            a surrogate of it (e.g. measurement of ATP using CellTiter-Glo®) is
+            normalized to the cell count of DMSO-treated controls grown on the
+            same plate under the same conditions. For each condition
+            (combination of cell line, drug, and drug concentration), we define
+            the relative cell count as </span><span  class="c3 c10">x(c)/x</span><span
+             class="c1">ctrl</span><span>,
+            where </span><span  class="c3 c10">x(c)</span><span>&nbsp;is the
+            count in the presence of drug and </span><span  class="c3 c10">x</span><span
+             class="c1">ctrl</span><span>&nbsp;is
+            the 50%-trimmed mean of the count for control cells. Based on a
+            sigmoidal curve fitted to the relative cell count across different
+            concentrations, one can define:</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <ul  class="c17 lst-kix_qnsw2cr2b80j-0 start">
+          <li  class="c0"><span  class="c3">IC</span><span  class="c3 c6">50</span><span>&nbsp;(50%
+              relative cell count), which is the most commonly used metric but
+              one that can only be defined if the relative cell count decreases
+              during the assay to </span><span>below</span><span>&nbsp;50% of
+              the starting value;</span></li>
+          <li  class="c0"><span  class="c3">EC</span><span  class="c3 c6">50</span><span>&nbsp;(half-point
+              of the sigmoidal curve);</span></li>
+          <li  class="c0"><span  class="c3">E</span><span  class="c3 c6">inf</span><span>&nbsp;(the
+              asymptotic efficacy), which differs from </span><span  class="c3">E</span><span
+               class="c3 c6">max</span><span>&nbsp;(the
+              maximal measured efficacy); and</span></li>
+          <li  class="c0"><span  class="c3">AUC </span><span>(area under, or
+              over, the curve), which captures both </span><span  class="c3">IC</span><span
+               class="c3 c6">50</span><span>&nbsp;and
+              </span><span  class="c3">E</span><span  class="c3 c6">max</span><span>&nbsp;to
+              some extent and is more robust to experimental noise than other
+              metrics.</span></li>
+        </ul>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>More details on dose-response assays and
+            traditional metrics can be found in</span><span>&nbsp;Sebaugh et al.
+            (2010).</span><span>&nbsp;</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4 c23"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 536.99px; height: 249.50px;"><img
+               alt=""
+               src="images/image07.png"
+               style="width: 536.99px; height: 249.50px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span  class="c12 c9">Examples of dose-response curves
+            based on relative cell count.</span><span  class="c9">&nbsp;In the
+            first example (left), a strong drug response results in an </span><span
+             class="c3 c9">E</span><span
+             class="c3 c9 c6">inf</span><span
+             class="c3 c9">&nbsp;</span><span
+             class="c9">close
+            to 0 and a well-defined </span><span  class="c3 c9">IC</span><span
+             class="c3 c9 c6">50</span><span
+             class="c9">.
+            In the second (right), a partial response results in an </span><span
+             class="c3 c9">E</span><span
+             class="c3 c9 c6">inf</span><span
+             class="c9">&nbsp;above
+            0.5 and an undefined </span><span  class="c3 c9">IC</span><span  class="c3 c9 c6">50</span><span
+             class="c9">.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>-----</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <h1  class="c4 c8"  id="h.xnwbiv8sjyzq"><span>About GR metrics</span></h1>
+        <p  class="c4"><span>As an alternative to traditional metrics, we
+            propose to use GR metrics, which are based on inhibition of the
+            growth rate over the course of the assay and are independent of the
+            division rate of the assayed cell lines.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>Growth can be estimated at different concentrations
+            based on the cell count at the time of treatment (</span><span  class="c3">x</span><span
+             class="c3 c6">0</span><span>),
+            the cell count in the untreated control (</span><span  class="c3">x</span><span
+             class="c3 c6">ctrl</span><span>),
+            and the cell count after treatment at concentration </span><span  class="c3">c</span><span>&nbsp;(</span><span
+             class="c3">x(c)</span><span>):
+            </span></p>
+        <p  class="c4"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 415.00px; height: 98.00px;"><img
+               alt=""
+               src="images/image04.png"
+               style="width: 415.00px; height: 98.00px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span>This equation assumes exponential growth and
+            constant growth inhibition by the drug. Many phenomena such as drug
+            efflux, homeostasis and adaptation can result in non-exponential
+            growth. In such cases, time course assays and time-dependent GR
+            values are better suited to evaluating drug response. Given
+            measurements of cell count at different time points, time-dependent
+            GR values are defined as:</span></p>
+        <p  class="c4"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 653.00px; height: 111.00px;"><img
+               alt=""
+               src="images/image10.png"
+               style="width: 653.00px; height: 111.00px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 681.60px; height: 218.67px;"><img
+               alt=""
+               src="images/image02.png"
+               style="width: 681.60px; height: 218.67px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span  class="c5 c12">Different methods can be used to
+            evaluate GR values: </span><span  class="c5">(left) Conceptual
+            approach based on growth rates (</span><span  class="c5 c3 c10">k</span><span
+             class="c5 c1">0</span><span
+             class="c5">&nbsp;and</span><span
+             class="c5 c3 c10">&nbsp;k(c)</span><span
+             class="c5">);
+            (middle) fixed-interval approach based on cell number at the start
+            (x0) and end of the experiment (</span><span  class="c5 c3 c10">x</span><span
+             class="c5 c1">ctrl</span><span
+             class="c5">&nbsp;and
+            </span><span  class="c5 c3 c10">x(c)</span><span  class="c5">); and
+            (right) time-dependent approach based on cell count before and after
+            a time interval </span><span  class="c5 c3 c10">2 × ??t (x(c, t ±
+            ??t))</span><span  class="c5">.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span  class="c3">GR(c) </span><span>values (or
+            time-dependent </span><span  class="c3">GR(c,t)</span><span>&nbsp;values
+            at a given time </span><span  class="c3">t</span><span>)</span><span>&nbsp;across
+            a range of concentrations are fitted to a sigmoidal curve:</span></p>
+        <p  class="c4"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 634.30px; height: 97.66px;"><img
+               alt=""
+               src="images/image05.png"
+               style="width: 634.30px; height: 97.66px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span>where the fitted parameters are:</span></p>
+        <ul  class="c17 lst-kix_cqitspa334da-0 start">
+          <li  class="c0"><span  class="c12 c3">GR</span><span  class="c12 c3 c6">inf</span><span>:
+              the effect of the drug at infinite concentration (</span><span  class="c3">GR</span><span
+               class="c3 c6">inf</span><span
+               class="c3">&nbsp;=
+              GR(c??)</span><span>). </span><span  class="c3">GR</span><span  class="c3 c6">inf</span><span>&nbsp;lies
+              between -1 and 1. Negative values correspond to cytotoxic
+              responses (i.e., induction of cell death), and a value of 0
+              corresponds to a fully cytostatic response.</span></li>
+          <li  class="c0"><span  class="c12 c3">h</span><span  class="c12 c3 c6">GR</span><span>:
+              the Hill coefficient of the fitted curve, which reflects how steep
+              the dose-response curve is. In practice, we typically constrain </span><span
+               class="c3">h</span><span
+               class="c3 c6">GR</span><span>&nbsp;to
+              a value between 0.1 and 5.</span></li>
+          <li  class="c0"><span  class="c12 c3">GEC</span><span  class="c12 c3 c6">50</span><span>:
+              the concentration at half-maximal effect. To avoid artefacts in
+              curve fitting we constrain </span><span  class="c3">GEC</span><span
+               class="c3 c6">50</span><span>&nbsp;to
+              be within two orders of magnitude higher and lower than the
+              experimentally tested concentration range. (In practice, this is
+              usually about 10</span><span  class="c15">-7</span><span>&nbsp;to
+              10</span><span  class="c15">3</span><span>&nbsp;?M.)</span></li>
+        </ul>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>If the fit of the curve is not significantly better
+            than that of a flat curve (i.e., </span><span  class="c3">GR(c) ?
+            GR</span><span  class="c3 c6">inf</span><span>) based on an F-test
+            with cutoff of p = 0.05, the response is considered flat, and the
+            parameter </span><span  class="c3">GEC</span><span  class="c3 c6">50</span><span>&nbsp;is
+            set to 0.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>If time-dependent </span><span  class="c3">GR(c,t)</span><span>&nbsp;values
+            are used, GR metrics can be estimated at a different time points to
+            study how sensitivity evolves over time.</span></p>
+        <h3  class="c4 c18"  id="h.e6m8nf1dasrb"><span  class="c20">Inferred
+            drug response metrics</span></h3>
+        <p  class="c4"><span>The </span><span  class="c3">GR</span><span  class="c3 c6">50</span><span>&nbsp;value
+            is the concentration of drug at which </span><span  class="c3">GR</span><span>(</span><span
+             class="c3">c
+            = GR</span><span  class="c3 c6">50</span><span>)</span><span  class="c3">&nbsp;=
+            0.5</span><span>. If the value for </span><span  class="c3">GR</span><span
+             class="c3 c6">inf</span><span>&nbsp;is
+            above 0.5, the </span><span  class="c3">GR</span><span  class="c3 c6">50</span><span>&nbsp;value
+            is not defined and is therefore set to </span><span  class="c3">+?</span><span>.
+            By extension, other thresholds can be defined in a similar manner.
+            For example, </span><span  class="c3">GR</span><span  class="c3 c6">100</span><span>&nbsp;corresponds
+            to the concentration at which a drug is fully cytostatic: </span><span
+             class="c3">GR</span><span>(</span><span
+             class="c3">c
+            = GR</span><span  class="c3 c6">100</span><span>)</span><span  class="c3">&nbsp;=
+            0</span><span>.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span  class="c3">GR</span><span  class="c3 c6">max </span><span>is
+            the maximum effect of the drug at the highest tested concentration.
+            It lies between -1 and 1. A value of 0 corresponds to a fully
+            cytostatic response, and negative values correspond to a cytotoxic
+            response. </span><span  class="c3">GR</span><span  class="c3 c6">max</span><span>&nbsp;can
+            be estimated from the fitted curve or obtained directly from
+            experimental data. (We often do the later.)</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>For time course data, all metrics are evaluated at
+            each time point individually.</span></p>
+        <h3  class="c4 c18"  id="h.1pf15leifx2n"><span  class="c20">Area under
+            the curve and over the curve (GR</span><span  class="c6 c20">AOC</span><span
+             class="c20">)</span></h3>
+        <p  class="c4"><span>Another common metric for quantifying dose response
+            is the area under the response curve (AUC), which is based on
+            integrating the dose-response curve over the range of tested
+            concentrations. In the case of </span><span  class="c3">GR</span><span>&nbsp;curves,
+            which can have negative values, it is more intuitive to use the area
+            over the curve:</span></p>
+        <p  class="c4"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 681.60px; height: 61.33px;"><img
+               alt=""
+               src="images/image08.png"
+               style="width: 681.60px; height: 61.33px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span>where </span><span  class="c3">GR</span><span>(</span><span
+             class="c3">c</span><span
+             class="c3 c6">i</span><span>)
+            are measured GR values at discrete concentrations </span><span  class="c3">c</span><span
+             class="c3 c6">i</span><span>.
+          </span><span  class="c3">GR</span><span  class="c3 c6">AOC</span><span
+             class="c3">&nbsp;</span><span>has
+            the benefit that, in the case of no response, it has a value of 0.
+            It is important to note that </span><span  class="c3">GR</span><span
+             class="c3 c6">AOC</span><span>&nbsp;values
+            (like conventional AUC) can only be used to compare responses
+            evaluated across the same drug concentration range.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>The </span><span  class="c3">GR</span><span  class="c3 c6">AOC</span><span>&nbsp;value
+            captures variation in potency and efficacy at the same time. The
+            calculation of </span><span  class="c3">GR</span><span  class="c3 c6">AOC</span><span>&nbsp;at
+            discrete (experimentally determined) concentrations has the
+            advantage that it does not require curve fitting and is therefore
+            free of fitting artifacts. This is especially useful for assays
+            where fewer than five concentrations are measured and curve fitting
+            is unreliable. </span><span  class="c3">GR</span><span  class="c3 c6">AOC</span><span>&nbsp;values
+            are also more robust to experimental noise than metrics derived from
+            curve fitting; e.g. </span><span  class="c3">GR</span><span  class="c3 c6">max</span><span>&nbsp;is
+            particularly sensitive to outlier values when directly obtained from
+            data.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 642.00px; height: 612.00px;"><img
+               alt=""
+               src="images/image01.png"
+               style="width: 642.00px; height: 612.00px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span  class="c5 c12">Examples of dose-response curves
+            and fits.</span><span  class="c5">&nbsp;The upper panels depict
+            strong responses to drugs for which all sensitivity parameters can
+            be defined. In contrast, in the case shown in the lower left panel,
+          </span><span  class="c5 c3">GR</span><span  class="c5 c3 c6">inf</span><span
+             class="c5">&nbsp;is
+            above 0.5, so </span><span  class="c5 c3">GR</span><span  class="c5 c3 c6">50</span><span
+             class="c5">&nbsp;cannot
+            be defined (and thus is set to ?). In the case shown in the lower
+            right panel, the response is weak and noisy, so the sigmoidal fit is
+            not significant, and a straight flat line is fitted. Nevertheless,
+            only </span><span  class="c5 c3">GR</span><span  class="c5 c3 c6">AUC</span><span
+             class="c5">&nbsp;and
+            </span><span  class="c5 c3">GR</span><span  class="c5 c3 c6">inf</span><span
+             class="c5">&nbsp;can
+            be defined.</span></p>
+        <p  class="c4"><span  class="c19">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
+        <h1  class="c4 c8"  id="h.jxm7uvdes7b1"><span>Exploration Tool</span></h1>
+        <p  class="c4"><span>We used computer simulation (see below) to model
+            drug response by three idealized cell lines having identical
+            sensitivity to a partial, or complete </span><span>cytostatic</span><span>&nbsp;drug
+            (i.e., a drug that arrests but does not kill cells), or a cytotoxic
+            drug (i.e., a drug that kills cells) and different division times (</span><span
+             class="c3">T</span><span
+             class="c3 c6">d</span><span>).
+            For example, the lower quartile, median, and upper quartile of the
+            division times for breast cancer cell lines has been reported as
+            1.8, 2.4, or 3.9 days, respectively (</span><span>Heiser et al.
+            (2012)</span><span>). These values are similar to those of NCI-60
+            cells. In a slow-dividing cell line (</span><span  class="c3">T</span><span
+             class="c3 c6">d</span><span>&nbsp;&gt;
+            3.9 d), the total number of cells does not double in a typical
+            three-day assay; thus </span><span  class="c3">E</span><span  class="c3 c6">max</span><span>&nbsp;?
+            0.5 and </span><span  class="c3">IC</span><span  class="c3 c6">50</span><span>&nbsp;are
+            undefined. In the case of the two faster-growing cell lines, </span><span
+             class="c3">IC</span><span
+             class="c3 c6">50</span><span>&nbsp;and
+            </span><span  class="c3">E</span><span  class="c3 c6">max</span><span>&nbsp;
+            values fall as division rate increases simply because cell number
+            (or CTG value) is normalized to a drug</span><span><span>-na�ve</span>
+            control in which cell number increases as division time falls. </span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4 c23"><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 661.30px; height: 260.70px;"><img
+               alt="Screen Shot 2016-03-25 at 2.43.16 PM.png"
+               src="images/image03.png"
+               style="width: 661.30px; height: 260.70px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span  class="c12 c9">Exploration Tool.</span><span  class="c9">&nbsp;This
+            interactive model of drug response illustrates the dependency of
+            relative cell count and </span><span  class="c3 c9">IC</span><span
+             class="c3 c9 c6">50</span><span
+             class="c3 c9">/E</span><span
+             class="c3 c9 c6">ma</span><span
+             class="c9 c6">x</span><span
+             class="c9">&nbsp;metrics
+            on cell division time. Adjust the sliders to alter the model
+            parameters, or select one of buttons to display the output of the
+            model for a defined drug response profile (cytostatic, partial
+            cytostatic, or cytotoxic). (left) Normalized cell count over time at
+            different concentrations of drug; (middle) the resulting IC curve
+            and IC metrics; (right) the resulting GR curve and GR metrics.</span></p>
+        <p  class="c4 c11"><span  class="c9"></span></p>
+        <p  class="c4 c11"><span  class="c9"></span></p>
+        <p  class="c4"><span>To simulate the effect of division time on </span><span
+             class="c3">GR</span><span>&nbsp;and
+            conventional drug-response metrics under different assumptions about
+            the degree of cytostasis or cell killing, we developed a theoretical
+            model of drug response. To the first approximation, cell growth can
+            be considered exponential, with drugs either decreasing the division
+            rate or killing cells in a cell cycle-dependent manner:</span></p>
+        <p  class="c4"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+            &nbsp; &nbsp; &nbsp;
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 681.60px; height: 142.67px;"><img
+               alt=""
+               src="images/image06.png"
+               style="width: 681.6px; height: 142.67px; margin-left: 0px; margin-top: 0px; transform: rotate(0rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span>where </span><span  class="c3">x</span><span>&nbsp;is
+            the cell count, </span><span  class="c3">k</span><span>&nbsp;is the
+            untreated growth rate (per day), </span><span  class="c3">c</span><span>&nbsp;is
+            the drug concentration, </span><span  class="c3">S</span><span  class="c3 c6">M</span><span>&nbsp;is
+            the maximal inhibitory effect,</span><span  class="c3">&nbsp;SC</span><span
+             class="c3 c6">50</span><span>&nbsp;is
+            the concentration at half-maximal effect of drug, and</span><span  class="c3">&nbsp;h</span><span>&nbsp;is
+            the Hill coefficient. The growth rate </span><span  class="c3 c10">k</span><span>&nbsp;corresponds
+            to the division rate </span><span  class="c3 c10">k</span><span  class="c1">0</span><span>&nbsp;as
+            </span><span  class="c3 c10">k </span><span  class="c10">= ln(2)?</span><span
+             class="c3 c10">k</span><span
+             class="c1">0</span><span
+             class="c10">&nbsp;=
+            ln(2)/</span><span  class="c3 c10">T</span><span  class="c1">d</span><span>,
+            where </span><span  class="c3 c10">T</span><span  class="c1">d</span><span>&nbsp;is
+            the division time. </span><span  class="c3">S</span><span  class="c3 c6">M</span><span>&nbsp;can
+            be larger than 1 to account for drugs inducing cell death at a
+            specific phase of the cell cycle. </span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>Integrating these equations for an assay of </span><span
+             class="c3">t</span><span>&nbsp;days
+            yields the cell count at concentration </span><span  class="c3">c</span><span>:</span></p>
+        <p  class="c4"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+            &nbsp; &nbsp; &nbsp;
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 681.60px; height: 118.67px;"><img
+               alt=""
+               src="images/image11.png"
+               style="width: 681.60px; height: 118.67px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span>where </span><span  class="c3 c10">x</span><span  class="c1">0</span><span
+             class="c10">&nbsp;=
+            </span><span  class="c3 c10">x</span><span  class="c10">(</span><span
+             class="c3 c10">t</span><span
+             class="c10">&nbsp;=
+            </span><span  class="c3 c10">0</span><span  class="c10">)</span><span>&nbsp;is
+            the cell number at the time of treatment. Thus, the relative cell
+            count is:</span></p>
+        <p  class="c4"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+            &nbsp; &nbsp; &nbsp;
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span  class="c10">&nbsp;</span><span>&nbsp;
+            </span><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 681.60px; height: 80.00px;"><img
+               alt=""
+               src="images/image00.png"
+               style="width: 681.60px; height: 80.00px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span><span>&nbsp;where
+            </span><span  class="c3">x</span><span  class="c3 c6">ctrl</span><span>&nbsp;</span><span
+             class="c3">?
+            x(0)</span><span>, and the normalized growth rate inhibition (</span><span
+             class="c3">GR</span><span>&nbsp;value)
+            is:</span></p>
+        <p  class="c4"><span>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+            &nbsp; &nbsp; &nbsp;
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span  style="overflow: hidden; display: inline-block; margin: 0.00px 0.00px; border: 0.00px solid #000000; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px); width: 681.60px; height: 85.33px;"><img
+               alt=""
+               src="images/image09.png"
+               style="width: 681.60px; height: 85.33px; margin-left: 0.00px; margin-top: 0.00px; transform: rotate(0.00rad) translateZ(0px); -webkit-transform: rotate(0.00rad) translateZ(0px);"
+               title=""></span></p>
+        <p  class="c4"><span  class="c13">This equation for </span><span  class="c13 c3">GR(c)</span><span
+             class="c13">&nbsp;is
+            independent of the length of the assay </span><span  class="c3 c10 c13">t</span><span
+             class="c13">&nbsp;and
+            the untreated growth rate </span><span  class="c13 c3">k</span><span
+             class="c13">,</span><span
+             class="c13 c3">&nbsp;</span><span
+             class="c13">and,
+            thus, the metrics </span><span  class="c13 c3">GR</span><span  class="c13 c3 c6">50</span><span
+             class="c13">,
+          </span><span  class="c13 c3">GR</span><span  class="c13 c3 c6">max</span><span
+             class="c13">,
+          </span><span  class="c13 c3">GR</span><span  class="c13 c3 c6">AOC</span><span
+             class="c13">,
+            and </span><span  class="c13 c3">h</span><span  class="c13 c3 c6">GR</span><span
+             class="c13">&nbsp;are
+            also independent of </span><span  class="c13 c3 c10">t</span><span
+             class="c13">&nbsp;and
+            </span><span  class="c13 c3 c10">k</span><span  class="c13">. </span></p>
+        <p  class="c4 c11"><span  class="c9"></span></p>
+        <p  class="c4 c11"><span  class="c9"></span></p>
+        <p  class="c4"><span>-----</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <h1  class="c4 c8"  id="h.nmbmnok8t8li"><span>Online GR Calculator</span></h1>
+        <h2  class="c4 c8"  id="h.jtb73mccvg4m"><span>About the GR calculator</span></h2>
+        <p  class="c4"><span>Through the accompanying webpages we provide online
+            tools that allow users to upload their own endpoint data, calculate
+            the corresponding GR values and GR metrics, and compare their
+            results across the variables in the assay, such as cell line, agent
+            (drug), time and replicate. Matlab and Python scripts for
+            calculating GR value and GR metrics also are available through the</span><span><a
+               class="c7"
+               href="https://www.google.com/url?q=https://github.com/sorgerlab/gr50_tools&amp;sa=D&amp;ust=1460076611371000&amp;usg=AFQjCNEWelSK5trMTpTdD2AVGUr2P4Fb1g">&nbsp;</a></span><span
+             class="c2"><a
+               class="c7"
+               href="https://www.google.com/url?q=https://github.com/sorgerlab/gr50_tools&amp;sa=D&amp;ust=1460076611371000&amp;usg=AFQjCNEWelSK5trMTpTdD2AVGUr2P4Fb1g">Sorger
+              lab GR50 Tools Git repository</a></span><span>.</span></p>
+        <h2  class="c4 c8"  id="h.7uaaomtim0py"><span>Input data:</span></h2>
+        <p  class="c4"><span>The input .tsv file(s) must have the following
+            column headers (first row of the file):</span></p>
+        <ul  class="c17 lst-kix_4vw5dpxrimee-0 start">
+          <li  class="c0"><span  class="c12">concentration</span><span>&nbsp;=
+              concentration of the perturbagen on which dose-response curves
+              will be evaluated</span></li>
+        </ul>
+        <ul  class="c17 lst-kix_9dbpnvhyro1-0 start">
+          <li  class="c0"><span  class="c12">cell count</span><span>&nbsp;in a
+              column labeled </span><span  class="c3">cell_count </span><span>=</span><span>&nbsp;the
+              measure of cell number (or a surrogate of cell number such as
+              CellTiter-Glo® staining) after treatment</span></li>
+          <li  class="c0"><span  class="c12">control cell count</span><span>&nbsp;in
+              a column labeled </span><span  class="c3">cell_count__ctrl</span><span>&nbsp;
+              = the measure of cell number in control (e.g. DMSO-treated) wells
+              from the same plate</span></li>
+          <li  class="c0"><span  class="c12">time 0 cell count</span><span>&nbsp;in
+              a column labeled </span><span  class="c3">cell_count__time0 </span><span>=
+              the measure of cell number in untreated wells grown in parallel
+              until the time of treatment</span></li>
+        </ul>
+        <p  class="c4"><span>&nbsp;</span></p>
+        <p  class="c4"><span>All other columns will be treated as additional key
+            variables (e.g. </span><span  class="c3">cell_line</span><span>, </span><span
+             class="c3">drug</span><span>,
+          </span><span  class="c3">time</span><span>, </span><span  class="c3">replicate</span><span>).</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <h2  class="c4 c8"  id="h.57wjmingbrln"><span>Calculated metrics: </span></h2>
+        <p  class="c4"><span>The following GR metrics are calculated: </span></p>
+        <ul  class="c17 lst-kix_jw98yuw3jje1-0 start">
+          <li  class="c0"><span  class="c3">GR</span><span  class="c3 c6">50</span><span>,
+              the concentration at which the effect reaches a GR value of 0.5
+              based on interpolation of the fitted curve.</span></li>
+          <li  class="c0"><span  class="c3">GR</span><span  class="c3 c6">inf</span><span
+               class="c3">&nbsp;</span><span>=
+            </span><span  class="c3">GR</span><span  class="c3">(c ? inf)</span><span>,
+              which reflects asymptotic drug efficacy.</span></li>
+          <li  class="c0"><span  class="c3">GR</span><span  class="c3 c6">max</span><span>,
+              the effect at the highest tested concentration. Note that </span><span
+               class="c3">GR</span><span
+               class="c3 c6">max</span><span>&nbsp;can
+              differ from </span><span  class="c3">GR</span><span  class="c3 c6">inf</span><span>&nbsp;if
+              the dose response does not reach its plateau value.</span></li>
+          <li  class="c0"><span  class="c3">GEC</span><span  class="c3 c6">50</span><span>,
+              the drug concentration at half-maximal effect, which reflects the
+              potency of the drug.</span></li>
+          <li  class="c0"><span  class="c3">h</span><span  class="c3 c6">GR</span><span>,
+              Hill coefficient of the sigmoidal curve, which reflects how steep
+              the dose-response curve is.</span></li>
+          <li  class="c0"><span  class="c3">GR</span><span  class="c3 c6">AOC</span><span>,
+              the area over the dose-response curve, which is the integral of </span><span
+               class="c3">1-GR(c)</span><span>&nbsp;over
+              the range of concentrations tested.</span></li>
+        </ul>
+        <p  class="c4"><span>&nbsp;</span></p>
+        <p  class="c4"><span>In addition, the online calculator reports the
+            r-squared of the fit and evaluates the significance of the sigmoidal
+            fit based on an F-test. Further information about these calculations
+            is available through our </span><span>GR tutorial<!--
+    span--><span>.</span></span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>The results of analysis of existing LINCS
+            dose-response datasets using the GR model are available in the </span><span
+             class="c3">LINCS
+            GR Data Browser</span><span>&nbsp;tab.</span></p>
+        <h2  class="c4 c8"  id="h.awowafiaa46j"><span>Analysis and visualization
+            tools:</span></h2>
+        <p  class="c4"><span>The following tabs allow users to analyze and
+            visualize their data and the calculated GR metrics.</span></p>
+        <p  class="c4 c11"><span  class="c12"></span></p>
+        <ul  class="c17 lst-kix_qkescwycupop-0 start">
+          <li  class="c0"><span  class="c12">Data Tables </span><span>displays
+              the</span><span>&nbsp;uploaded data and calculated GR values as
+              well as the inferred GR metrics. Data can be downloaded in .csv or
+              .tsv format.</span></li>
+          <li  class="c0"><span  class="c12">Dose Response by Condition </span><span>plots
+              the d</span><span>ata points and fitted dose-response curves for
+              each condition. If no specific conditions are selected, all data
+              will be overlaid on a single plot. To display a subset of the
+              data, select specific conditions to display (e.g. a specific cell
+              line or drug). Mousing over the plot displays the </span><span>GR
+              values</span><span>&nbsp;and the corresponding concentration.
+              Plots can be downloaded in a variety of image formats.</span></li>
+          <li  class="c0"><span  class="c12">Dose Response Grid </span><span>shows
+              the fitted </span><span>dose-response curves side by side and
+              grouped according to the selected variables. 'Selector variable'
+              and </span><span>'grid variable' define which plots are displayed</span><span>.
+              'Selector variable' also defines the variable displayed in the
+              selector box to the left of the plots.</span></li>
+          <li  class="c0"><span  class="c12">GR Metric Comparison </span><span>shows
+              a s</span><span>catter plot of the a given GR metric across
+              different conditions. Users can select which metric to plot
+              relative to which experimental variable. Mousing over the plot
+              displays the plotted GR metrics. Plots can be downloaded in a
+              variety of image formats.</span></li>
+        </ul>
+        <h2  class="c4 c8"  id="h.t551oewdm9gl"><span>Feedback</span></h2>
+        <p  class="c4"><span>We welcome </span><span>your feedback</span><span>&nbsp;on
+            all of these tools and resources.</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4"><span>&nbsp;</span></p>
+        <p  class="c4"><span>-----</span></p>
+        <p  class="c4 c11"><span></span></p>
+        <br>
+        <p  class="c4 c11"><span></span></p>
+        <p  class="c4 c11"><span></span></p>
+      </div>
+    </div>
+    </div> 
+  </body>
+</html>
