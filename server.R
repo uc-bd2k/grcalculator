@@ -256,7 +256,7 @@ shinyServer(function(input, output,session) {
     print(groupingColumns)
     print("groupingColumns")
     
-    tables <- GRfit(values$inData, groupingColumns, GRtable = 'both')
+    tables <- GRfit(values$inData, groupingColumns, GRtable = 'both', force = input$force, cap = input$cap)
     values$GR_table <- tables[[1]]
     #values$GR_table <- calculate_GR(values$inData,groupingColumns)
     values$GR_table_show <- values$GR_table
