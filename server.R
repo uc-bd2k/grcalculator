@@ -457,5 +457,8 @@ print(5)
     }
   })
 #================================================
-  
+  cancel.onSessionEnded <- session$onSessionEnded(function() {
+    graphics.off()
+    print('devices off')
+  })
 })
