@@ -13,6 +13,21 @@ source('functions/drawScatter.R', local = T)
 #source('functions/calculate_GR.R')
 #source('functions/logistic_fit_GR.R')
 source('functions/parseLabel.R')
+trim_mean = function(x, percent) {
+  x = x[!is.na(x)]
+  n = length(x)
+  k = n*(percent/100)/2
+  # round down if k is half an integer
+  if(round(k) != k & round(k*2) == k*2) {
+    lo = floor(k) + 1
+    hi = n - lo + 1
+  } else {
+    lo = round(k) + 1
+    hi = n - lo + 1
+  }
+  x = sort(x)[lo:hi]
+  return(mean(x))
+}
 
 shinyServer(function(input, output,session) {
   
@@ -90,15 +105,59 @@ shinyServer(function(input, output,session) {
       )
       values$case = "A"
     } else if(length(intersect(colnames(values$inData), c('concentration', 'cell_count'))) == 2) {
-      print('Input Case C')
-      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count'))
-      updateSelectizeInput(
-        session, 'groupingVars',
-        choices = colnames(values$inData)[-delete_cols],
-        selected = colnames(values$inData)[-delete_cols],
-        options = c()
-      )
-      values$case = "C"
+        print('Input Case C')
+        delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count'))
+        keys = colnames(values$inData)[-delete_cols]
+        time0 = values$inData[values$inData$time == 0, c(keys, 'cell_count')]
+        ctrl = values$inData[values$inData$concentration == 0 & values$inData$time > 0, c(keys, 'cell_count')]
+        data = values$inData[values$inData$concentration != 0 & values$inData$time > 0, ]
+        time0_keys = NULL
+        ctrl_keys = NULL
+        for(i in 1:length(keys)) {
+          time0_keys[i] = length(intersect(time0[[ keys[i] ]], data[[ keys[i] ]])) > 0
+          ctrl_keys[i] = length(intersect(ctrl[[ keys[i] ]], data[[ keys[i] ]])) > 0
+        }
+        ctrl_keys = keys[ctrl_keys]
+        time0_keys = keys[time0_keys]
+        
+        temp = ctrl[, ctrl_keys]
+        ctrl$key = apply(temp, 1, function(x) paste(x, collapse = ' '))
+        
+        temp = time0[, time0_keys]
+        time0$key = apply(temp, 1, function(x) paste(x, collapse = ' '))
+        
+        temp = data[, ctrl_keys]
+        data$key_ctrl = apply(temp, 1, function(x) paste(x, collapse = ' '))
+        
+        temp = data[, time0_keys]
+        data$key_time0 = apply(temp, 1, function(x) paste(x, collapse = ' '))
+        
+        data$cell_count__ctrl = NA
+        data$cell_count__time0 = NA
+        
+        for(key in unique(ctrl$key)) {
+          trimmed_mean = trim_mean(ctrl[ctrl$key == key,]$cell_count, 50)
+          data[data$key_ctrl == key, 'cell_count__ctrl'] = trimmed_mean
+        }
+        
+        for(key in unique(time0$key)) {
+          trimmed_mean = trim_mean(time0[time0$key == key,]$cell_count, 50)
+          data[data$key_time0 == key, 'cell_count__time0'] = trimmed_mean
+        }
+        
+        delete_cols = which(colnames(data) %in% c('key_ctrl', 'key_time0'))
+        data = data[, -delete_cols]
+        
+        row.names(data) = 1:dim(data)[1]
+        values$inData = data
+        delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))
+        updateSelectizeInput(
+          session, 'groupingVars',
+          choices = colnames(values$inData)[-delete_cols],
+          selected = colnames(values$inData)[-delete_cols],
+          options = c()
+        )
+        values$case = "A"
       } else {
         if(!is.null(getData())) {
             print("bad input")
@@ -319,7 +378,6 @@ print(2)
 
 print(3)      
       output$drc2<-drawDRC(input, values)
-      
 print(4)      
       output$ui <- renderUI({
         n <- length(input$groupingVars)
