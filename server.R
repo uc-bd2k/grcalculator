@@ -104,60 +104,16 @@ shinyServer(function(input, output,session) {
         options = c()
       )
       values$case = "A"
-    } else if(length(intersect(colnames(values$inData), c('concentration', 'cell_count'))) == 2) {
-        print('Input Case C')
-        delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count'))
-        keys = colnames(values$inData)[-delete_cols]
-        time0 = values$inData[values$inData$time == 0, c(keys, 'cell_count')]
-        ctrl = values$inData[values$inData$concentration == 0 & values$inData$time > 0, c(keys, 'cell_count')]
-        data = values$inData[values$inData$concentration != 0 & values$inData$time > 0, ]
-        time0_keys = NULL
-        ctrl_keys = NULL
-        for(i in 1:length(keys)) {
-          time0_keys[i] = length(intersect(time0[[ keys[i] ]], data[[ keys[i] ]])) > 0
-          ctrl_keys[i] = length(intersect(ctrl[[ keys[i] ]], data[[ keys[i] ]])) > 0
-        }
-        ctrl_keys = keys[ctrl_keys]
-        time0_keys = keys[time0_keys]
-        
-        temp = ctrl[, ctrl_keys]
-        ctrl$key = apply(temp, 1, function(x) paste(x, collapse = ' '))
-        
-        temp = time0[, time0_keys]
-        time0$key = apply(temp, 1, function(x) paste(x, collapse = ' '))
-        
-        temp = data[, ctrl_keys]
-        data$key_ctrl = apply(temp, 1, function(x) paste(x, collapse = ' '))
-        
-        temp = data[, time0_keys]
-        data$key_time0 = apply(temp, 1, function(x) paste(x, collapse = ' '))
-        
-        data$cell_count__ctrl = NA
-        data$cell_count__time0 = NA
-        
-        for(key in unique(ctrl$key)) {
-          trimmed_mean = trim_mean(ctrl[ctrl$key == key,]$cell_count, 50)
-          data[data$key_ctrl == key, 'cell_count__ctrl'] = trimmed_mean
-        }
-        
-        for(key in unique(time0$key)) {
-          trimmed_mean = trim_mean(time0[time0$key == key,]$cell_count, 50)
-          data[data$key_time0 == key, 'cell_count__time0'] = trimmed_mean
-        }
-        
-        delete_cols = which(colnames(data) %in% c('key_ctrl', 'key_time0'))
-        data = data[, -delete_cols]
-        
-        row.names(data) = 1:dim(data)[1]
-        values$inData = data
-        delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))
-        updateSelectizeInput(
-          session, 'groupingVars',
-          choices = colnames(values$inData)[-delete_cols],
-          selected = colnames(values$inData)[-delete_cols],
-          options = c()
-        )
-        values$case = "A"
+    } else if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'time'))) == 3) {
+      print('Input Case C')
+      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count'))
+      updateSelectizeInput(
+        session, 'groupingVars',
+        choices = colnames(values$inData)[-delete_cols],
+        selected = colnames(values$inData)[-delete_cols],
+        options = c()
+      )
+      values$case = "C"
       } else {
         if(!is.null(getData())) {
             print("bad input")
@@ -387,6 +343,11 @@ print(4)
             codeOutput <- paste("param_", input$groupingVars[i], sep="")
             verbatimTextOutput(codeOutput)
             drc_choices = sort(unique(subset(values$inData,select=c(input$groupingVars[i]))[,1])[[1]])
+            # Get rid of time = 0 for Case C
+            if(codeOutput == "param_time") {
+              delete_choice = which(drc_choices == 0)
+              drc_choices = drc_choices[-delete_choice]
+            }
             # Get rid of "-" for Case C
             delete_choice = which(drc_choices == '-')
             if(length(delete_choice) > 0) {
@@ -411,14 +372,23 @@ print(5)
       })
       
       observeEvent(input$pick_var, {
+        scatter_choices = unique(values$inData[[input$pick_var]])
+        delete_choice = which(scatter_choices == '-')
+        if(length(delete_choice) > 0) {
+          scatter_choices = scatter_choices[-delete_choice]
+        }
+        if(input$pick_var == "time") {
+          delete_choice = which(scatter_choices == 0)
+          scatter_choices = scatter_choices[-delete_choice]
+        }
         updateSelectInput(
           session, 'x_scatter',
-          choices = unique(values$inData[[input$pick_var]]),
+          choices = scatter_choices,
           selected = NULL
         )
         updateSelectizeInput(
           session, 'y_scatter',
-          choices = unique(values$inData[[input$pick_var]]),
+          choices = scatter_choices,
           selected = NULL
         )
         
@@ -513,8 +483,8 @@ print(5)
       observeEvent(input$plot_gr50grid, {
         output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
           input="",
-          xmin = min(log10(values$inData$concentration), na.rm = T),
-          xmax = max(log10(values$inData$concentration), na.rm = T),
+          xmin = min(log10(values$GR_table$concentration), na.rm = T),
+          xmax = max(log10(values$GR_table$concentration), na.rm = T),
 	  factors=c(paste(isolate(input$xgroupingVars),collapse = ' '), isolate(input$choiceVar)),
 	  toggle=0,
           {
