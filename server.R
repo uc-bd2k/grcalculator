@@ -13,21 +13,6 @@ source('functions/drawScatter.R', local = T)
 #source('functions/calculate_GR.R')
 #source('functions/logistic_fit_GR.R')
 source('functions/parseLabel.R')
-trim_mean = function(x, percent) {
-  x = x[!is.na(x)]
-  n = length(x)
-  k = n*(percent/100)/2
-  # round down if k is half an integer
-  if(round(k) != k & round(k*2) == k*2) {
-    lo = floor(k) + 1
-    hi = n - lo + 1
-  } else {
-    lo = round(k) + 1
-    hi = n - lo + 1
-  }
-  x = sort(x)[lo:hi]
-  return(mean(x))
-}
 
 shinyServer(function(input, output,session) {
   
@@ -374,6 +359,7 @@ print(5)
       observeEvent(input$pick_var, {
         scatter_choices = unique(values$inData[[input$pick_var]])
         delete_choice = which(scatter_choices == '-')
+        delete_choice = c(delete_choice, which(is.na(scatter_choices)))
         if(length(delete_choice) > 0) {
           scatter_choices = scatter_choices[-delete_choice]
         }
