@@ -16,7 +16,7 @@ source('functions/parseLabel.R')
 
 shinyServer(function(input, output,session) {
   
-  values <- reactiveValues(inData=NULL, GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL)
+  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL)
   isolate(values$inData)
 
   observeEvent(input$loadExample, {
@@ -80,7 +80,7 @@ shinyServer(function(input, output,session) {
     output$input_error = renderText("")
     
     if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))) == 4) {
-      print('good input')
+      print('Input Case A')
       delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))
       updateSelectizeInput(
         session, 'groupingVars',
@@ -88,7 +88,18 @@ shinyServer(function(input, output,session) {
         selected = colnames(values$inData)[-delete_cols],
         options = c()
       )
-    } else {
+      values$case = "A"
+    } else if(length(intersect(colnames(values$inData), c('concentration', 'cell_count'))) == 2) {
+      print('Input Case C')
+      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count'))
+      updateSelectizeInput(
+        session, 'groupingVars',
+        choices = colnames(values$inData)[-delete_cols],
+        selected = colnames(values$inData)[-delete_cols],
+        options = c()
+      )
+      values$case = "C"
+      } else {
         if(!is.null(getData())) {
             print("bad input")
             output$input_error = renderText("Your data is not in the correct form. Please read the 'Getting Started' Section.")
@@ -256,7 +267,7 @@ shinyServer(function(input, output,session) {
     print(groupingColumns)
     print("groupingColumns")
     
-    tables <- GRfit(values$inData, groupingColumns, GRtable = 'both', force = input$force, cap = input$cap)
+    tables <- GRfit(values$inData, groupingColumns, GRtable = 'both', force = input$force, cap = input$cap, case = values$case)
     values$GR_table <- tables[[1]]
     #values$GR_table <- calculate_GR(values$inData,groupingColumns)
     values$GR_table_show <- values$GR_table
@@ -318,6 +329,11 @@ print(4)
             codeOutput <- paste("param_", input$groupingVars[i], sep="")
             verbatimTextOutput(codeOutput)
             drc_choices = sort(unique(subset(values$inData,select=c(input$groupingVars[i]))[,1])[[1]])
+            # Get rid of "-" for Case C
+            delete_choice = which(drc_choices == '-')
+            if(length(delete_choice) > 0) {
+              drc_choices = drc_choices[-delete_choice]
+            }
             selectizeInput(
               codeOutput, input$groupingVars[i], choices = drc_choices, multiple = TRUE, selected = drc_choices[1]
             )
