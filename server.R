@@ -331,7 +331,9 @@ print(4)
             # Get rid of time = 0 for Case C
             if(codeOutput == "param_time") {
               delete_choice = which(drc_choices == 0)
-              drc_choices = drc_choices[-delete_choice]
+              if(length(delete_choice) > 0) {
+                drc_choices = drc_choices[-delete_choice]
+              }
             }
             # Get rid of "-" for Case C
             delete_choice = which(drc_choices == '-')
@@ -365,7 +367,9 @@ print(5)
         }
         if(input$pick_var == "time") {
           delete_choice = which(scatter_choices == 0)
-          scatter_choices = scatter_choices[-delete_choice]
+          if(length(delete_choice) > 0) {
+            scatter_choices = scatter_choices[-delete_choice]
+          }
         }
         updateSelectInput(
           session, 'x_scatter',
