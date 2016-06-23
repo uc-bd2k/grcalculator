@@ -188,11 +188,11 @@ shinyServer(function(input, output,session) {
 #========== Download buttons for DRC plots =======
   output$downloadDRC = downloadHandler(
       filename = function() {
-        if(input$drcImageType == '.eps') {
+        if(input$drcImageType == '.pdf') {
           if(!is.null(input$uploadData)) {
-            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_DRC.eps", sep=''))
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_DRC.pdf", sep=''))
           } else {
-            return("example_GR_DRC.eps")
+            return("example_GR_DRC.pdf")
           }
         } else {
           if(!is.null(input$uploadData)) {
@@ -203,8 +203,8 @@ shinyServer(function(input, output,session) {
         }
       },
       content = function(filename) {
-        if(input$drcImageType == '.eps') {
-          ggsave(filename = filename, plot = plotDRC, device = "eps")
+        if(input$drcImageType == '.pdf') {
+          ggsave(filename = filename, plot = plotDRC, device = "pdf")
         } else {
           ggsave(filename = filename, plot = plotDRC, device = "tiff", units = "in", width = 7, height = 7, dpi = 300)
         }
@@ -215,18 +215,18 @@ shinyServer(function(input, output,session) {
 #========== Download button for scatterplot images =======
   output$downloadScatter = downloadHandler(
     filename = function() {
-      if(input$scatterImageType == '.eps') {
+      if(input$scatterImageType == '.pdf') {
         if(!is.null(input$uploadData)) {
           if(input$box_scatter == "Scatter plot") {
-            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_scatter.eps", sep=''))
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_scatter.pdf", sep=''))
           } else {
-            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_box.eps", sep=''))
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_box.pdf", sep=''))
           }
         } else {
           if(input$box_scatter == "Scatter plot") {
-            return("example_GR_scatter.eps")
+            return("example_GR_scatter.pdf")
           } else {
-            return("example_GR_box.eps")
+            return("example_GR_box.pdf")
           }
         }
       } else {
@@ -246,8 +246,8 @@ shinyServer(function(input, output,session) {
       }
     },
     content = function(filename) {
-      if(input$scatterImageType == '.eps') {
-        ggsave(filename = filename, plot = plotScatter_box, device = "eps")
+      if(input$scatterImageType == '.pdf') {
+        ggsave(filename = filename, plot = plotScatter_box, device = "pdf")
       } else {
         ggsave(filename = filename, plot = plotScatter_box, device = "tiff", units = "in", width = 7, height = 7, dpi = 300)
       }

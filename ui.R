@@ -76,7 +76,7 @@ shinyUI(
                                   column(2,
                                          downloadButton('downloadDRC', label = "Download image")),   
                                   column(1,
-                                  	     radioButtons('drcImageType', label = '', choices = c('.eps', '.tiff')), inline = T),             
+                                  	     radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff')), inline = T),             
                                   column(1, offset=1, tags$div(id='plotBoxL1',"Plot height")),
                                   column(2, textInput('height', NULL, value = 700)),
                                   tags$style(type='text/css', "#height { width:50px; margin-top: 20px; margin-left: 0px; margin-right: 0px;}"),
@@ -112,7 +112,7 @@ shinyUI(
                                 fluidRow(
                                   column(3, radioButtons('box_scatter', label = '', choices = c("Box plot", "Scatter plot"), inline = T)),
                                   column(2, offset=2, downloadButton('downloadScatter', label = "Download image")),
-                                  column(1,radioButtons('scatterImageType', label = '', choices = c('.eps', '.tiff')), inline = T),
+                                  column(1,radioButtons('scatterImageType', label = '', choices = c('.pdf', '.tiff')), inline = T),
                                   tags$style(type='text/css', "#downloadScatter { margin-top: 20px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px}"),
                                   tags$style(type='text/css', "#scatterImageType { margin-top: 0px; margin-bottom: 20px; margin-left: 0px}"),
                                   column(1,offset=1, tags$div(id='plotBoxL2',"Plot height")),
