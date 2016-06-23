@@ -417,13 +417,11 @@ print(5)
         )
       })
       
-      observeEvent(input$pick_box_y, {
-        output$boxplot <- renderPlotly({
-          box = drawBox(input, values)
-          if(!is.null(box)) {
-            box
-          } else {stop()}
-        })
+      output$boxplot <- renderPlotly({
+        box = drawBox(input, values)
+        if(!is.null(box)) {
+          box
+        } else {stop()}
       })
       
       observeEvent(input$plot_scatter, {
