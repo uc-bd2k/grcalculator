@@ -13,22 +13,24 @@ drawBox <- function(input, values) {
   x_factor = factor(get(input$pick_box_x, envir = as.environment(boxplot_data)))
   y_variable = get(parameter_choice, envir = as.environment(boxplot_data))
   point_color = factor(get(input$pick_box_point_color, envir = as.environment(boxplot_data)))
-  #plot_ly(values$parameter_table, y = y, color = factor, type = "box", boxpoints = "all", jitter = 0.5, pointpos = 0.5)
-  p <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable, text = experiment))
-  p = p + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, show.legend = F, aes(colour = point_color)) + xlab('') + ylab(parameter_choice)
-  q <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable))
-  q = q + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, aes(colour = point_color)) + xlab('') + ylab(parameter_choice)
-  q$labels$colour = input$pick_box_point_color
-  plotScatter_box <<- q
-  # modify x and y names for hovertext
-  #test_gg <<- plotly_build(p)
-  test_gg<<- q
-  p = plotly_build(p)
-  for(i in 1:length(p$data)){
-    p$data[[i]]$text = gsub('x_factor', input$pick_box_x, p$data[[i]]$text)
-    p$data[[i]]$text = gsub('y_variable', parameter_choice, p$data[[i]]$text)
+  # check that the data frame boxplot has data in it
+  if(dim(boxplot_data)[1] > 0) {
+    p <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable, text = experiment))
+    p = p + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, show.legend = F, aes(colour = point_color)) + xlab('') + ylab(parameter_choice)
+    q <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable))
+    q = q + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, aes(colour = point_color)) + xlab('') + ylab(parameter_choice)
+    q$labels$colour = input$pick_box_point_color
+    plotScatter_box <<- q
+    # modify x and y names for hovertext
+    #test_gg <<- plotly_build(p)
+    test_gg<<- q
+    p = plotly_build(p)
+    for(i in 1:length(p$data)){
+      p$data[[i]]$text = gsub('x_factor', input$pick_box_x, p$data[[i]]$text)
+      p$data[[i]]$text = gsub('y_variable', parameter_choice, p$data[[i]]$text)
+    }
+    p$layout$xaxis$tickangle = -90
+    p$layout$margin$b = 200
+    return(p) 
   }
-  p$layout$xaxis$tickangle = -90
-  p$layout$margin$b = 200
-  return(p)
 }

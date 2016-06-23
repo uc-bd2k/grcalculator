@@ -420,7 +420,11 @@ print(5)
       
       observeEvent(input$pick_box_y, {
         output$boxplot <- renderPlotly({
-          drawBox(input, values)
+          if(!is.null(drawBox(input, values))) {
+            drawBox(input, values)
+          } else {
+            stop()
+          }
         })
       })
       
