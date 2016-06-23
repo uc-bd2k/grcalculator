@@ -1,7 +1,5 @@
 drawBox <- function(input, values) {
   parameter_choice = input$pick_box_y
-  print(parameter_choice)
-  #print(df_sub)
   if(parameter_choice == 'GR50') {
     parameter_choice = 'log10(GR50)'
   }
@@ -23,7 +21,7 @@ drawBox <- function(input, values) {
     plotScatter_box <<- q
     # modify x and y names for hovertext
     #test_gg <<- plotly_build(p)
-    test_gg<<- q
+    #test_gg<<- q
     p = plotly_build(p)
     for(i in 1:length(p$data)){
       p$data[[i]]$text = gsub('x_factor', input$pick_box_x, p$data[[i]]$text)
