@@ -106,11 +106,11 @@ shinyUI(
                                   width=12
                                 )
                        ),
-                       # GR
+                       # Boxplot and scatterplot tab
                        tabPanel(value="tab-gr-metric",
                                 "GR Metric Comparison",
                                 fluidRow(
-                                  column(2, selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'Hill', 'GR_AOC'))),
+                                  column(3, radioButtons('box_scatter', label = '', choices = c("Box plot", "Scatter plot"), inline = T)),
                                   column(2, offset=2, downloadButton('downloadScatter', label = "Download image")),
                                   column(1,radioButtons('scatterImageType', label = '', choices = c('.eps', '.tiff')), inline = T),
                                   tags$style(type='text/css', "#downloadScatter { margin-top: 20px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px}"),
@@ -122,16 +122,10 @@ shinyUI(
                                   tags$style(type='text/css', "#clear { margin-top: 10px; margin-bottom: 10px; float: center;}"),
                                   tags$style(type='text/css', "#plot_scatter { margin-top: 10px; margin-bottom: 10px; float: center}")
                                   ),
-                                fluidRow(
-                                  column(2,
-                                         selectInput('pick_var', 'Select variable', choices = c()),
-                                         selectInput('x_scatter', 'Select x-axis value', choices = c()),
-                                         selectizeInput('y_scatter', 'Select y-axis value', choices = c()),
-                                         bsButton('plot_scatter', 'Add', size = 'small'),
-                                         bsButton('clear', 'Clear', size = 'small')
-                                  ),
-                                  column(10, uiOutput("scatter1.ui"))
-                                )
+                                  fluidRow(column(2, 
+                                                  uiOutput("scatter")),
+                                           column(10, uiOutput("plot.ui2"))
+                                  )
                        )
            )
     )

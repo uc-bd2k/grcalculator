@@ -54,7 +54,7 @@ drawScatter <- function (input, values) {
   } else {
     p = p + ggtitle(paste(parameter_choice, "Scatterplot")) + labs(colour = "") + xlab(parameter_choice) + ylab(parameter_choice)
   }
-  plotScatter <<- p
+  plotScatter_box <<- p
   # modify x and y names for hovertext
   p = plotly_build(p)
   for(i in 1:length(p$data)){
