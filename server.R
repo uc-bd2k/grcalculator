@@ -263,15 +263,15 @@ shinyServer(function(input, output,session) {
     }
   })
   
-  # Make scatterplot reactive to "pick_parameter" after first plot.
-#   observeEvent(input$pick_parameter, {
-#     if(input$plot_scatter > 0) {
-#       output$plotlyScatter1 <- renderPlotly({
-#         try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
-#         plot1 = isolate(drawScatter(input, values))
-#       })
-#     }
-#   })
+# Make scatterplot reactive to "pick_parameter" after first plot.
+  observeEvent(input$pick_parameter, {
+    if(input$plot_scatter > 0) {
+      output$plotlyScatter1 <- renderPlotly({
+        try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+        plot1 = isolate(drawScatter(input, values))
+      })
+    }
+  })
 
     
 #================= analyzeButton ================================
@@ -296,7 +296,6 @@ shinyServer(function(input, output,session) {
     #values$parameter_table <- temp_parameter_table[[1]]
     
     values$parameter_table <- tables[[2]]
-    # log10(EC50) needed for passing
     #values$parameter_table$GEC50[values$parameter_table$GEC50 == 0] = NA
     values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
     values$parameter_table$Hill[values$parameter_table$Hill == 0.01] = NA
@@ -420,11 +419,10 @@ print(5)
       
       observeEvent(input$pick_box_y, {
         output$boxplot <- renderPlotly({
-          if(!is.null(drawBox(input, values))) {
-            drawBox(input, values)
-          } else {
-            stop()
-          }
+          box = drawBox(input, values)
+          if(!is.null(box)) {
+            box
+          } else {stop()}
         })
       })
       
