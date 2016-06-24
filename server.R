@@ -418,6 +418,7 @@ print(5)
       })
       
       output$boxplot <- renderPlotly({
+        try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
         box = drawBox(input, values)
         if(!is.null(box)) {
           box
