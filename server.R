@@ -10,12 +10,11 @@ source('functions/drawPopup.R')
 source('functions/drawDRC.R', local = T)
 source('functions/extractGridData.R')
 source('functions/drawScatter.R', local = T)
-#source('functions/calculate_GR.R')
-#source('functions/logistic_fit_GR.R')
+source('functions/drawBox.R')
 source('functions/parseLabel.R')
 
 shinyServer(function(input, output,session) {
-  
+
   values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL)
   isolate(values$inData)
 
@@ -189,11 +188,11 @@ shinyServer(function(input, output,session) {
 #========== Download buttons for DRC plots =======
   output$downloadDRC = downloadHandler(
       filename = function() {
-        if(input$drcImageType == '.eps') {
+        if(input$drcImageType == '.pdf') {
           if(!is.null(input$uploadData)) {
-            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_DRC.eps", sep=''))
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_DRC.pdf", sep=''))
           } else {
-            return("example_GR_DRC.eps")
+            return("example_GR_DRC.pdf")
           }
         } else {
           if(!is.null(input$uploadData)) {
@@ -204,36 +203,53 @@ shinyServer(function(input, output,session) {
         }
       },
       content = function(filename) {
-        if(input$drcImageType == '.eps') {
-          ggsave(filename = filename, plot = plotDRC, device = "eps")
+        if(input$drcImageType == '.pdf') {
+          ggsave(filename = filename, plot = plotDRC, device = "pdf")
         } else {
           ggsave(filename = filename, plot = plotDRC, device = "tiff", units = "in", width = 7, height = 7, dpi = 300)
         }
       }
   )
 
+ 
 #========== Download button for scatterplot images =======
   output$downloadScatter = downloadHandler(
     filename = function() {
-      if(input$scatterImageType == '.eps') {
+      if(input$scatterImageType == '.pdf') {
         if(!is.null(input$uploadData)) {
-          return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_scatter.eps", sep=''))
+          if(input$box_scatter == "Scatter plot") {
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_scatter.pdf", sep=''))
+          } else {
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_box.pdf", sep=''))
+          }
         } else {
-          return("example_GR_scatter.eps")
+          if(input$box_scatter == "Scatter plot") {
+            return("example_GR_scatter.pdf")
+          } else {
+            return("example_GR_box.pdf")
+          }
         }
       } else {
         if(!is.null(input$uploadData)) {
-          return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_scatter.tiff", sep=''))
+          if(input$box_scatter == "Scatter plot") {
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_scatter.tiff", sep=''))
+          } else {
+            return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), "_GR_box.tiff", sep=''))
+          }
         } else {
-          return("example_GR_scatter.tiff")
+          if(input$box_scatter == "Scatter plot") {
+            return("example_GR_scatter.tiff")
+          } else {
+            return("example_GR_box.tiff")
+          }
         }
       }
     },
     content = function(filename) {
-      if(input$scatterImageType == '.eps') {
-        ggsave(filename = filename, plot = plotScatter, device = "eps")
+      if(input$scatterImageType == '.pdf') {
+        ggsave(filename = filename, plot = plotScatter_box, device = "pdf")
       } else {
-        ggsave(filename = filename, plot = plotScatter, device = "tiff", units = "in", width = 7, height = 7, dpi = 300)
+        ggsave(filename = filename, plot = plotScatter_box, device = "tiff", units = "in", width = 7, height = 7, dpi = 300)
       }
     }
   )
@@ -247,7 +263,7 @@ shinyServer(function(input, output,session) {
     }
   })
   
-  # Make scatterplot reactive to "pick_parameter" after first plot.
+# Make scatterplot reactive to "pick_parameter" after first plot.
   observeEvent(input$pick_parameter, {
     if(input$plot_scatter > 0) {
       output$plotlyScatter1 <- renderPlotly({
@@ -256,6 +272,7 @@ shinyServer(function(input, output,session) {
       })
     }
   })
+
     
 #================= analyzeButton ================================
   observeEvent(input$analyzeButton,{
@@ -279,7 +296,6 @@ shinyServer(function(input, output,session) {
     #values$parameter_table <- temp_parameter_table[[1]]
     
     values$parameter_table <- tables[[2]]
-    # log10(EC50) needed for passing
     #values$parameter_table$GEC50[values$parameter_table$GEC50 == 0] = NA
     values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
     values$parameter_table$Hill[values$parameter_table$Hill == 0.01] = NA
@@ -316,6 +332,24 @@ print(2)
       output$plot.ui <- renderUI({
         plotlyOutput("drc2", height = input$height)
       })
+      
+      output$plot.ui2 <- renderUI({
+        if(input$box_scatter == "Box plot") {
+          plotlyOutput('boxplot', height = input$scatter_height)
+        } else {
+          plotlyOutput("plotlyScatter1", height = input$scatter_height)
+        }
+      })
+      
+      observeEvent(input$scatter_height, {
+        output$plot.ui2 <- renderUI({
+          if(input$box_scatter == "Box plot") {
+            plotlyOutput('boxplot', height = input$scatter_height)
+          } else {
+            plotlyOutput("plotlyScatter1", height = input$scatter_height)
+          }
+        })
+      })
 
 print(3)      
       output$drc2<-drawDRC(input, values)
@@ -349,7 +383,7 @@ print(4)
         # to display properly.
         do.call(tagList, code_output_list)
       })
-print(5)      
+print(5)
       
       observeEvent(groupingColumns, {
         updateSelectInput(
@@ -381,9 +415,13 @@ print(5)
           choices = scatter_choices,
           selected = NULL
         )
-        
-        
-        
+      })
+      
+      output$boxplot <- renderPlotly({
+        box = drawBox(input, values)
+        if(!is.null(box)) {
+          box
+        } else {stop()}
       })
       
       observeEvent(input$plot_scatter, {
@@ -393,10 +431,58 @@ print(5)
         })
       })
       
+      observeEvent(input$pick_box_x, {
+        updateSelectizeInput(
+          session, 'pick_box_factors',
+          choices = unique(values$inData[[input$pick_box_x]]),
+          selected = unique(values$inData[[input$pick_box_x]])
+          #choices = unique(values$inData[[outVar3()]]),
+          #selected = unique(values$inData[[outVar3()]])[1]
+        )
+      })
       
+      observeEvent(input$box_scatter, {
+        observeEvent(input$pick_var, {
+          updateSelectInput(
+            session, 'x_scatter',
+            choices = unique(values$inData[[input$pick_var]]),
+            selected = NULL
+          )
+          updateSelectizeInput(
+            session, 'y_scatter',
+            choices = unique(values$inData[[input$pick_var]]),
+            selected = NULL
+          )
+        })
+        observeEvent(input$pick_box_x, {
+          updateSelectizeInput(
+            session, 'pick_box_factors',
+            choices = unique(values$inData[[input$pick_box_x]]),
+            selected = unique(values$inData[[input$pick_box_x]])
+            #choices = unique(values$inData[[outVar3()]]),
+            #selected = unique(values$inData[[outVar3()]])[1]
+          )
+        })
+      })
       
-      output$scatter1.ui <- renderUI({
-        plotlyOutput("plotlyScatter1", height = input$scatter_height)
+      output$scatter <- renderUI({
+        if(input$box_scatter == "Scatter plot") {
+          fluidRow(                                    
+            selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'Hill', 'GR_AOC')),
+            selectInput('pick_var', 'Select variable', choices = input$groupingVars),
+            selectInput('x_scatter', 'Select x-axis value', choices = unique(values$inData[[input$pick_box_x]])),
+            selectizeInput('y_scatter', 'Select y-axis value', choices = unique(values$inData[[input$pick_box_x]])),
+            bsButton('plot_scatter', 'Add', size = 'small'),
+            bsButton('clear', 'Clear', size = 'small')
+          )
+        } else {
+          fluidRow(
+            selectInput('pick_box_y', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'Hill', 'GR_AOC')),
+            selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
+            selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
+            selectizeInput('pick_box_factors', 'Select factors of grouping variable', choices = c(), multiple = T)
+          )
+        }
       })
 
 #==== Clear scatterplot on "analyze" =========

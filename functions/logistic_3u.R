@@ -1,1 +1,0 @@
-logistic_3u = function(c){GRinf + (1 - GRinf)/(1 + (c/EC50)^Hill)}
