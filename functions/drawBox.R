@@ -16,7 +16,7 @@ drawBox <- function(input, values) {
     p <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable, text = experiment))
     p = p + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, show.legend = F, aes(colour = point_color)) + xlab('') + ylab(parameter_choice)
     q <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable))
-    q = q + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, aes(colour = point_color)) + xlab('') + ylab(parameter_choice)
+    q = q + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, aes(colour = point_color)) + xlab('') + ylab(parameter_choice) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
     q$labels$colour = input$pick_box_point_color
     plotScatter_box <<- q
     # modify x and y names for hovertext
