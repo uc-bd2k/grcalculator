@@ -386,10 +386,12 @@ print(4)
 print(5)
       
       observeEvent(groupingColumns, {
-        updateSelectInput(
-          session, 'pick_var',
-          choices = input$groupingVars
-        )
+        if(length(input$groupingVars > 0)) {
+          updateSelectInput(
+            session, 'pick_var',
+            choices = input$groupingVars
+          )
+        }
       })
       
       observeEvent(input$pick_var, {
