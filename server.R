@@ -432,6 +432,16 @@ print(5)
         })
       })
       
+      if(!is.null(input$pick_box_x)) {
+        updateSelectizeInput(
+          session, 'pick_box_factors',
+          choices = unique(values$inData[[input$pick_box_x]]),
+          selected = unique(values$inData[[input$pick_box_x]])
+          #choices = unique(values$inData[[outVar3()]]),
+          #selected = unique(values$inData[[outVar3()]])[1]
+        )
+      }
+      
       observeEvent(input$pick_box_x, {
         if(!is.null(input$pick_box_x)) {
           updateSelectizeInput(
