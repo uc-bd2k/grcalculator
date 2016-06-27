@@ -361,19 +361,7 @@ print(4)
             # name the input choice based on the grouping variable names, prefix with "param_" to aviod conflict
             codeOutput <- paste("param_", input$groupingVars[i], sep="")
             verbatimTextOutput(codeOutput)
-            drc_choices = sort(unique(subset(values$inData,select=c(input$groupingVars[i]))[,1])[[1]])
-            # Get rid of time = 0 for Case C
-            if(codeOutput == "param_time") {
-              delete_choice = which(drc_choices == 0)
-              if(length(delete_choice) > 0) {
-                drc_choices = drc_choices[-delete_choice]
-              }
-            }
-            # Get rid of "-" for Case C
-            delete_choice = which(drc_choices == '-')
-            if(length(delete_choice) > 0) {
-              drc_choices = drc_choices[-delete_choice]
-            }
+            drc_choices = sort(unique(subset(values$GR_table,select=c(input$groupingVars[i]))[,1])[[1]])
             selectizeInput(
               codeOutput, input$groupingVars[i], choices = drc_choices, multiple = TRUE, selected = drc_choices[1]
             )
@@ -386,27 +374,14 @@ print(4)
 print(5)
       
       observeEvent(groupingColumns, {
-        if(length(input$groupingVars > 0)) {
           updateSelectInput(
             session, 'pick_var',
             choices = input$groupingVars
           )
-        }
       })
       
       observeEvent(input$pick_var, {
-        scatter_choices = unique(values$inData[[input$pick_var]])
-        delete_choice = which(scatter_choices == '-')
-        delete_choice = c(delete_choice, which(is.na(scatter_choices)))
-        if(length(delete_choice) > 0) {
-          scatter_choices = scatter_choices[-delete_choice]
-        }
-        if(input$pick_var == "time") {
-          delete_choice = which(scatter_choices == 0)
-          if(length(delete_choice) > 0) {
-            scatter_choices = scatter_choices[-delete_choice]
-          }
-        }
+        scatter_choices = unique(values$GR_table[[input$pick_var]])
         updateSelectInput(
           session, 'x_scatter',
           choices = scatter_choices,
@@ -434,36 +409,24 @@ print(5)
         })
       })
       
-      if(!is.null(input$pick_box_x)) {
-        updateSelectizeInput(
-          session, 'pick_box_factors',
-          choices = unique(values$inData[[input$pick_box_x]]),
-          selected = unique(values$inData[[input$pick_box_x]])
-          #choices = unique(values$inData[[outVar3()]]),
-          #selected = unique(values$inData[[outVar3()]])[1]
-        )
-      }
-      
       observeEvent(input$pick_box_x, {
-        if(!is.null(input$pick_box_x)) {
+        outVar <- reactive({
+          vars <- all.vars(parse(text = input$pick_box_x))
+          return(vars)
+        })
           updateSelectizeInput(
             session, 'pick_box_factors',
-            choices = unique(values$inData[[input$pick_box_x]]),
-            selected = unique(values$inData[[input$pick_box_x]])
-            #choices = unique(values$inData[[outVar3()]]),
-            #selected = unique(values$inData[[outVar3()]])[1]
+            choices = unique(values$GR_table[[outVar()]]),
+            selected = unique(values$GR_table[[outVar()]])
           )
-        }
       })
       
       observeEvent(input$box_scatter, {
         if(!is.null(input$pick_box_x)) {
           updateSelectizeInput(
             session, 'pick_box_factors',
-            choices = unique(values$inData[[input$pick_box_x]]),
-            selected = unique(values$inData[[input$pick_box_x]])
-            #choices = unique(values$inData[[outVar3()]]),
-            #selected = unique(values$inData[[outVar3()]])[1]
+            choices = unique(values$GR_table[[input$pick_box_x]]),
+            selected = unique(values$GR_table[[input$pick_box_x]])
           )
         }
       })
@@ -479,15 +442,6 @@ print(5)
             session, 'y_scatter',
             choices = unique(values$inData[[input$pick_var]]),
             selected = NULL
-          )
-        })
-        observeEvent(input$pick_box_x, {
-          updateSelectizeInput(
-            session, 'pick_box_factors',
-            choices = unique(values$inData[[input$pick_box_x]]),
-            selected = unique(values$inData[[input$pick_box_x]])
-            #choices = unique(values$inData[[outVar3()]]),
-            #selected = unique(values$inData[[outVar3()]])[1]
           )
         })
       })
