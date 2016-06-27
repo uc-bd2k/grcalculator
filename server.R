@@ -320,7 +320,8 @@ shinyServer(function(input, output,session) {
     print("finishedParams")
     
     if (length(values$inData)>0) {
-print(1)      
+print(1)
+      
       values$showanalyses<-1
       if (length(input$groupingVars)>0) {
           values$showanalyses_multi<-1
@@ -408,19 +409,21 @@ print(5)
           plot1 = isolate(drawScatter(input, values))
         })
       })
+    }
+  })
+  
+  observeEvent(input$analyzeButton, {
+      outVar <- reactive({
+        vars <- all.vars(parse(text=as.character(input$pick_box_x)), functions = FALSE, unique = TRUE)
+        return(vars)
+      })
       
       observeEvent(input$pick_box_x, {
-        if(!is.null(input$pick_box_x)) {
-          outVar <- reactive({
-            vars <- all.vars(parse(text = input$pick_box_x))
-            return(vars)
-          })
             updateSelectizeInput(
               session, 'pick_box_factors',
               choices = unique(values$GR_table[[outVar()]]),
               selected = unique(values$GR_table[[outVar()]])
             )
-        }
       })
       
       observeEvent(input$box_scatter, {
@@ -447,7 +450,9 @@ print(5)
           )
         })
       })
-      
+  })
+  
+
       output$scatter <- renderUI({
         if(input$box_scatter == "Scatter plot") {
           fluidRow(                                    
@@ -467,7 +472,6 @@ print(5)
           )
         }
       })
-
 #==== Clear scatterplot on "analyze" =========
       
       observeEvent(input$analyzeButton, {
@@ -532,6 +536,7 @@ print(5)
         })
       })
       
+    observeEvent(input$analyzeButton, {
       updateSelectizeInput(session, 'choiceVar', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
       if (length(input$groupingVars)==1) {
          updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
@@ -556,9 +561,8 @@ print(5)
         print(input$choiceVar)
         print(input$plot_gr50grid)
       })
-      
-    }
-  })
+    })
+
 #================================================
   cancel.onSessionEnded <- session$onSessionEnded(function() {
     graphics.off()
