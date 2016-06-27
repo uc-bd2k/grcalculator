@@ -410,15 +410,17 @@ print(5)
       })
       
       observeEvent(input$pick_box_x, {
-        outVar <- reactive({
-          vars <- all.vars(parse(text = input$pick_box_x))
-          return(vars)
-        })
-          updateSelectizeInput(
-            session, 'pick_box_factors',
-            choices = unique(values$GR_table[[outVar()]]),
-            selected = unique(values$GR_table[[outVar()]])
-          )
+        if(!is.null(input$pick_box_x)) {
+          outVar <- reactive({
+            vars <- all.vars(parse(text = input$pick_box_x))
+            return(vars)
+          })
+            updateSelectizeInput(
+              session, 'pick_box_factors',
+              choices = unique(values$GR_table[[outVar()]]),
+              selected = unique(values$GR_table[[outVar()]])
+            )
+        }
       })
       
       observeEvent(input$box_scatter, {
