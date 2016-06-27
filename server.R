@@ -262,7 +262,8 @@ shinyServer(function(input, output,session) {
       toggleModal(session,"graphPopup")
     }
   })
-  
+ 
+observeEvent(input$analyzeButton, { 
 # Make scatterplot reactive to "pick_parameter" after first plot.
   observeEvent(input$pick_parameter, {
     if(input$plot_scatter > 0) {
@@ -272,6 +273,7 @@ shinyServer(function(input, output,session) {
       })
     }
   })
+})
 
     
 #================= analyzeButton ================================
