@@ -45,7 +45,7 @@ shinyServer(function(input, output,session) {
     if (is.null(inFile)) {
       return(NULL)
     } else if(input$sep == '\t'){
-      if(input$euro == T) {
+      if(input$euro_in == T) {
         values$inData <- read_tsv(inFile$datapath, locale = locale(decimal_mark = ','))
       } else {
         values$inData <- read_tsv(inFile$datapath)
@@ -53,7 +53,7 @@ shinyServer(function(input, output,session) {
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     } else if(input$sep == ',') {
-      if(input$euro == T) {
+      if(input$euro_in == T) {
         values$inData <- read_csv2(inFile$datapath)
       } else {
         values$inData <- read_csv(inFile$datapath)
@@ -183,9 +183,17 @@ shinyServer(function(input, output,session) {
         data_output = values$parameter_table_show
       }
       if(input$download_type == "tsv") {
-        write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T)
+        if(input$euro_out == T) {
+          write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T, dec = ',')
+        } else {
+          write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T)
+        }
       } else if(input$download_type == "csv") {
-        write.table(data_output, file = filename, quote = F, sep = ',', row.names = F, col.names = T)
+        if(input$euro_out == T) {
+          write.table(data_output, file = filename, quote = F, sep = ';', row.names = F, col.names = T, dec = ',')
+        } else {
+          write.table(data_output, file = filename, quote = F, sep = ',', row.names = F, col.names = T)
+        }
       }
       
     }

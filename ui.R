@@ -33,7 +33,7 @@ shinyUI(
                           c(Comma=',',
                           Tab='\t'),
                           selected = ',', inline = F),
-             checkboxInput('euro', "Commas as decimal points", value = F),
+             checkboxInput('euro_in', "Commas as decimal points", value = F),
              checkboxInput('cap', "Cap GR values between -1 and 1", value = F),
              checkboxInput('force', "Force sigmoidal fit", value = F),
               actionLink('loadExample', 'Load Example'),
@@ -60,11 +60,14 @@ shinyUI(
     					                  "Data Tables",
          					              textOutput(outputId = 'input_error'),
          					              tags$head(tags$style("#input_error{color: red; font-size: 20px; }")),
-    					                  fluidRow(column(6,radioButtons(inputId = "pick_data", label = "", choices = list("Input Data" = 1, "GR Values" = 2, "Fitted Parameters" = 3), selected = 1, inline = T)),
+    					                  fluidRow(column(5,radioButtons(inputId = "pick_data", label = "", choices = list("Input Data" = 1, "GR Values" = 2, "Fitted Parameters" = 3), selected = 1, inline = T)),
                   				      column(3, downloadButton('downloadData', 'Download data table'),
-                         		    tags$style(type='text/css', "#downloadData { width:100%; margin-top: 10px; margin-bottom: 20px;}")),
-                  				      radioButtons('download_type', label = "", choices = c("csv", "tsv"), inline = T)
+                         		    tags$style(type='text/css', "#downloadData { width:200px; margin-top: 10px; margin-bottom: 20px;}")),
+                  				      column(2, 
+                  				      radioButtons('download_type', label = "", choices = c("csv", "tsv"), inline = T),
+                  				      checkboxInput('euro_out', 'Export commas as decimal points', value = F))
     					                  ),
+    					                  
     					                  tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
     					                  DT::dataTableOutput("input_table")
     					                  ),
