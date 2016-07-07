@@ -33,6 +33,7 @@ shinyUI(
                           c(Comma=',',
                           Tab='\t'),
                           selected = ',', inline = F),
+             checkboxInput('euro', "Commas as decimal points", value = F),
              checkboxInput('cap', "Cap GR values between -1 and 1", value = F),
              checkboxInput('force', "Force sigmoidal fit", value = F),
               actionLink('loadExample', 'Load Example'),

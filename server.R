@@ -45,11 +45,19 @@ shinyServer(function(input, output,session) {
     if (is.null(inFile)) {
       return(NULL)
     } else if(input$sep == '\t'){
-      values$inData <- read_tsv(inFile$datapath)
+      if(input$euro == T) {
+        values$inData <- read_tsv(inFile$datapath, locale = locale(decimal_mark = ','))
+      } else {
+        values$inData <- read_tsv(inFile$datapath)
+      }
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     } else if(input$sep == ',') {
-      values$inData <- read_csv(inFile$datapath)
+      if(input$euro == T) {
+        values$inData <- read_csv2(inFile$datapath)
+      } else {
+        values$inData <- read_csv(inFile$datapath)
+      }
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     }
