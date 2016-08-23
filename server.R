@@ -5,6 +5,7 @@ library(ggplot2)
 library(readr)
 library(drc)
 library(GRmetrics)
+library(S4Vectors)
 
 source('functions/drawPopup.R')
 source('functions/drawDRC.R', local = T)
