@@ -304,7 +304,7 @@ observeEvent(input$analyzeButton, {
     print("groupingColumns")
     
     tables <- GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$case)
-    values$GR_table <- metadata(tables)[[1]]
+    values$GR_table <- S4Vectors::metadata(tables)[[1]]
     #values$GR_table <- calculate_GR(values$inData,groupingColumns)
     values$GR_table_show <- values$GR_table
     values$GR_table_show$GR <- as.numeric(prettyNum(values$GR_table_show$GR, digits = 3))
