@@ -302,8 +302,8 @@ observeEvent(input$analyzeButton, {
     print(groupingColumns)
     print("groupingColumns")
     
-    tables <- GRfit(values$inData, groupingColumns, GRtable = 'both', force = input$force, cap = input$cap, case = values$case)
-    values$GR_table <- tables[[1]]
+    tables <- GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$case)
+    values$GR_table <- metadata(tables)[[1]]
     #values$GR_table <- calculate_GR(values$inData,groupingColumns)
     values$GR_table_show <- values$GR_table
     values$GR_table_show$GR <- as.numeric(prettyNum(values$GR_table_show$GR, digits = 3))
@@ -313,7 +313,7 @@ observeEvent(input$analyzeButton, {
     #temp_parameter_table = logistic_fit_GR(values$GR_table,groupingColumns)
     #values$parameter_table <- temp_parameter_table[[1]]
     
-    values$parameter_table <- tables[[2]]
+    values$parameter_table <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
     #values$parameter_table$GEC50[values$parameter_table$GEC50 == 0] = NA
     values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
     values$parameter_table$Hill[values$parameter_table$Hill == 0.01] = NA
@@ -323,7 +323,7 @@ observeEvent(input$analyzeButton, {
     
     test_ref <<- values$parameter_table
     #values$parameter_table_show <- temp_parameter_table[[2]]
-    parameters_show <- tables[[2]]
+    parameters_show <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
     parameters_show$GR50 = as.numeric(prettyNum(parameters_show$GR50, digits = 3))
     parameters_show$GRmax = as.numeric(prettyNum(parameters_show$GRmax, digits = 3))
     parameters_show$GR_AOC = as.numeric(prettyNum(parameters_show$GR_AOC, digits = 3))
