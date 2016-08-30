@@ -18,8 +18,12 @@ drawDRC <- function (input, values)
     }
     experiments = unique(point_plot$experiment)
     curve_plot = values$parameter_table
-    min_conc = min(point_plot$concentration, na.rm = T)
-    max_conc = max(point_plot$concentration, na.rm = T)
+    if(dim(point_plot)[1] > 0) {
+      min_conc = min(point_plot$concentration, na.rm = T)
+      max_conc = max(point_plot$concentration, na.rm = T)
+    } else {
+      return(NULL)
+    }
     print(log10(min_conc))
     print(log10(max_conc))
     Concentration = 10^(seq(log10(min_conc) - 1, log10(max_conc) + 1, length.out = 1000))
