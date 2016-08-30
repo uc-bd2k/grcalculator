@@ -450,10 +450,11 @@ print(5)
       })
       
       observeEvent(input$pick_box_x, {
+        picks = unique(values$GR_table[[outVar()]])
             updateSelectizeInput(
               session, 'pick_box_factors',
-              choices = unique(values$GR_table[[outVar()]]),
-              selected = unique(values$GR_table[[outVar()]])
+              choices = picks,
+              selected = picks[1:min(10, length(picks))]
             )
       })
       
