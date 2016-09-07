@@ -1,7 +1,7 @@
 drawDRC <- function (input, values)
 {
   q<-renderPlotly({
-    try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+    #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
     all_inputs <- names(input)
     print(all_inputs)
     
@@ -31,16 +31,16 @@ drawDRC <- function (input, values)
     print(6)
     for(exp in experiments) {
       row = which(curve_plot$experiment == exp)
-      EC50 = curve_plot$GEC50[row]
+      GEC50 = curve_plot$GEC50[row]
       GRinf = curve_plot$GRinf[row]
-      Hill = curve_plot$Hill[row]
-      logistic_3u = function(c){GRinf + (1 - GRinf)/(1 + (c/EC50)^Hill)}
+      h_GR = curve_plot$h_GR[row]
+      logistic_3u = function(c){GRinf + (1 - GRinf)/(1 + (c/GEC50)^h_GR)}
       curve_data = as.matrix(Concentration)
       colnames(curve_data) = "Concentration"
-      if(curve_plot$fit[row] == "sigmoid") {
+      if(curve_plot$fit_GR[row] == "sigmoid") {
         GR = apply(curve_data, 1, logistic_3u)
       } else {
-        GR = curve_plot$flat_fit[row]
+        GR = curve_plot$flat_fit_GR[row]
       }
       curve_data = cbind(curve_data, GR)
       curve_data = as.data.frame(curve_data)

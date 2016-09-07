@@ -3,8 +3,8 @@ drawBox <- function(input, values) {
   if(parameter_choice == 'GR50') {
     parameter_choice = 'log10(GR50)'
   }
-  if(parameter_choice == 'Hill') {
-    parameter_choice = 'log2(Hill)'
+  if(parameter_choice == 'h_GR') {
+    parameter_choice = 'log2(h_GR)'
   }
   full_data = values$parameter_table
   boxplot_data = full_data[full_data[[ input$pick_box_x ]] %in% input$pick_box_factors,]

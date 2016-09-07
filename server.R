@@ -285,7 +285,7 @@ observeEvent(input$analyzeButton, {
   observeEvent(input$pick_parameter, {
     if(input$plot_scatter > 0) {
       output$plotlyScatter1 <- renderPlotly({
-        try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+        #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
         plot1 = isolate(drawScatter(input, values))
       })
     }
@@ -304,18 +304,18 @@ observeEvent(input$analyzeButton, {
     print("groupingColumns")
     
     ###### For use with Bioconductor package #####
-#     tables <- GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$case)
-#     values$parameter_table <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
-#     values$GR_table <- S4Vectors::metadata(tables)[[1]]
-#     parameters_show <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
+    tables <- GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$case)
+    values$parameter_table <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
+    values$GR_table <- S4Vectors::metadata(tables)[[1]]
+    parameters_show <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
     ##############################################
     
-    ###### For use with old package #####
-    tables <- GRfit(values$inData, groupingColumns, GRtable = 'both', force = input$force, cap = input$cap, case = values$case)
-    values$GR_table <- tables[[1]]
-    values$parameter_table <- tables[[2]]
-    parameters_show <- tables[[2]]
-    #####################################
+    # ###### For use with old package #####
+    # tables <- GRfit(values$inData, groupingColumns, GRtable = 'both', force = input$force, cap = input$cap, case = values$case)
+    # values$GR_table <- tables[[1]]
+    # values$parameter_table <- tables[[2]]
+    # parameters_show <- tables[[2]]
+    # #####################################
     
     #values$GR_table <- calculate_GR(values$inData,groupingColumns)
     values$GR_table_show <- values$GR_table
@@ -329,11 +329,15 @@ observeEvent(input$analyzeButton, {
     
     #values$parameter_table$GEC50[values$parameter_table$GEC50 == 0] = NA
     values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
-    values$parameter_table$Hill[values$parameter_table$Hill == 0.01] = NA
+    values$parameter_table$h_GR[values$parameter_table$h_GR == 0.01] = NA
     values$parameter_table$`log10(GR50)` = log10(values$parameter_table$GR50)
-    values$parameter_table$`log2(Hill)` = log2(values$parameter_table$Hill)
+    values$parameter_table$`log2(h_GR)` = log2(values$parameter_table$h_GR)
     #values$parameter_table$`log10(EC50)` = log10(values$parameter_table$GEC50)
     
+    # For compatibility with shinyLi dose-response grid visualization
+    #values$parameter_table$Hill = values$parameter_table$h_GR
+    #values$parameter_table$`log2(Hill)` = log2(values$parameter_table$h_GR)
+
     test_ref <<- values$parameter_table
     #values$parameter_table_show <- temp_parameter_table[[2]]
     
@@ -342,9 +346,9 @@ observeEvent(input$analyzeButton, {
     parameters_show$GR_AOC = as.numeric(prettyNum(parameters_show$GR_AOC, digits = 3))
     parameters_show$GEC50 = as.numeric(prettyNum(parameters_show$GEC50, digits = 3))
     parameters_show$GRinf = as.numeric(prettyNum(parameters_show$GRinf, digits = 3))
-    parameters_show$Hill = as.numeric(prettyNum(parameters_show$Hill, digits = 3))
-    parameters_show$r2 = as.numeric(prettyNum(parameters_show$r2, digits = 3))
-    parameters_show$pval = as.numeric(prettyNum(parameters_show$pval, digits = 3))
+    parameters_show$h_GR = as.numeric(prettyNum(parameters_show$h_GR, digits = 3))
+    parameters_show$r2_GR = as.numeric(prettyNum(parameters_show$r2_GR, digits = 3))
+    parameters_show$pval_GR = as.numeric(prettyNum(parameters_show$pval_GR, digits = 3))
     values$parameter_table_show <- parameters_show
     #=========================
     test_ref_show <<- values$parameter_table_show
@@ -427,7 +431,7 @@ print(5)
       })
       
       output$boxplot <- renderPlotly({
-        try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+        #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
         box = drawBox(input, values)
         if(!is.null(box)) {
           box
@@ -436,7 +440,7 @@ print(5)
       
       observeEvent(input$plot_scatter, {
         output$plotlyScatter1 <- renderPlotly({
-          try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+          #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
           plot1 = isolate(drawScatter(input, values))
         })
       })
@@ -488,7 +492,7 @@ print(5)
       output$scatter <- renderUI({
         if(input$box_scatter == "Scatter plot") {
           fluidRow(                                    
-            selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'Hill', 'GR_AOC')),
+            selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC')),
             selectInput('pick_var', 'Select variable', choices = input$groupingVars),
             selectInput('x_scatter', 'Select x-axis value', choices = unique(values$inData[[input$pick_box_x]])),
             selectizeInput('y_scatter', 'Select y-axis value', choices = unique(values$inData[[input$pick_box_x]])),
@@ -497,7 +501,7 @@ print(5)
           )
         } else {
           fluidRow(
-            selectInput('pick_box_y', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'Hill', 'GR_AOC')),
+            selectInput('pick_box_y', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC')),
             selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
             selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
             selectizeInput('pick_box_factors', 'Select factors of grouping variable', choices = c(), multiple = T)
@@ -511,8 +515,8 @@ print(5)
           parameter_choice = input$pick_parameter
           if(parameter_choice == 'GR50') {
             parameter_choice = 'log10(GR50)'
-          } else if(parameter_choice == 'Hill') {
-            parameter_choice = 'log2(Hill)'
+          } else if(parameter_choice == 'h_GR') {
+            parameter_choice = 'log2(h_GR)'
           }
           padding = 0.05
           scatter_values = values$parameter_table[,parameter_choice]
@@ -531,7 +535,7 @@ print(5)
           
           df_full <<- NULL
           print(3)
-          try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+          #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
           ggplotly(p)
           print(4)
           layout(p, hovermode = FALSE)
@@ -545,8 +549,8 @@ print(5)
           if(parameter_choice == 'GR50') {
             parameter_choice = 'log10(GR50)'
           }
-          if(parameter_choice == 'Hill') {
-            parameter_choice = 'log2(Hill)'
+          if(parameter_choice == 'h_GR') {
+            parameter_choice = 'log2(h_GR)'
           }
           padding = 0.05
           scatter_values = values$parameter_table[,parameter_choice]
@@ -562,7 +566,7 @@ print(5)
           print(all_max)
           p = ggplot(data = df_sub, aes(x = get(paste0(parameter_choice,'.x'), envir = as.environment(df_sub)), y = get(paste0(parameter_choice,'.y'), envir = as.environment(df_sub)), colour = cross.x, text = merge_text)) + geom_abline(slope = 1, intercept = 0, size = .25) + scale_x_continuous(limits = c(all_min, all_max)) + scale_y_continuous(limits = c(all_min, all_max)) + coord_fixed() + xlab('') + ylab('') + ggtitle('') + geom_blank()
           df_full <<- NULL
-          try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+          #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
           ggplotly(p)
           layout(p, hovermode = FALSE)
         })

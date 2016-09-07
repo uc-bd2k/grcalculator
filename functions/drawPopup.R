@@ -3,13 +3,13 @@ drawPopup <- function(curve_plot, min_conc, max_conc) {
   curve_data_all = NULL
   len = dim(curve_plot)[1]
   for(row in 1:len) {
-    EC50 = curve_plot$GEC50[row]
+    GEC50 = curve_plot$GEC50[row]
     GRinf = curve_plot$GRinf[row]
-    Hill = curve_plot$Hill[row]
-    logistic_3u = function(c){GRinf + (1 - GRinf)/(1 + (c/EC50)^Hill)}
+    h_GR = curve_plot$h_GR[row]
+    logistic_3u = function(c){GRinf + (1 - GRinf)/(1 + (c/GEC50)^h_GR)}
     curve_data = as.matrix(Concentration)
     colnames(curve_data) = "Concentration"
-    if(curve_plot$fit[row] == "sigmoid") {
+    if(curve_plot$fit_GR[row] == "sigmoid") {
       GR = apply(curve_data, 1, logistic_3u)
     } else {
       GR = curve_plot$GRinf[row]
@@ -25,6 +25,6 @@ drawPopup <- function(curve_plot, min_conc, max_conc) {
   }
   curve_data_all$experiment = as.factor(curve_data_all$experiment)
   p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_line() + ggtitle("Concentration vs. GR values") + xlab('Concentration (log10 scale)') + ylab('GR value') + labs(colour = "") + geom_hline(yintercept = 1, size = .25) + geom_hline(yintercept = 0, size = .25) + geom_hline(yintercept = -1, size = .25)
-  try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
+  #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
   ggplotly(p)
 }

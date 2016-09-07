@@ -31,8 +31,8 @@ drawScatter <- function (input, values) {
   parameter_choice = input$pick_parameter
   if(parameter_choice == 'GR50') {
     parameter_choice = 'log10(GR50)'
-  } else if(parameter_choice == 'Hill') {
-    parameter_choice = 'log2(Hill)'
+  } else if(parameter_choice == 'h_GR') {
+    parameter_choice = 'log2(h_GR)'
   }
   padding = 0.05
   scatter_values = values$parameter_table[,parameter_choice]
@@ -49,8 +49,8 @@ drawScatter <- function (input, values) {
   p = ggplot(data = df_sub, aes(x = X, y = Y, colour = cross.x, text = merge_text)) + geom_point(size=2)+ geom_abline(slope = 1, intercept = 0, size = .25) + scale_x_continuous(limits = c(all_min, all_max)) + scale_y_continuous(limits = c(all_min, all_max)) + coord_fixed()
   if(parameter_choice == 'log10(GR50)') {
     p = p + ggtitle("GR50 Scatterplot (log10)") + labs(colour = "") + xlab("log10(GR50)") + ylab("log10(GR50)")
-  } else if(parameter_choice == 'log2(Hill)') {
-    p = p + ggtitle("Hill Scatterplot (log2)") + labs(colour = "") + xlab("log2(Hill)") + ylab("log2(Hill)")
+  } else if(parameter_choice == 'log2(h_GR)') {
+    p = p + ggtitle("h_GR Scatterplot (log2)") + labs(colour = "") + xlab("log2(h_GR)") + ylab("log2(h_GR)")
   } else {
     p = p + ggtitle(paste(parameter_choice, "Scatterplot")) + labs(colour = "") + xlab(parameter_choice) + ylab(parameter_choice)
   }

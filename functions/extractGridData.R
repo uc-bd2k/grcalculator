@@ -9,7 +9,7 @@ extractGridData <- function(input, output, data, choiceVar, groupingVars) {
     data1[[paste(groupingVars,collapse = ' ')]] <- do.call(paste, c(as.data.frame(data[groupingVars], stringsAsFactors=FALSE),sep='  '))
     data1['EC50'] <- data['GEC50']
     data1['Einf'] <- data['GRinf']
-    data1['HillSlope'] <- data['Hill']
+    data1['HillSlope'] <- data['h_GR']
     data1['log10[EC50]'] <- lapply(data1['EC50'], log10)
     data1
   } else {
