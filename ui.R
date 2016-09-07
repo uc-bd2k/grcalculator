@@ -88,7 +88,9 @@ shinyUI(
                                   tags$style(type='text/css', "#drcImageType { margin-top: 0px; margin-bottom: 30px;margin-right: 0px;margin-left: 0px;}"),
                                   tags$style(type='text/css', "#downloadDRC { margin-top: 20px; margin-bottom: 0px;}")),
                                 fluidRow(
-                                  column(2,uiOutput("ui")),
+                                  column(2,
+                                         radioButtons("curve_type", label = "Curve type", choices = c("GR","IC"), inline = TRUE),
+                                         uiOutput("ui")),
                                   column(10,uiOutput("plot.ui"))
                                   )
                        ),
@@ -96,6 +98,7 @@ shinyUI(
                        tabPanel(value="tab-drc-grid",
                                 "Dose Response Grid",
                                 fluidRow(
+                                  column(3, radioButtons("curve_type_grid", label = "Curve type", choices = c("GR","IC"), inline = TRUE)),
                                   column(3, selectizeInput('choiceVar', 'Choose selector variable', choices = NULL)),
                                   column(3, selectizeInput('xgroupingVars', 'Choose grid variables', choices = NULL, multiple = TRUE)),
                                   column(3, br(), actionButton('plot_gr50grid', 'Plot')),
@@ -126,7 +129,8 @@ shinyUI(
                                   tags$style(type='text/css', "#clear { margin-top: 10px; margin-bottom: 10px; float: center;}"),
                                   tags$style(type='text/css', "#plot_scatter { margin-top: 10px; margin-bottom: 10px; float: center}")
                                   ),
-                                  fluidRow(column(2, 
+                                  fluidRow(column(2,
+                                                  radioButtons("curve_type1", label = "Curve type", choices = c("GR","IC"), inline = TRUE),
                                                   uiOutput("scatter")),
                                            column(10, uiOutput("plot.ui2"))
                                   )

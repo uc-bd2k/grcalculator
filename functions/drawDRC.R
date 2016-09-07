@@ -31,18 +31,33 @@ drawDRC <- function (input, values)
     print(6)
     for(exp in experiments) {
       row = which(curve_plot$experiment == exp)
-      GEC50 = curve_plot$GEC50[row]
-      GRinf = curve_plot$GRinf[row]
-      h_GR = curve_plot$h_GR[row]
-      logistic_3u = function(c){GRinf + (1 - GRinf)/(1 + (c/GEC50)^h_GR)}
-      curve_data = as.matrix(Concentration)
-      colnames(curve_data) = "Concentration"
-      if(curve_plot$fit_GR[row] == "sigmoid") {
-        GR = apply(curve_data, 1, logistic_3u)
-      } else {
-        GR = curve_plot$flat_fit_GR[row]
+      if(input$curve_type == "GR") {
+        GEC50 = curve_plot$GEC50[row]
+        GRinf = curve_plot$GRinf[row]
+        h_GR = curve_plot$h_GR[row]
+        logistic_3u = function(c){GRinf + (1 - GRinf)/(1 + (c/GEC50)^h_GR)}
+        curve_data = as.matrix(Concentration)
+        colnames(curve_data) = "Concentration"
+        if(curve_plot$fit_GR[row] == "sigmoid") {
+          GR = apply(curve_data, 1, logistic_3u)
+        } else {
+          GR = curve_plot$flat_fit_GR[row]
+        }
+        curve_data = cbind(curve_data, GR)
+      } else if(input$curve_type == "IC") {
+        EC50 = curve_plot$EC50[row]
+        Einf = curve_plot$Einf[row]
+        h = curve_plot$h[row]
+        logistic_3u = function(c){Einf + (1 - Einf)/(1 + (c/EC50)^h)}
+        curve_data = as.matrix(Concentration)
+        colnames(curve_data) = "Concentration"
+        if(curve_plot$fit_IC[row] == "sigmoid") {
+          rel_cell_count = apply(curve_data, 1, logistic_3u)
+        } else {
+          rel_cell_count = curve_plot$flat_fit_IC[row]
+        }
+        curve_data = cbind(curve_data, rel_cell_count)
       }
-      curve_data = cbind(curve_data, GR)
       curve_data = as.data.frame(curve_data)
       curve_data$experiment = exp
       if(is.null(curve_data_all)){
@@ -54,17 +69,32 @@ drawDRC <- function (input, values)
     curve_data_all$experiment = as.factor(curve_data_all$experiment)
 
     print(7)
-    if(input$plot_options == 1) {
-      p = ggplot(data = point_plot, aes(x = log10(concentration), y = GR, colour = experiment)) + geom_point()
+    if(input$curve_type == "GR") {
+      if(input$plot_options == 1) {
+        p = ggplot(data = point_plot, aes(x = log10(concentration), y = GR, colour = experiment)) + geom_point()
+      } else if(input$plot_options == 2) {
+        p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_line()
+      } else if(input$plot_options == 3) {
+        p = ggplot() + geom_line(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_point(data = point_plot, aes(x = log10(concentration), y = GR, colour = experiment))
+      }
+      p = p + coord_cartesian(xlim = c(log10(min_conc)-0.1, log10(max_conc)+0.1), ylim = c(-1, 1.5), expand = T) + ggtitle("Concentration vs. GR values") + xlab('Concentration (log10 scale)') + ylab('GR value') + labs(colour = "") + geom_hline(yintercept = 1, size = .25) + geom_hline(yintercept = 0, size = .25) + geom_hline(yintercept = -1, size = .25)
+      
+      print(10)
+      plotDRC <<- p
+    } else if(input$curve_type == "IC") {
+      if(input$plot_options == 1) {
+      p = ggplot(data = point_plot, aes(x = log10(concentration), y = rel_cell_count, colour = experiment)) + geom_point()
     } else if(input$plot_options == 2) {
-      p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_line()
+      p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = rel_cell_count, colour = experiment)) + geom_line()
     } else if(input$plot_options == 3) {
-      p = ggplot() + geom_line(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_point(data = point_plot, aes(x = log10(concentration), y = GR, colour = experiment))
+      p = ggplot() + geom_line(data = curve_data_all, aes(x = log10(Concentration), y = rel_cell_count, colour = experiment)) + geom_point(data = point_plot, aes(x = log10(concentration), y = rel_cell_count, colour = experiment))
     }
-    p = p + coord_cartesian(xlim = c(log10(min_conc)-0.1, log10(max_conc)+0.1), ylim = c(-1, 1.5), expand = T) + ggtitle("Concentration vs. GR values") + xlab('Concentration (log10 scale)') + ylab('GR value') + labs(colour = "") + geom_hline(yintercept = 1, size = .25) + geom_hline(yintercept = 0, size = .25) + geom_hline(yintercept = -1, size = .25)
-
+    p = p + coord_cartesian(xlim = c(log10(min_conc)-0.1, log10(max_conc)+0.1), ylim = c(-1, 1.5), expand = T) + ggtitle("Concentration vs. Relative cell count") + xlab('Concentration (log10 scale)') + ylab('Relative cell count') + labs(colour = "") + geom_hline(yintercept = 1, size = .25) + geom_hline(yintercept = 0, size = .25) + geom_hline(yintercept = -1, size = .25)
+    
     print(10)
     plotDRC <<- p
+    }
+    
   })
   print(12)
   return(q)

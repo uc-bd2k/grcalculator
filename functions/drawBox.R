@@ -6,6 +6,12 @@ drawBox <- function(input, values) {
   if(parameter_choice == 'h_GR') {
     parameter_choice = 'log2(h_GR)'
   }
+  if(parameter_choice == 'IC50') {
+    parameter_choice = 'log10(IC50)'
+  }
+  if(parameter_choice == 'h') {
+    parameter_choice = 'log2(h)'
+  }
   full_data = values$parameter_table
   boxplot_data = full_data[full_data[[ input$pick_box_x ]] %in% input$pick_box_factors,]
   x_factor = factor(get(input$pick_box_x, envir = as.environment(boxplot_data)))
@@ -23,12 +29,28 @@ drawBox <- function(input, values) {
     #test_gg <<- plotly_build(p)
     #test_gg<<- q
     p = plotly_build(p)
-    for(i in 1:length(p$data)){
-      p$data[[i]]$text = gsub('x_factor', input$pick_box_x, p$data[[i]]$text)
-      p$data[[i]]$text = gsub('y_variable', parameter_choice, p$data[[i]]$text)
+    test_box <<- p
+    # Current CRAN version of plotly (3.6.0) uses p$data
+    # Latest github version of plotly (4.3.5) uses p$x$data
+    if(is.null(p$data)) {
+      for(i in 1:length(p$x$data)) {
+        if(!is.null(p$x$data[[i]]$text)) {
+          p$x$data[[i]]$text = gsub('x_factor', input$pick_box_x, p$x$data[[i]]$text)
+          p$x$data[[i]]$text = gsub('y_variable', parameter_choice, p$x$data[[i]]$text)
+        }
+      }
+      p$x$layout$xaxis$tickangle = -90
+      p$x$layout$margin$b = 200
+    } else {
+      for(i in 1:length(p$data)){
+        if(!is.null(p$data[[i]]$text)) {
+          p$data[[i]]$text = gsub('x_factor', input$pick_box_x, p$data[[i]]$text)
+          p$data[[i]]$text = gsub('y_variable', parameter_choice, p$data[[i]]$text)
+        }
+      }
+      p$layout$xaxis$tickangle = -90
+      p$layout$margin$b = 200
     }
-    p$layout$xaxis$tickangle = -90
-    p$layout$margin$b = 200
-    return(p) 
+    return(p)
   }
 }

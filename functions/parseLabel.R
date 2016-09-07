@@ -51,7 +51,7 @@ parseLabel = function(input, values) {
     point_plot <- values$GR_table
     min_conc = log10(min(point_plot$concentration, na.rm = T))
     max_conc = log10(max(point_plot$concentration, na.rm = T))
-    q = drawPopup(popupData, min_conc, max_conc)
+    q = drawPopup(popupData, input$curve_type_grid, min_conc, max_conc)
     return(q)
     
   }

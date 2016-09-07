@@ -16,7 +16,7 @@ source('functions/parseLabel.R')
 
 shinyServer(function(input, output,session) {
 
-  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL)
+  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL, box_scatter_choices = "GR")
   isolate(values$inData)
 
   observeEvent(input$loadExample, {
@@ -321,6 +321,7 @@ observeEvent(input$analyzeButton, {
     values$GR_table_show <- values$GR_table
     values$GR_table_show$GR <- as.numeric(prettyNum(values$GR_table_show$GR, digits = 3))
     values$GR_table_show$log10_concentration <- as.numeric(prettyNum(values$GR_table_show$log10_concentration, digits = 3))
+    values$GR_table_show$rel_cell_count <- as.numeric(prettyNum(values$GR_table_show$rel_cell_count, digits = 3))
     test_gr <<- values$GR_table
     print("finishedGR")
     #temp_parameter_table = logistic_fit_GR(values$GR_table,groupingColumns)
@@ -332,6 +333,12 @@ observeEvent(input$analyzeButton, {
     values$parameter_table$h_GR[values$parameter_table$h_GR == 0.01] = NA
     values$parameter_table$`log10(GR50)` = log10(values$parameter_table$GR50)
     values$parameter_table$`log2(h_GR)` = log2(values$parameter_table$h_GR)
+    
+    values$parameter_table$IC50[is.infinite(values$parameter_table$IC50)] = NA
+    values$parameter_table$h[values$parameter_table$h == 0.01] = NA
+    values$parameter_table$`log10(IC50)` = log10(values$parameter_table$IC50)
+    values$parameter_table$`log2(h)` = log2(values$parameter_table$h)
+    
     #values$parameter_table$`log10(EC50)` = log10(values$parameter_table$GEC50)
     
     # For compatibility with shinyLi dose-response grid visualization
@@ -349,6 +356,18 @@ observeEvent(input$analyzeButton, {
     parameters_show$h_GR = as.numeric(prettyNum(parameters_show$h_GR, digits = 3))
     parameters_show$r2_GR = as.numeric(prettyNum(parameters_show$r2_GR, digits = 3))
     parameters_show$pval_GR = as.numeric(prettyNum(parameters_show$pval_GR, digits = 3))
+    parameters_show$flat_fit_GR = as.numeric(prettyNum(parameters_show$flat_fit_GR, digits = 3))
+    
+    parameters_show$IC50 = as.numeric(prettyNum(parameters_show$IC50, digits = 3))
+    parameters_show$Emax = as.numeric(prettyNum(parameters_show$Emax, digits = 3))
+    parameters_show$AUC = as.numeric(prettyNum(parameters_show$AUC, digits = 3))
+    parameters_show$EC50 = as.numeric(prettyNum(parameters_show$EC50, digits = 3))
+    parameters_show$Einf = as.numeric(prettyNum(parameters_show$Einf, digits = 3))
+    parameters_show$h = as.numeric(prettyNum(parameters_show$h, digits = 3))
+    parameters_show$r2_IC = as.numeric(prettyNum(parameters_show$r2_IC, digits = 3))
+    parameters_show$pval_IC = as.numeric(prettyNum(parameters_show$pval_IC, digits = 3))
+    parameters_show$flat_fit_IC = as.numeric(prettyNum(parameters_show$flat_fit_IC, digits = 3))
+    
     values$parameter_table_show <- parameters_show
     #=========================
     test_ref_show <<- values$parameter_table_show
@@ -454,12 +473,14 @@ print(5)
       })
       
       observeEvent(input$pick_box_x, {
+        observeEvent(input$curve_type1, {
         picks = unique(values$GR_table[[outVar()]])
             updateSelectizeInput(
               session, 'pick_box_factors',
               choices = picks,
               selected = picks[1:min(10, length(picks))]
             )
+        })
       })
       
       observeEvent(input$box_scatter, {
@@ -488,11 +509,18 @@ print(5)
       })
   })
   
+  observeEvent(input$curve_type1, {
+    if(input$curve_type1 == "GR") {
+      values$box_scatter_choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC')
+    } else if(input$curve_type1 == "IC") {
+      values$box_scatter_choices = c('IC50','Emax', 'Einf', 'h', 'AUC')
+    }
+  })
 
       output$scatter <- renderUI({
         if(input$box_scatter == "Scatter plot") {
-          fluidRow(                                    
-            selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC')),
+          fluidRow(
+            selectInput('pick_parameter', 'Select parameter', choices = values$box_scatter_choices),
             selectInput('pick_var', 'Select variable', choices = input$groupingVars),
             selectInput('x_scatter', 'Select x-axis value', choices = unique(values$inData[[input$pick_box_x]])),
             selectizeInput('y_scatter', 'Select y-axis value', choices = unique(values$inData[[input$pick_box_x]])),
@@ -501,7 +529,7 @@ print(5)
           )
         } else {
           fluidRow(
-            selectInput('pick_box_y', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC')),
+            selectInput('pick_box_y', 'Select parameter', choices = values$box_scatter_choices),
             selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
             selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
             selectizeInput('pick_box_factors', 'Select factors of grouping variable', choices = c(), multiple = T)
