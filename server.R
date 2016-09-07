@@ -509,6 +509,20 @@ print(5)
       })
   })
   
+  observeEvent(c(input$curve_type_grid, input$choiceVar, input$xgroupingVars), {
+    output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
+      input="",
+      xmin = min(log10(values$GR_table$concentration), na.rm = T),
+      xmax = max(log10(values$GR_table$concentration), na.rm = T),
+      factors=c(paste(isolate(input$xgroupingVars),collapse = ' '), isolate(input$choiceVar)),
+      toggle=0,
+      {
+        #input$plot_gr50grid
+        isolate(extractGridData(input, output, values$parameter_table, isolate(input$choiceVar), isolate(input$xgroupingVars)))
+      }
+    )
+  })
+  
   observeEvent(input$curve_type1, {
     if(input$curve_type1 == "GR") {
       values$box_scatter_choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC')
@@ -608,23 +622,23 @@ print(5)
          updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[2])
       }
       
-      observeEvent(input$plot_gr50grid, {
-        output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
-          input="",
-          xmin = min(log10(values$GR_table$concentration), na.rm = T),
-          xmax = max(log10(values$GR_table$concentration), na.rm = T),
-	  factors=c(paste(isolate(input$xgroupingVars),collapse = ' '), isolate(input$choiceVar)),
-	  toggle=0,
-          {
-            input$plot_gr50grid
-            isolate(extractGridData(input, output, values$parameter_table, isolate(input$choiceVar), isolate(input$xgroupingVars)))
-          }
-        )
-        print('test')
-        print(input$xgroupingVars)
-        print(input$choiceVar)
-        print(input$plot_gr50grid)
-      })
+#       observeEvent(input$plot_gr50grid, {
+#         output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
+#           input="",
+#           xmin = min(log10(values$GR_table$concentration), na.rm = T),
+#           xmax = max(log10(values$GR_table$concentration), na.rm = T),
+# 	  factors=c(paste(isolate(input$xgroupingVars),collapse = ' '), isolate(input$choiceVar)),
+# 	  toggle=0,
+#           {
+#             input$plot_gr50grid
+#             isolate(extractGridData(input, output, values$parameter_table, isolate(input$choiceVar), isolate(input$xgroupingVars)))
+#           }
+#         )
+#         print('test')
+#         print(input$xgroupingVars)
+#         print(input$choiceVar)
+#         print(input$plot_gr50grid)
+#       })
     })
 
 #================================================

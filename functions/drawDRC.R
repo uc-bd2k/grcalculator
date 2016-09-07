@@ -26,7 +26,7 @@ drawDRC <- function (input, values)
     }
     print(log10(min_conc))
     print(log10(max_conc))
-    Concentration = 10^(seq(log10(min_conc) - 1, log10(max_conc) + 1, length.out = 1000))
+    Concentration = 10^(seq(log10(min_conc), log10(max_conc), length.out = 1000))
     curve_data_all = NULL
     print(6)
     for(exp in experiments) {

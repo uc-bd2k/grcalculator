@@ -101,7 +101,7 @@ shinyUI(
                                   column(3, radioButtons("curve_type_grid", label = "Curve type", choices = c("GR","IC"), inline = TRUE)),
                                   column(3, selectizeInput('choiceVar', 'Choose selector variable', choices = NULL)),
                                   column(3, selectizeInput('xgroupingVars', 'Choose grid variables', choices = NULL, multiple = TRUE)),
-                                  column(3, br(), actionButton('plot_gr50grid', 'Plot')),
+                                  #column(3, br(), actionButton('plot_gr50grid', 'Plot')),
                                    width=12
                                 ),
                                 fluidRow(
