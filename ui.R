@@ -130,9 +130,7 @@ shinyUI(
                                   tags$style(type='text/css', "#plot_scatter { margin-top: 10px; margin-bottom: 10px; float: center}")
                                   ),
                                   fluidRow(column(2,
-                                                  radioButtons("curve_type1", label = "Curve type", choices = c("GR","IC"), inline = TRUE),
-                                                  uiOutput("scatter"),
-                                                  textOutput("wilcox")),
+                                                  uiOutput("scatter")),
                                            column(10, uiOutput("plot.ui2"))
                                   )
                        )
