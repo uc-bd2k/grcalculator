@@ -131,7 +131,8 @@ shinyUI(
                                   ),
                                   fluidRow(column(2,
                                                   radioButtons("curve_type1", label = "Curve type", choices = c("GR","IC"), inline = TRUE),
-                                                  uiOutput("scatter")),
+                                                  uiOutput("scatter"),
+                                                  textOutput("wilcox")),
                                            column(10, uiOutput("plot.ui2"))
                                   )
                        )

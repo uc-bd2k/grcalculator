@@ -474,12 +474,22 @@ print(5)
       
       observeEvent(input$pick_box_x, {
         observeEvent(input$curve_type1, {
-        picks = unique(values$GR_table[[outVar()]])
-            updateSelectizeInput(
-              session, 'pick_box_factors',
-              choices = picks,
-              selected = picks[1:min(10, length(picks))]
-            )
+          picks = unique(values$GR_table[[outVar()]])
+          updateSelectizeInput(
+            session, 'pick_box_factors',
+            choices = picks,
+            selected = picks[1:min(10, length(picks))]
+          )
+          updateSelectizeInput(
+            session, 'factorA',
+            choices = picks,
+            selected = NULL
+          )
+          updateSelectizeInput(
+            session, 'factorB',
+            choices = picks,
+            selected = NULL
+          )
         })
       })
       
@@ -488,7 +498,17 @@ print(5)
           updateSelectizeInput(
             session, 'pick_box_factors',
             choices = unique(values$GR_table[[input$pick_box_x]]),
-            selected = unique(values$GR_table[[input$pick_box_x]])
+            selected = NULL
+          )
+          updateSelectizeInput(
+            session, 'factorA',
+            choices = unique(values$GR_table[[input$pick_box_x]]),
+            selected = NULL
+          )
+          updateSelectizeInput(
+            session, 'factorB',
+            choices = unique(values$GR_table[[input$pick_box_x]]),
+            selected = NULL
           )
         }
       })
@@ -546,10 +566,29 @@ print(5)
             selectInput('pick_box_y', 'Select parameter', choices = values$box_scatter_choices),
             selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
             selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
-            selectizeInput('pick_box_factors', 'Select factors of grouping variable', choices = c(), multiple = T)
+            selectizeInput('pick_box_factors', 'Select factors of grouping variable', choices = c(), multiple = T),
+            selectizeInput('factorA', 'Choose factors with which to perform a one-sided Wilcoxon rank-sum test', choices = c(), multiple = T),
+            selectizeInput('factorB', '', choices = c(), multiple = T)
           )
         }
       })
+      
+      observeEvent(c(input$factorA, input$factorB), {
+        wil_data = values$parameter_table
+        if(!is.null(input$factorA) & !is.null(input$factorB)) {
+          rowsA = wil_data[[input$pick_box_x]] %in% input$factorA
+          rowsB = wil_data[[input$pick_box_x]] %in% input$factorB
+          wil_dataA = wil_data[rowsA,input$pick_box_y]
+          wil_dataB = wil_data[rowsB,input$pick_box_y]
+          print(head(wil_dataA))
+          print(head(wil_dataB))
+          wil = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
+          output$wilcox = renderText({
+            paste("P-value: ", wil$p.value)
+          })
+        }
+      })
+      
 #==== Clear scatterplot on "analyze" =========
       
       observeEvent(input$analyzeButton, {
