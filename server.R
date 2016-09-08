@@ -573,7 +573,7 @@ print(5)
         }
       })
       
-      observeEvent(c(input$factorA, input$factorB), {
+      observeEvent(c(input$factorA, input$factorB, input$pick_box_y), {
         wil_data = values$parameter_table
         if(!is.null(input$factorA) & !is.null(input$factorB)) {
           rowsA = wil_data[[input$pick_box_x]] %in% input$factorA
@@ -585,6 +585,10 @@ print(5)
           wil = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
           output$wilcox = renderText({
             paste("P-value: ", wil$p.value)
+          })
+        } else {
+          output$wilcox = renderText({
+            paste("P-value: ")
           })
         }
       })
