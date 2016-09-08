@@ -23,7 +23,7 @@ shinyServer(function(input, output,session) {
     values$data_dl = 'example'
     output$input_error = renderText("")
     session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
-    values$inData <- read_tsv('toy_example_input1.tsv')
+    values$inData <- read_tsv('toy_example_input1_edited.tsv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
     values$showanalyses=0
