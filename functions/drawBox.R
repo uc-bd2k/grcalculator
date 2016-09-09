@@ -13,7 +13,18 @@ drawBox <- function(input, values) {
     parameter_choice = 'log2(h)'
   }
   full_data = values$parameter_table
+  
   boxplot_data = full_data[full_data[[ input$pick_box_x ]] %in% input$pick_box_factors,]
+  boxplot_data[[ input$pick_box_x ]] = factor(boxplot_data[[ input$pick_box_x ]])
+  if(!is.null(input$factorB)) {
+    for(i in 1:length(input$factorB)) {
+      boxplot_data[[ input$pick_box_x ]] = relevel(boxplot_data[[ input$pick_box_x ]], input$factorB[i])
+    }
+  }
+  if(!is.null(input$factorA)) {
+    for(i in 1:length(input$factorA)) {
+      boxplot_data[[ input$pick_box_x ]] = relevel(boxplot_data[[ input$pick_box_x ]], input$factorA[i])
+    }  }
   x_factor = factor(get(input$pick_box_x, envir = as.environment(boxplot_data)))
   y_variable = get(parameter_choice, envir = as.environment(boxplot_data))
   point_color = factor(get(input$pick_box_point_color, envir = as.environment(boxplot_data)))
