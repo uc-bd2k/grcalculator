@@ -16,7 +16,7 @@ source('functions/parseLabel.R')
 
 shinyServer(function(input, output,session) {
 
-  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL)
+  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL, wilcox = NULL)
   isolate(values$inData)
 
   observeEvent(input$loadExample, {
@@ -448,7 +448,7 @@ print(5)
           selected = NULL
         )
       })
-      
+
       output$boxplot <- renderPlotly({
         #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
         box = drawBox(input, values)
@@ -456,7 +456,6 @@ print(5)
           box
         } else {stop()}
       })
-      
       observeEvent(input$plot_scatter, {
         output$plotlyScatter1 <- renderPlotly({
           #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
@@ -472,7 +471,23 @@ print(5)
         return(vars)
       })
       
-      observeEvent(c(input$factorA, input$factorB), {
+      # observeEvent(c(input$factorA, input$factorB), {
+      #   picks = unique(values$GR_table[[outVar()]])
+      #   picks1 = setdiff(picks, input$factorA)
+      #   updateSelectizeInput(
+      #     session, 'factorB',
+      #     choices = picks1,
+      #     selected = input$factorB
+      #   )
+      #   picks2 = setdiff(picks, input$factorB)
+      #   updateSelectizeInput(
+      #     session, 'factorA',
+      #     choices = picks2,
+      #     selected = input$factorA
+      #   )
+      # })
+      
+      observeEvent(input$factorA, {
         picks = unique(values$GR_table[[outVar()]])
         picks1 = setdiff(picks, input$factorA)
         updateSelectizeInput(
@@ -480,6 +495,10 @@ print(5)
           choices = picks1,
           selected = input$factorB
         )
+      })
+      
+      observeEvent(input$factorB, {
+        picks = unique(values$GR_table[[outVar()]])
         picks2 = setdiff(picks, input$factorB)
         updateSelectizeInput(
           session, 'factorA',
@@ -495,16 +514,6 @@ print(5)
           choices = picks,
           selected = picks[1:min(10, length(picks))]
         )
-        updateSelectizeInput(
-          session, 'factorA',
-          choices = picks,
-          selected = NULL
-        )
-        updateSelectizeInput(
-          session, 'factorB',
-          choices = picks,
-          selected = NULL
-        )
       })
       
       observeEvent(input$box_scatter, {
@@ -515,14 +524,22 @@ print(5)
             choices = picks,
             selected = picks[1:min(10, length(picks))]
           )
+        }
+      })
+      
+      observeEvent(c(input$box_scatter, input$pick_box_x, input$pick_box_y, input$pick_box_factors), {
+        if(!is.null(input$pick_box_x)) {
+          picks = unique(values$GR_table[[outVar()]])
           updateSelectizeInput(
             session, 'factorA',
-            choices = unique(values$GR_table[[input$pick_box_x]]),
+            #choices = unique(values$GR_table[[input$pick_box_x]]),
+            choices = picks,
             selected = NULL
           )
           updateSelectizeInput(
             session, 'factorB',
-            choices = unique(values$GR_table[[input$pick_box_x]]),
+            #choices = unique(values$GR_table[[input$pick_box_x]]),
+            choices = picks,
             selected = NULL
           )
         }
@@ -593,6 +610,7 @@ print(5)
           print(head(wil_dataA))
           print(head(wil_dataB))
           wil = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
+          values$wilcox = prettyNum(wil$p.value, digits = 2)
           output$wilcox = renderText({
             paste("P-value: ", prettyNum(wil$p.value, digits = 2))
           })
@@ -600,6 +618,7 @@ print(5)
           output$wilcox = renderText({
             paste("P-value: ")
           })
+          values$wilcox = NULL
         }
       })
       
