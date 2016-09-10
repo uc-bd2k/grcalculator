@@ -86,6 +86,14 @@ drawBox <- function(input, values) {
         
         # df1 <- data.frame(a = c(1,1,2,2), b = c(ll,lh,lh,ll))
         # q = q + annotate("text", x = 1.5, y = lh, label = values$wilcox) + geom_line(data = df1, aes(x = a, y = b))
+      } else if(lenA > 1 & lenB > 1) {
+        p = p + annotate("text", x = .25*(lenB-1)+.75*(lenA+1), y = lh + 2*bump, label = paste("p = ",values$wilcox)) + 
+          geom_segment(x = 1, y = lh, xend = lenA, yend = lh) + geom_segment(x = 1, y = ll, xend = 1, yend = lh) + geom_segment(x = lenA, y = ll, xend = lenA, yend = lh) +
+          geom_segment(x = lenA+1, y = lh, xend = lenA+lenB, yend = lh) + geom_segment(x = lenA+1, y = ll, xend = lenA+1, yend = lh) + geom_segment(x = lenA+lenB, y = ll, xend = lenA+lenB, yend = lh) +
+          geom_segment(x = (lenA+1)/2, y = lh+bump, xend = (lenA+1)+((lenB-1)/2), yend = lh+bump) + geom_segment(x = (lenA+1)/2, y = lh, xend = (lenA+1)/2, yend = lh+bump) + geom_segment(x = (lenA+1)+((lenB-1)/2), y = lh, xend = (lenA+1)+((lenB-1)/2), yend = lh+bump)
+        
+        # df1 <- data.frame(a = c(1,1,2,2), b = c(ll,lh,lh,ll))
+        # q = q + annotate("text", x = 1.5, y = lh, label = values$wilcox) + geom_line(data = df1, aes(x = a, y = b))
       }
       
       p = plotly_build(p)
