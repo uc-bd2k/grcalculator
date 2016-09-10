@@ -612,7 +612,7 @@ print(5)
           wil = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
           values$wilcox = prettyNum(wil$p.value, digits = 2)
           output$wilcox = renderText({
-            paste("P-value: ", prettyNum(wil$p.value, digits = 2))
+            paste("P-value:", prettyNum(wil$p.value, digits = 2))
           })
         } else {
           output$wilcox = renderText({
