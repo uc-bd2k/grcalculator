@@ -32,23 +32,22 @@ drawBox <- function(input, values) {
   if(dim(boxplot_data)[1] > 0) {
     p <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable, text = experiment))
     p = p + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, show.legend = F, aes(colour = point_color)) + xlab('') + ylab(parameter_choice)
-    q <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable))
-    q = q + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, aes(colour = point_color)) + xlab('') + ylab(parameter_choice) + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-    q$labels$colour = input$pick_box_point_color
     
     # modify x and y names for hovertext
     #test_gg <<- plotly_build(p)
     #test_gg<<- q
     p1 = plotly_build(p)
-    test_box <<- p1
+    #test_box <<- p1
+    # Get y range:
+    top_y = p1[[2]]$yaxis$range[2]
+    bottom_y = p1[[2]]$yaxis$range[1]
+    total_y_range = top_y - bottom_y
+    
+    q <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable, ymin = bottom_y, ymax = top_y))
+    q = q + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, aes(colour = point_color)) + xlab('') + ylab(parameter_choice) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) # + theme_grey(base_size = 14) 
+    q$labels$colour = input$pick_box_point_color
    
     if(!is.null(values$wilcox)) {
-      # Get y range:
-      top_y = p1[[2]]$yaxis$range[2]
-      print('topy1')
-      print(top_y)
-      bottom_y = p1[[2]]$yaxis$range[1]
-      total_y_range = top_y - bottom_y
       # Get top of boxplot whiskers
       whiskers = NULL
       #for(i in 1:length(levels(x_factor))) {
@@ -67,33 +66,42 @@ drawBox <- function(input, values) {
       ll = lh - bump
       lenA = length(input$factorA)
       lenB = length(input$factorB)
+      
+      q <- ggplot(boxplot_data, aes(x = x_factor, y = y_variable, ymin = bottom_y, ymax = top_y))
+      q = q + geom_boxplot(aes(fill = x_factor, alpha = 0.3), outlier.color = NA, show.legend = F) + geom_jitter(width = 0.5, aes(colour = point_color)) + xlab('') + ylab(parameter_choice) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) # + theme_grey(base_size = 14) 
+      q$labels$colour = input$pick_box_point_color
+      
       if(lenA == 1 & lenB == 1) {
         p = p + annotate("text", x = 1.5, y = lh + bump/2, label = paste("p =",values$wilcox)) + geom_segment(x = 1, y = lh, xend = 2, yend = lh) + geom_segment(x = 1, y = ll, xend = 1, yend = lh) + geom_segment(x = 2, y = ll, xend = 2, yend = lh)
         
-        df1 <- data.frame(a = c(1,1,2,2), b = c(ll,lh,lh,ll))
-        q = q + annotate("text", x = 1.5, y = lh, label = values$wilcox) + geom_line(data = df1, aes(x = a, y = b))
+        q = q + annotate("text", x = 1.5, y = lh + bump/2, label = paste("p =",values$wilcox)) + geom_segment(x = 1, y = lh, xend = 2, yend = lh) + geom_segment(x = 1, y = ll, xend = 1, yend = lh) + geom_segment(x = 2, y = ll, xend = 2, yend = lh) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) # + theme_grey(base_size = 14) 
+
       } else if(lenA > 1 & lenB == 1) {
         p = p + annotate("text", x = ((lenA + 1) + ((lenA+1)/2))/2, y = lh + 2*bump, label = paste("p =",values$wilcox)) +
           geom_segment(x = 1, y = lh, xend = lenA, yend = lh) + geom_segment(x = 1, y = ll, xend = 1, yend = lh) + geom_segment(x = lenA, y = ll, xend = lenA, yend = lh) +
           geom_segment(x = (lenA+1)/2, y = lh + bump, xend = lenA + 1, yend = lh + bump) + geom_segment(x = (lenA+1)/2, y = lh, xend = (lenA+1)/2, yend = lh + bump) + geom_segment(x = lenA+1, y = ll, xend = lenA+1, yend = lh + bump)
 
-        # df1 <- data.frame(a = c(1,1,2,2), b = c(ll,lh,lh,ll))
-        # q = q + annotate("text", x = 1.5, y = lh, label = values$wilcox) + geom_line(data = df1, aes(x = a, y = b))
+        q = q + annotate("text", x = ((lenA + 1) + ((lenA+1)/2))/2, y = lh + 2*bump, label = paste("p =",values$wilcox)) +
+          geom_segment(x = 1, y = lh, xend = lenA, yend = lh) + geom_segment(x = 1, y = ll, xend = 1, yend = lh) + geom_segment(x = lenA, y = ll, xend = lenA, yend = lh) +
+          geom_segment(x = (lenA+1)/2, y = lh + bump, xend = lenA + 1, yend = lh + bump) + geom_segment(x = (lenA+1)/2, y = lh, xend = (lenA+1)/2, yend = lh + bump) + geom_segment(x = lenA+1, y = ll, xend = lenA+1, yend = lh + bump) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) # + theme_grey(base_size = 14) 
       } else if(lenA == 1 & lenB > 1) {
         p = p + annotate("text", x = 1.25 + .25*lenB, y = lh + 2*bump, label = paste("p =",values$wilcox)) + 
           geom_segment(x = 1, y = lh+bump, xend = .5*lenB + 1.5, yend = lh+bump) + geom_segment(x = 1, y = ll, xend = 1, yend = lh+bump) + geom_segment(x = 1.5+.5*lenB, y = lh, xend = 1.5+.5*lenB, yend = lh+bump) +
           geom_segment(x = 2, y = lh, xend = lenB + 1, yend = lh) + geom_segment(x = 2, y = ll, xend = 2, yend = lh) + geom_segment(x = lenB+1, y = ll, xend = lenB+1, yend = lh)
         
-        # df1 <- data.frame(a = c(1,1,2,2), b = c(ll,lh,lh,ll))
-        # q = q + annotate("text", x = 1.5, y = lh, label = values$wilcox) + geom_line(data = df1, aes(x = a, y = b))
+        q = q + annotate("text", x = 1.25 + .25*lenB, y = lh + 2*bump, label = paste("p =",values$wilcox)) + 
+          geom_segment(x = 1, y = lh+bump, xend = .5*lenB + 1.5, yend = lh+bump) + geom_segment(x = 1, y = ll, xend = 1, yend = lh+bump) + geom_segment(x = 1.5+.5*lenB, y = lh, xend = 1.5+.5*lenB, yend = lh+bump) +
+          geom_segment(x = 2, y = lh, xend = lenB + 1, yend = lh) + geom_segment(x = 2, y = ll, xend = 2, yend = lh) + geom_segment(x = lenB+1, y = ll, xend = lenB+1, yend = lh) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) # + theme_grey(base_size = 14) 
       } else if(lenA > 1 & lenB > 1) {
         p = p + annotate("text", x = .25*(lenB-1)+.75*(lenA+1), y = lh + 2*bump, label = paste("p =",values$wilcox)) + 
           geom_segment(x = 1, y = lh, xend = lenA, yend = lh) + geom_segment(x = 1, y = ll, xend = 1, yend = lh) + geom_segment(x = lenA, y = ll, xend = lenA, yend = lh) +
           geom_segment(x = lenA+1, y = lh, xend = lenA+lenB, yend = lh) + geom_segment(x = lenA+1, y = ll, xend = lenA+1, yend = lh) + geom_segment(x = lenA+lenB, y = ll, xend = lenA+lenB, yend = lh) +
           geom_segment(x = (lenA+1)/2, y = lh+bump, xend = (lenA+1)+((lenB-1)/2), yend = lh+bump) + geom_segment(x = (lenA+1)/2, y = lh, xend = (lenA+1)/2, yend = lh+bump) + geom_segment(x = (lenA+1)+((lenB-1)/2), y = lh, xend = (lenA+1)+((lenB-1)/2), yend = lh+bump)
         
-        # df1 <- data.frame(a = c(1,1,2,2), b = c(ll,lh,lh,ll))
-        # q = q + annotate("text", x = 1.5, y = lh, label = values$wilcox) + geom_line(data = df1, aes(x = a, y = b))
+        q = q + annotate("text", x = .25*(lenB-1)+.75*(lenA+1), y = lh + 2*bump, label = paste("p =",values$wilcox)) + 
+          geom_segment(x = 1, y = lh, xend = lenA, yend = lh) + geom_segment(x = 1, y = ll, xend = 1, yend = lh) + geom_segment(x = lenA, y = ll, xend = lenA, yend = lh) +
+          geom_segment(x = lenA+1, y = lh, xend = lenA+lenB, yend = lh) + geom_segment(x = lenA+1, y = ll, xend = lenA+1, yend = lh) + geom_segment(x = lenA+lenB, y = ll, xend = lenA+lenB, yend = lh) +
+          geom_segment(x = (lenA+1)/2, y = lh+bump, xend = (lenA+1)+((lenB-1)/2), yend = lh+bump) + geom_segment(x = (lenA+1)/2, y = lh, xend = (lenA+1)/2, yend = lh+bump) + geom_segment(x = (lenA+1)+((lenB-1)/2), y = lh, xend = (lenA+1)+((lenB-1)/2), yend = lh+bump) + theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1)) # + theme_grey(base_size = 14) 
       }
       
       p = plotly_build(p)
@@ -121,9 +129,18 @@ drawBox <- function(input, values) {
           p$data[[i]]$text = gsub('y_variable', parameter_choice, p$data[[i]]$text)
         }
       }
-      p$layout$xaxis$tickangle = -90
-      p$layout$margin$b = 200
+      # p$layout$xaxis$tickangle = -90
+      # p$layout$margin$b = 200
+      bottom_margin = max(nchar(p$layout$xaxis$ticktext), na.rm = TRUE)
+      left = nchar(p$layout$xaxis$ticktext[1])
+      p$layout$xaxis$tickangle = -45
+      p$layout$margin$b = 15 + 6*bottom_margin
+      if(left > 10) {
+        left_margin = p$layout$margin$l + (left-10)*6
+        p$layout$margin$l = left_margin
+      }
     }
+    test_box <<- p
     return(p)
   }
 }
