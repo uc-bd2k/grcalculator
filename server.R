@@ -472,7 +472,7 @@ print(5)
       })
       
       observeEvent(input$factorA, {
-        picks = unique(values$GR_table[[outVar()]])
+        picks = sort(input$pick_box_factors)
         picks1 = setdiff(picks, input$factorA)
         updateSelectizeInput(
           session, 'factorB',
@@ -482,7 +482,7 @@ print(5)
       })
       
       observeEvent(input$factorB, {
-        picks = unique(values$GR_table[[outVar()]])
+        picks = sort(input$pick_box_factors)
         picks2 = setdiff(picks, input$factorB)
         updateSelectizeInput(
           session, 'factorA',
@@ -513,7 +513,7 @@ print(5)
       
       observeEvent(c(input$box_scatter, input$pick_box_x, input$pick_box_factors), {
         if(!is.null(input$pick_box_x)) {
-          picks = unique(values$GR_table[[outVar()]])
+          picks = sort(input$pick_box_factors)
           updateSelectizeInput(
             session, 'factorA',
             #choices = unique(values$GR_table[[input$pick_box_x]]),
