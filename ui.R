@@ -34,9 +34,10 @@ shinyUI(
                           Tab='\t'),
                           selected = ',', inline = F),
              checkboxInput('euro_in', "Commas as decimal points", value = F),
-             checkboxInput('cap', "Cap GR values between -1 and 1", value = F),
+             checkboxInput('cap', "Cap GR values below 1", value = F),
              checkboxInput('force', "Force sigmoidal fit", value = F),
-              actionLink('loadExample', 'Load Example'),
+             fluidRow(actionLink('loadExample', 'Load Example A')),
+             fluidRow(actionLink('loadExampleC', 'Load Example C')),
               hr(),
               conditionalPanel(
                 condition = "output.fileUploaded",
@@ -51,8 +52,9 @@ shinyUI(
            tabsetPanel(id = "tabs",
                        tabPanel(value="tab-starting",
                                 "Getting Started",
-                   					    tags$div(tags$link(href="css/AboutGRMetrics.css",rel="stylesheet"),
-                   					             includeHTML("www/GRCGettingStarted.html")),
+                   					    tags$div(#tags$link(href="css/AboutGRMetrics.css",rel="stylesheet"),
+                   					      tags$link(href="GettingStarted.css",rel="stylesheet"),
+                   					    includeHTML("www/GettingStartedRMD.html")),
                    					    conditionalPanel(condition="$('html').hasClass('shiny-busy')",tags$div(class="bigdiv",tags$img(src="gif-loading.gif",width=800,height=426)))
                        ),
                        # Data Tables tab
