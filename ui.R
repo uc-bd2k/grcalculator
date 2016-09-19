@@ -12,12 +12,13 @@ shinyUI(
     tags$head(
       tags$link(href="css/ilincs.css",rel="stylesheet")
     ),
+    tags$head(tags$style(".leftColWidth{max-width: 225px; }")),
     useShinyjs(),
     #displaying header
     includeHTML("www/html/nav.html"),
     titlePanel("GR Calculator"),
     # side column
-    column(2,
+    column(2, class="leftColWidth",
            br(),
            wellPanel(
              tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
