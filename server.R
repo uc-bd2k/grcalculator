@@ -35,6 +35,22 @@ shinyServer(function(input, output,session) {
     }, rownames= FALSE))
   })
   
+  observeEvent(input$loadExampleC, {
+    values$data_dl = 'example'
+    output$input_error = renderText("")
+    session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
+    values$inData <- read_tsv('toy_example_input4_edited.tsv')
+    values$GR_table_show = NULL
+    values$parameter_table_show = NULL
+    values$showanalyses=0
+    values$showanalyses_multi=0
+    if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
+    output$input_table <- DT::renderDataTable(DT::datatable({
+      x<-values$inData
+      data.frame(x)
+    }, rownames= FALSE))
+  })
+  
   observeEvent(input$uploadData, {
     values$data_dl = 'input'
     values$showanalyses=0

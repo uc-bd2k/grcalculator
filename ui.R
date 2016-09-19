@@ -52,9 +52,9 @@ shinyUI(
            tabsetPanel(id = "tabs",
                        tabPanel(value="tab-starting",
                                 "Getting Started",
-                   					    tags$div(#tags$link(href="css/AboutGRMetrics.css",rel="stylesheet"),
-                   					      tags$link(href="GettingStarted.css",rel="stylesheet"),
-                   					    includeHTML("www/GettingStartedRMD.html")),
+                   					    tags$div(tags$link(href="css/AboutGRMetrics.css",rel="stylesheet"),
+                   					    includeHTML("www/GettingStartedRMD.html")
+                   					    ),
                    					    conditionalPanel(condition="$('html').hasClass('shiny-busy')",tags$div(class="bigdiv",tags$img(src="gif-loading.gif",width=800,height=426)))
                        ),
                        # Data Tables tab
