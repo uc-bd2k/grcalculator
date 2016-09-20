@@ -75,12 +75,12 @@ $(document).ready(function () {
 <h2>Case A</h2>
 <div id="case-a-a-single-file-with-control-values-assigned-to-treated-measurements" class="section level4">
 <h4>Case A: a single file with control values assigned to treated measurements</h4>
-<p>The input file(s) must have the following column headers (first row of the file):</p>
+<p>The input file must have the following column headers (first row of the file):</p>
 <ol style="list-style-type: decimal">
 <li><strong>concentration</strong> = concentration values (not log transformed) of the perturbagen on which dose-response curves will be evaluated</li>
 <li><strong>cell_count</strong> = measure of cell number (or a surrogate of cell number such as CellTiter-Glo® staining) after treatment</li>
-<li><strong>cell_count__time0</strong> - initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment</li>
-<li><strong>cell_count__ctrl</strong> - column with the Control cell count: the measure of cell number in control (e.g. untreated or DMSO-treated) wells from the same plate</li>
+<li><strong>cell_count__time0</strong> = initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment</li>
+<li><strong>cell_count__ctrl</strong> = column with the Control cell count: the measure of cell number in control (e.g. untreated or DMSO-treated) wells from the same plate</li>
 </ol>
 <p>All other columns will be treated as additional keys on which the data will be grouped (e.g. <em>cell_line</em>, <em>drug</em>, <em>time</em>, <em>replicate</em>)</p>
 </div>
@@ -90,11 +90,11 @@ $(document).ready(function () {
 <div id="case-c-a-single-file-with-control-values-stacked-with-treated-measurements" class="section level4">
 <h4>Case C: a single file with control values stacked with treated measurements</h4>
 <p>In the most general case, the control cell counts are in the same file and format as the treated cell counts. Control cell counts will be averaged (using a 50%-trimmed mean) and automatically matched to the treated cell counts based on the keys (columns in the data file). The control cell count values must have a value of 0 for <em>concentration</em> and a value for <em>time</em> that matches the treated measurements. The time 0 cell count values must have value of 0 for <em>time</em>. If the structure of the data is complex, users should format their data as described in Case A as the underlying scripts may inappropriately match control and treated cell counts.</p>
-<p>The input file(s) must have the following column headers (first row of the file):</p>
+<p>The input file must have the following column headers (first row of the file):</p>
 <ol style="list-style-type: decimal">
-<li><strong>concentration</strong> - column with concentration values (not log transformed) of the perturbagen on which dose-response curves will be evaluated</li>
-<li><strong>cell_count</strong> - column with the measure of cell number (or a surrogate of cell number such as CellTiter-Glo® staining)</li>
-<li><strong>time</strong> - column with the time at which a cell count is observed</li>
+<li><strong>concentration</strong> = column with concentration values (not log transformed) of the perturbagen on which dose-response curves will be evaluated</li>
+<li><strong>cell_count</strong> = column with the measure of cell number (or a surrogate of cell number such as CellTiter-Glo® staining)</li>
+<li><strong>time</strong> = column with the time at which a cell count is observed</li>
 </ol>
 <p>All other columns will be treated as additional keys on which the data will be grouped (e.g. <em>cell_line</em>, <em>drug</em>, <em>replicate</em>)</p>
 </div>
