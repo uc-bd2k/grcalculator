@@ -22,7 +22,7 @@ The key variables selected define on which variables the GR values will be avera
 
 ####Step 3: Select additional options and click "Analyze"
 
-Additionally, the user may select **Cap GR values below 1** and/or **Force sigmoidal fit**. If **Cap GR values below 1** is selected, all calculated GR values that are greater than 1 will be set to 1. If **Force sigmoidal fit** is selected, the calculator will attempt to "force" a sigmoidal rather than a straight line fit, i.e. it will allow for sigmoidal fits with F-test p-values greater than .05.
+Additionally, the user may select **Advanced options** and choose **Cap GR values below 1** and/or **Force sigmoidal fit**. If **Cap GR values below 1** is selected, all calculated GR values that are greater than 1 will be set to 1. If **Force sigmoidal fit** is selected, the calculator will attempt to "force" a sigmoidal rather than a straight line fit, i.e. it will allow for sigmoidal fits with F-test p-values greater than .05.
 
 # {.tabset .tabset-fade .tabset-pills}
 ## Case A

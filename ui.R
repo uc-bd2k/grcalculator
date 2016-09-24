@@ -34,6 +34,7 @@ shinyUI(
                           c(Comma=',',
                           Tab='\t'),
                           selected = ',', inline = F),
+             checkboxInput('euro_in', "Commas as decimal points", value = F),
              fluidRow(actionLink('loadExample', 'Load Example A')),
              fluidRow(actionLink('loadExampleC', 'Load Example C')),
              conditionalPanel(
@@ -42,7 +43,6 @@ shinyUI(
              ),
              conditionalPanel(
                condition = "input.advanced % 2 == 1",
-               checkboxInput('euro_in', "Commas as decimal points", value = F),
                checkboxInput('cap', "Cap GR values below 1", value = F),
                checkboxInput('force', "Force sigmoidal fit", value = F)
              ),
