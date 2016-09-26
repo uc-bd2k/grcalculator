@@ -6,6 +6,7 @@ library(readr)
 library(drc)
 library(GRmetrics)
 library(S4Vectors)
+library(stringr)
 
 source('functions/drawPopup.R')
 source('functions/drawDRC.R', local = T)
@@ -289,7 +290,7 @@ shinyServer(function(input, output,session) {
 
 #============ Plotly popups =====================
   observeEvent(input$'dose-response-grid-main', {
-    if (input$'dose-response-grid-main' != '') {
+    if (input$'dose-response-grid-main' != '' && str_count(input$'dose-response-grid-main', '=') == 1) {
       q = parseLabel(input, values)
       output$graphPopupPlot <- renderPlotly(q)
       toggleModal(session,"graphPopup")
@@ -572,7 +573,7 @@ print(5)
         #input$plot_gr50grid
         isolate(extractGridData(input, output, values$parameter_table, isolate(input$choiceVar), isolate(input$xgroupingVars)))
       }
-    )
+      )
   })
   
       box_scatter_choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')
