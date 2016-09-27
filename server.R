@@ -85,6 +85,42 @@ shinyServer(function(input, output,session) {
     }, rownames= FALSE))
   })
   
+  observeEvent(input$fetchURLData, {
+    # Somehow add test to make sure that input$url is a proper url/text file
+    if(input$url != "") {
+      values$data_dl = 'input'
+      values$showanalyses=0
+      values$showanalyses_multi=0
+      if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
+      values$GR_table_show = NULL
+      values$parameter_table_show = NULL
+      inFile <- input$url
+      if (is.null(inFile)) {
+        return(NULL)
+      } else if(input$sep == '\t'){
+        if(input$euro_in == T) {
+          values$inData <- read_tsv(inFile, locale = locale(decimal_mark = ','))
+        } else {
+          values$inData <- read_tsv(inFile)
+        }
+        # Get rid of blank rows at the end of a file
+        values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
+      } else if(input$sep == ',') {
+        if(input$euro_in == T) {
+          values$inData <- read_csv2(inFile)
+        } else {
+          values$inData <- read_csv(inFile)
+        }
+        # Get rid of blank rows at the end of a file
+        values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
+      }
+      output$input_table <- DT::renderDataTable(DT::datatable({
+        x<-values$inData
+        data.frame(x)
+      }, rownames= FALSE))
+    }
+  })
+  
   observe({
     toggle(condition = values$showdata, selector = "#tabs li a[data-value=tab-data]")
     toggle(condition = values$showanalyses, selector = "#tabs li a[data-value=tab-drc]")
@@ -166,7 +202,25 @@ shinyServer(function(input, output,session) {
       }, rownames= FALSE))
     }
   })
-
+  
+  observeEvent(input$uploadData, {
+    if(!is.null(input$uploadData)) {
+      toggleModal(session, 'importDialog', toggle = "close")
+    }
+  })
+  
+  observeEvent(input$fetchURLData, {
+    if(input$fetchURLData > 0) {
+      toggleModal(session, 'importDialog', toggle = "close")
+    }
+  })
+      
+  observeEvent(c(input$loadExample, input$loadExampleC),{
+    if(input$loadExample > 0 | input$loadExampleC > 0) {
+      toggleModal(session, 'loadExamples', toggle = "close")
+    }
+  })
+    
 #========== Download button data tables =======
   output$downloadData <- downloadHandler(
     filename = function() {

@@ -29,18 +29,11 @@ shinyUI(
                       $(id).css("visibility", "hidden");
                       });
                       '),
-                # fluidRow(column(4, actionLink('loadExample', 'Load Example (Format A)')),
-                #          column(4),
-                #          column(4, actionLink('loadExampleC', 'Load Example (Format C)'))
-                # ),
                 br(),
                 fluidRow(
                   column(6,
                     fileInput('uploadData', 'Open data file (.tsv, .csv)', multiple = FALSE, accept = NULL, width = NULL),
                     tags$style(type='text/css', "#uploadData {width: 80px}"),
-                    #actionButton("inputOptions", "Input options"),
-                    #conditionalPanel(
-                      #condition = "input.inputOptions % 2 == 0",
                     wellPanel(
                       radioButtons('sep', 'Separator',
                                    c(Comma=',',Tab='\t'), selected = ',', inline = T),
@@ -52,43 +45,17 @@ shinyUI(
                          actionButton("fetchURLData", "Fetch Data")
                   )
                 )
-                # fluidRow(column(4),
-                #          column(4,
-                # radioButtons('sep', 'Separator',
-                #              c(Comma=',',Tab='\t'), selected = ',', inline = T),
-                # checkboxInput('euro_in', "Input with commas as decimal points", value = F))
-                # ),
-                # fluidRow(
-                #   conditionalPanel(
-                #   condition = "output.fileUploaded",
-                #   actionButton('advanced', 'Advanced options')
-                # ),
-                # conditionalPanel(
-                #   condition = "input.advanced % 2 == 1",
-                #   checkboxInput('cap', "Cap GR values below 1", value = F),
-                #   checkboxInput('force', "Force sigmoidal fit", value = F)
-                # )
-                # )
-             #    wellPanel(
-             # checkboxInput('euro_in', "Input with commas as decimal points", value = F),
-             # checkboxInput('cap', "Cap GR values below 1", value = F),
-             # checkboxInput('force', "Force sigmoidal fit", value = F)
-             #    ),
            ),
-           actionLink('importData', 'Open data file'),
-           # actionButton("loadExamples", "Load Example"),
-           # conditionalPanel(
-           #   condition = "input.loadExamples % 2 == 1",
-           #   actionLink('loadExample', 'Load Example A'), br(),
-           #   actionLink('loadExampleC', 'Load Example C')
-           # )
-           actionButton('examples', "Load Example"),
+           tags$div(
+             actionButton('importData', 'Open data file'),
+             tags$hr(),
+             actionLink('examples', "Load Example")
+           ),
            bsModal('loadExamples', "Load Example", "examples",
-                   actionLink('loadExample', 'Load Example (Case A)'), br(),
-                   actionLink('loadExampleC', 'Load Example (Case C)')
+                   actionButton('loadExample', 'Load Example (Case A)'),br(),
+                   actionButton('loadExampleC', 'Load Example (Case C)')
                    ),
-           tags$style(type='text/css', "#examples { margin-top: 20px;}"),
-           tags$style(type='text/css', "#importData { margin-left: 15px;}")
+           tags$style(type='text/css', "#loadExampleC { margin-top: 10px;}")
         ),
         conditionalPanel(
           condition = "output.fileUploaded",
