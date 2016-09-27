@@ -53,7 +53,7 @@ shinyUI(
            ),
            actionLink('importData', 'Open data file'),
            hr(),
-           actionLink('loadExample', 'Load Example A'),
+           actionLink('loadExample', 'Load Example A'),br(),
            actionLink('loadExampleC', 'Load Example C')
         ),
         conditionalPanel(
@@ -80,27 +80,55 @@ shinyUI(
     					                  "Data Tables",
          					              textOutput(outputId = 'input_error'),
          					              tags$head(tags$style("#input_error{color: red; font-size: 20px; }")),
-    					                  fluidRow(column(5,radioButtons(inputId = "pick_data", label = "", choices = list("Input Data" = 1, "GR Values" = 2, "Fitted Parameters" = 3), selected = 1, inline = T)),
-                  				      column(3, downloadButton('downloadData', 'Download data table'),
-                         		    tags$style(type='text/css', "#downloadData { width:200px; margin-top: 10px; margin-bottom: 20px;}")),
-                  				      column(2, 
-                  				      radioButtons('download_type', label = "", choices = c("csv", "tsv"), inline = T),
-                  				      checkboxInput('euro_out', 'Export commas as decimal points', value = F))
-    					                  ),
-    					                  
-    					                  tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
-    					                  DT::dataTableOutput("input_table")
-    					                  ),
+    					                  fluidRow(
+    					                    column(6,
+    					                       wellPanel(
+    					                           tags$style(type='text/css', "#pick_data { margin-bottom: 0px; margin-top: 0px;}"),
+    					                           radioButtons(inputId = "pick_data", label = NULL, choices = list("Input Data" = 1, "GR Values" = 2, "Fitted Parameters" = 3), selected = 1, inline = T)
+    					                           , style = "padding-top: 5px;margin-top: 10px; padding-bottom:5px; margin-bottom: 0px;")
+    					                       ),
+                  				      column(3, 
+                  				             tags$style(type='text/css', "#shareData { width:200px; margin-top: 10px; margin-bottom: 20px;}"),
+                  				             actionButton("shareData", "Share Data File"),
+                  				             bsModal("shareDataDialog", "Share", "shareData",
+                  				                downloadButton('downloadData', 'Download data table'),
+                         		              tags$style(type='text/css', "#downloadData { width:200px; margin-top: 10px; margin-bottom: 20px;}"),
+                  				                radioButtons('download_type', label = "", choices = c("csv", "tsv"), inline = T),
+                  				                checkboxInput('euro_out', 'Export commas as decimal points', value = F),
+    					                            hr(),
+    					                            actionButton("generateURL", "Generate URL to Share"),
+    					                            textInput("prepopulatedURL", label = "", value = "")
+                                       )
+                  				          )
+                  				      ),
+                               tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
+                               DT::dataTableOutput("input_table")
+    					         ),
                        # Dose response curve tab
                        tabPanel(value="tab-drc",
                                 "Dose Response by Condition",
                                 fluidRow(
-                                  column(4,
-                                         radioButtons("plot_options", label = "", choices = list("Data Points" = 1, "Fitted Curves" = 2, "Both" = 3), selected = 3, inline = T)),
+                                  column(6,
+                                         wellPanel(
+                                            tags$style(type='text/css', "#plot_options { margin-bottom: 0px; margin-top: 0px;}"),
+                                            radioButtons("plot_options", label = NULL, choices = list("Data Points" = 1, "Fitted Curves" = 2, "Both" = 3), selected = 3, inline = T)
+                                            , style = "padding-top: 5px;margin-top: 10px; padding-bottom:5px; margin-bottom: 0px;")
+                                         ),
                                   column(2,
-                                         downloadButton('downloadDRC', label = "Download image")),   
-                                  column(1,
-                                  	     radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff')), inline = T),             
+                                         tags$style(type='text/css', "#shareImageData { margin-top: 10px; margin-bottom: 20px;}"),
+                                         actionButton("shareImageData", "Share Image File"),
+                                         bsModal("shareImageDataDialog", "Share", "shareImageData",
+                                            fluidRow(
+                                              column(5,
+                                                downloadButton('downloadDRC', label = "Download image"),   
+                                                radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff')),
+                                                hr(),
+                                                actionButton("generateURL2", "Generate URL to Share"),
+                                                textInput("prepopulatedURL2", label = "", value = "")
+                                              )
+                                            )
+                                         )
+                                  ),
                                   column(1, offset=1, tags$div(id='plotBoxL1',"Plot height")),
                                   column(2, textInput('height', NULL, value = 700)),
                                   tags$style(type='text/css', "#height { width:50px; margin-top: 20px; margin-left: 0px; margin-right: 0px;}"),
@@ -137,11 +165,30 @@ shinyUI(
                        tabPanel(value="tab-gr-metric",
                                 "GR Metric Comparison",
                                 fluidRow(
-                                  column(3, radioButtons('box_scatter', label = '', choices = c("Box plot", "Scatter plot"), inline = T)),
-                                  column(2, offset=2, downloadButton('downloadScatter', label = "Download image")),
-                                  column(1,radioButtons('scatterImageType', label = '', choices = c('.pdf', '.tiff')), inline = T),
-                                  tags$style(type='text/css', "#downloadScatter { margin-top: 20px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px}"),
-                                  tags$style(type='text/css', "#scatterImageType { margin-top: 0px; margin-bottom: 20px; margin-left: 0px}"),
+                                  column(4, 
+                                    wellPanel(
+                                      tags$style(type='text/css', "#box_scatter { margin-bottom: 0px; margin-top: 0px;}"),
+                                      radioButtons('box_scatter', label = NULL, choices = c("Box plot", "Scatter plot"), inline = T)
+                                      , style = "padding-top: 5px;margin-top: 10px; padding-bottom:5px; margin-bottom: 0px;")
+                                    ),
+                                  column(2, # offset=2, 
+                                         tags$style(type='text/css', "#shareImageData2 { margin-top: 10px; margin-bottom: 20px;}"),
+                                         actionButton("shareImageData2", "Share Image File"),
+                                         bsModal("shareImageDataDialog2", "Share", "shareImageData2",
+                                            fluidRow(
+                                                column(5,
+                                                   downloadButton('downloadScatter', label = "Download image"),
+                                                   radioButtons('scatterImageType', label = '', choices = c('.pdf', '.tiff')),
+                                                   tags$style(type='text/css', "#downloadScatter { margin-top: 20px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px}"),
+                                                   tags$style(type='text/css', "#scatterImageType { margin-top: 0px; margin-bottom: 20px; margin-left: 0px}"),
+                                                   hr(),
+                                                   actionButton("generateURL3", "Generate URL to Share"),
+                                                   textInput("prepopulatedURL3", label = "", value = "")
+                                                   )
+                                                )
+                                            )
+                                         ),
+                                  
                                   column(1,offset=1, tags$div(id='plotBoxL2',"Plot height")),
                                   column(2, textInput('scatter_height', NULL, value = 700)),
                                   tags$style(type='text/css', "#plotBoxL2 { white-space: nowrap; margin-top: 25px; margin-left: 10px; margin-right: 0px}"),
