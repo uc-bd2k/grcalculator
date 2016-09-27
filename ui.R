@@ -12,7 +12,7 @@ shinyUI(
     tags$head(
       tags$link(href="css/ilincs.css",rel="stylesheet")
     ),
-    tags$head(tags$style(".leftColWidth{max-width: 225px; }")),
+    tags$head(tags$style(".leftColWidth{max-width: 225px;}")),
     useShinyjs(),
     #displaying header
     includeHTML("www/html/nav.html"),
@@ -29,32 +29,76 @@ shinyUI(
                       $(id).css("visibility", "hidden");
                       });
                       '),
+                # fluidRow(column(4, actionLink('loadExample', 'Load Example (Format A)')),
+                #          column(4),
+                #          column(4, actionLink('loadExampleC', 'Load Example (Format C)'))
+                # ),
+                br(),
                 fluidRow(
-                  column(5,
+                  column(6,
                     fileInput('uploadData', 'Open data file (.tsv, .csv)', multiple = FALSE, accept = NULL, width = NULL),
-                    tags$style(type='text/css', "#uploadData {width: 80px}")
-                  ),
-                  column(5,
-                         
+                    tags$style(type='text/css', "#uploadData {width: 80px}"),
+                    #actionButton("inputOptions", "Input options"),
+                    #conditionalPanel(
+                      #condition = "input.inputOptions % 2 == 0",
+                    wellPanel(
+                      radioButtons('sep', 'Separator',
+                                   c(Comma=',',Tab='\t'), selected = ',', inline = T),
+                      checkboxInput('euro_in', "Input with commas as decimal points", value = F)
+                    )
+                    ),
+                  column(6,
                          textInput("url", "URL data file (.tsv, .csv)"),
                          actionButton("fetchURLData", "Fetch Data")
                   )
-                ),
-                br(),
-                wellPanel(
-                  radioButtons('sep', 'Separator',
-                          c(Comma=',',
-                          Tab='\t'),
-                          selected = ',', inline = F),
-             checkboxInput('euro_in', "Commas as decimal points", value = F),
-             checkboxInput('cap', "Cap GR values below 1", value = F),
-             checkboxInput('force', "Force sigmoidal fit", value = F)
                 )
+                # fluidRow(column(4),
+                #          column(4,
+                # radioButtons('sep', 'Separator',
+                #              c(Comma=',',Tab='\t'), selected = ',', inline = T),
+                # checkboxInput('euro_in', "Input with commas as decimal points", value = F))
+                # ),
+                # fluidRow(
+                #   conditionalPanel(
+                #   condition = "output.fileUploaded",
+                #   actionButton('advanced', 'Advanced options')
+                # ),
+                # conditionalPanel(
+                #   condition = "input.advanced % 2 == 1",
+                #   checkboxInput('cap', "Cap GR values below 1", value = F),
+                #   checkboxInput('force', "Force sigmoidal fit", value = F)
+                # )
+                # )
+             #    wellPanel(
+             # checkboxInput('euro_in', "Input with commas as decimal points", value = F),
+             # checkboxInput('cap', "Cap GR values below 1", value = F),
+             # checkboxInput('force', "Force sigmoidal fit", value = F)
+             #    ),
            ),
            actionLink('importData', 'Open data file'),
-           hr(),
-           actionLink('loadExample', 'Load Example A'),br(),
-           actionLink('loadExampleC', 'Load Example C')
+           # actionButton("loadExamples", "Load Example"),
+           # conditionalPanel(
+           #   condition = "input.loadExamples % 2 == 1",
+           #   actionLink('loadExample', 'Load Example A'), br(),
+           #   actionLink('loadExampleC', 'Load Example C')
+           # )
+           actionButton('examples', "Load Example"),
+           bsModal('loadExamples', "Load Example", "examples",
+                   actionLink('loadExample', 'Load Example (Case A)'), br(),
+                   actionLink('loadExampleC', 'Load Example (Case C)')
+                   ),
+           tags$style(type='text/css', "#examples { margin-top: 20px;}"),
+           tags$style(type='text/css', "#importData { margin-left: 15px;}")
+        ),
+        conditionalPanel(
+          condition = "output.fileUploaded",
+          actionButton('advanced', 'Advanced options')
+        ),
+        tags$style(type='text/css', "#advanced { margin: 10px;}"),
+        conditionalPanel(
+          condition = "input.advanced % 2 == 1",
+          checkboxInput('cap', "Cap GR values below 1", value = F),
+          checkboxInput('force', "Force sigmoidal fit", value = F)
         ),
         conditionalPanel(
           condition = "output.fileUploaded",
@@ -89,15 +133,21 @@ shinyUI(
     					                       ),
                   				      column(3, 
                   				             tags$style(type='text/css', "#shareData { width:200px; margin-top: 10px; margin-bottom: 20px;}"),
-                  				             actionButton("shareData", "Share Data File"),
-                  				             bsModal("shareDataDialog", "Share", "shareData",
+                  				             actionButton("shareData", "Download Data File"),
+                  				             bsModal("shareDataDialog", "", "shareData",
+                  				                     fluidRow(
+                  				                       column(6,
                   				                downloadButton('downloadData', 'Download data table'),
-                         		              tags$style(type='text/css', "#downloadData { width:200px; margin-top: 10px; margin-bottom: 20px;}"),
-                  				                radioButtons('download_type', label = "", choices = c("csv", "tsv"), inline = T),
-                  				                checkboxInput('euro_out', 'Export commas as decimal points', value = F),
-    					                            hr(),
-    					                            actionButton("generateURL", "Generate URL to Share"),
-    					                            textInput("prepopulatedURL", label = "", value = "")
+                         		              tags$style(type='text/css', "#downloadData { width:200px; margin-top: 10px; margin-bottom: 20px;}")
+                  				                ,
+                  				                radioButtons('download_type', label = "", choices = c("csv", "tsv"), inline = T)
+                  				                ),
+                  				                column(6,
+                  				                checkboxInput('euro_out', 'Export commas as decimal points', value = F))
+    					                            # hr(),
+    					                            # actionButton("generateURL", "Generate URL to Share"),
+    					                            # textInput("prepopulatedURL", label = "", value = "")
+                  				                     )
                                        )
                   				          )
                   				      ),
@@ -116,21 +166,23 @@ shinyUI(
                                          ),
                                   column(2,
                                          tags$style(type='text/css', "#shareImageData { margin-top: 10px; margin-bottom: 20px;}"),
-                                         actionButton("shareImageData", "Share Image File"),
-                                         bsModal("shareImageDataDialog", "Share", "shareImageData",
+                                         actionButton("shareImageData", "Download Image File"),
+                                         bsModal("shareImageDataDialog", "", "shareImageData",
                                             fluidRow(
-                                              column(5,
-                                                downloadButton('downloadDRC', label = "Download image"),   
-                                                radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff')),
-                                                hr(),
-                                                actionButton("generateURL2", "Generate URL to Share"),
-                                                textInput("prepopulatedURL2", label = "", value = "")
+                                              column(4,
+                                                downloadButton('downloadDRC', label = "Download image")),
+                                              column(4,
+                                                radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff'),
+                                                             inline = F)
+                                              #   hr(),
+                                              #   actionButton("generateURL2", "Generate URL to Share"),
+                                              #   textInput("prepopulatedURL2", label = "", value = "")
                                               )
                                             )
                                          )
                                   ),
                                   column(1, offset=1, tags$div(id='plotBoxL1',"Plot height")),
-                                  column(2, textInput('height', NULL, value = 700)),
+                                  column(2, textInput('height', NULL, value = 500)),
                                   tags$style(type='text/css', "#height { width:50px; margin-top: 20px; margin-left: 0px; margin-right: 0px;}"),
                                   tags$style(type='text/css', "#plotBoxL1 { white-space: nowrap; margin-top: 25px; margin-left: 0px; margin-right: 0px;}"),
                                   tags$style(type='text/css', "#drcImageType { margin-top: 0px; margin-bottom: 30px;margin-right: 0px;margin-left: 0px;}"),
@@ -173,17 +225,18 @@ shinyUI(
                                     ),
                                   column(2, # offset=2, 
                                          tags$style(type='text/css', "#shareImageData2 { margin-top: 10px; margin-bottom: 20px;}"),
-                                         actionButton("shareImageData2", "Share Image File"),
-                                         bsModal("shareImageDataDialog2", "Share", "shareImageData2",
+                                         actionButton("shareImageData2", "Download Image File"),
+                                         bsModal("shareImageDataDialog2", "", "shareImageData2",
                                             fluidRow(
-                                                column(5,
-                                                   downloadButton('downloadScatter', label = "Download image"),
+                                                column(4,
+                                                   downloadButton('downloadScatter', label = "Download image")),
+                                                column(4,
                                                    radioButtons('scatterImageType', label = '', choices = c('.pdf', '.tiff')),
                                                    tags$style(type='text/css', "#downloadScatter { margin-top: 20px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px}"),
-                                                   tags$style(type='text/css', "#scatterImageType { margin-top: 0px; margin-bottom: 20px; margin-left: 0px}"),
-                                                   hr(),
-                                                   actionButton("generateURL3", "Generate URL to Share"),
-                                                   textInput("prepopulatedURL3", label = "", value = "")
+                                                   tags$style(type='text/css', "#scatterImageType { margin-top: 0px; margin-bottom: 20px; margin-left: 0px}")
+                                                   # hr(),
+                                                   # actionButton("generateURL3", "Generate URL to Share"),
+                                                   # textInput("prepopulatedURL3", label = "", value = "")
                                                    )
                                                 )
                                             )

@@ -103,7 +103,6 @@ shinyServer(function(input, output,session) {
   
   output$fileUploaded <- reactive({
     output$input_error = renderText("")
-    
     if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))) == 4) {
       print('Input Case A')
       delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))
