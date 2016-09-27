@@ -21,38 +21,48 @@ shinyUI(
     column(2, class="leftColWidth",
            br(),
            wellPanel(
-             tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
+             bsModal("importDialog", "Import Data", "importData",
+                tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
                       var el = $("#" + x);
                       el.replaceWith(el = el.clone(true));
                       var id = "#" + x + "_progress";     
                       $(id).css("visibility", "hidden");
                       });
                       '),
-             fileInput('uploadData', 'Open data file (.tsv, .csv)', multiple = FALSE, accept = NULL, width = NULL),
-             tags$style(type='text/css', "#uploadData {width: 80px}"),
-             radioButtons('sep', 'Separator',
+                fluidRow(
+                  column(5,
+                    fileInput('uploadData', 'Open data file (.tsv, .csv)', multiple = FALSE, accept = NULL, width = NULL),
+                    tags$style(type='text/css', "#uploadData {width: 80px}")
+                  ),
+                  column(5,
+                         
+                         textInput("url", "URL data file (.tsv, .csv)"),
+                         actionButton("fetchURLData", "Fetch Data")
+                  )
+                ),
+                br(),
+                wellPanel(
+                  radioButtons('sep', 'Separator',
                           c(Comma=',',
                           Tab='\t'),
                           selected = ',', inline = F),
              checkboxInput('euro_in', "Commas as decimal points", value = F),
-             fluidRow(actionLink('loadExample', 'Load Example A')),
-             fluidRow(actionLink('loadExampleC', 'Load Example C')),
-             conditionalPanel(
-               condition = "output.fileUploaded",
-               actionButton('advanced', 'Advanced options')
-             ),
-             conditionalPanel(
-               condition = "input.advanced % 2 == 1",
-               checkboxInput('cap', "Cap GR values below 1", value = F),
-               checkboxInput('force', "Force sigmoidal fit", value = F)
-             ),
-              hr(),
-              conditionalPanel(
-                condition = "output.fileUploaded",
-                selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE),
-                actionButton("analyzeButton", "Analyze")
-              )
-           )
+             checkboxInput('cap', "Cap GR values below 1", value = F),
+             checkboxInput('force', "Force sigmoidal fit", value = F)
+                )
+           ),
+           actionLink('importData', 'Open data file'),
+           hr(),
+           actionLink('loadExample', 'Load Example A'),
+           actionLink('loadExampleC', 'Load Example C')
+        ),
+        conditionalPanel(
+          condition = "output.fileUploaded",
+          wellPanel(
+            selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE),
+            actionButton("analyzeButton", "Analyze")
+          )
+        )
     ),
     # main column
     column(10,
