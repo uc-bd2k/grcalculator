@@ -81,6 +81,10 @@ shinyUI(
            tabsetPanel(id = "tabs",
                        tabPanel(value="tab-starting",
                                 "Getting Started",
+                                                            # Hide second and subsequent tabs as soon as possible. Hiding the
+                                                            # 'a' elements replicates the behavior of toggle() on the server side
+                                                            # so that later calls to toggle() will properly unhide the tabs.
+                                                            tags$script('$("#tabs li a[data-value!=tab-starting]").hide();'),
                    					    tags$div(tags$link(href="css/AboutGRMetrics.css",rel="stylesheet"),
                    					    includeHTML("www/GettingStartedRMD.html")
                    					    ),
