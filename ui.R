@@ -10,7 +10,8 @@ shinyUI(
   fluidPage(
     #adding head section to html with links to CSS files
     tags$head(
-      tags$link(href="css/ilincs.css",rel="stylesheet")
+      tags$link(href="css/ilincs.css",rel="stylesheet"),
+      tags$link(href="css/dose_response_grid.css",rel="stylesheet")
     ),
     tags$head(tags$style(".leftColWidth{max-width: 225px;}")),
     useShinyjs(),
