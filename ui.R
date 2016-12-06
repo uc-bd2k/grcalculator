@@ -10,7 +10,8 @@ shinyUI(
   fluidPage(
     #adding head section to html with links to CSS files
     tags$head(
-      tags$link(href="css/ilincs.css",rel="stylesheet")
+      tags$link(href="css/ilincs.css",rel="stylesheet"),
+      tags$link(href="css/dose_response_grid.css",rel="stylesheet")
     ),
     tags$head(tags$style(".leftColWidth{max-width: 225px;}")),
     useShinyjs(),
@@ -77,10 +78,32 @@ shinyUI(
     ),
     # main column
     column(10,
-           tags$style(".nav-tabs  li  a {font-size:14px; padding:10px 20px 10px 20px;} "),
+           # Opacity transitions keep the "working" indicator hidden unless the
+           # server is busy for more than 0.5s (otherwise the indicator is
+           # blinking all the time).
+           tags$style("
+             .nav-tabs  li  a { font-size:14px; padding:10px 20px 10px 20px; }
+             #busy-working {
+               opacity: 0;
+                       transition: opacity .1s linear 0s;
+               -webkit-transition: opacity .1s linear 0s;
+             }
+             html.shiny-busy #busy-working {
+               opacity: 1;
+                       transition: opacity .1s linear .5s;
+               -webkit-transition: opacity .1s linear .5s;
+             }
+           "),
+           tags$div(id="busy-working", class="btn btn-warning",
+                    style="position: absolute; top: -40px; cursor: inherit;",
+                    "Working..."),
            tabsetPanel(id = "tabs",
                        tabPanel(value="tab-starting",
                                 "Getting Started",
+                                                            # Hide second and subsequent tabs as soon as possible. Hiding the
+                                                            # 'a' elements replicates the behavior of toggle() on the server side
+                                                            # so that later calls to toggle() will properly unhide the tabs.
+                                                            tags$script('$("#tabs li a[data-value!=tab-starting]").hide();'),
                    					    tags$div(tags$link(href="css/AboutGRMetrics.css",rel="stylesheet"),
                    					    includeHTML("www/GettingStartedRMD.html")
                    					    ),
