@@ -57,8 +57,14 @@ drawScatter <- function (input, values) {
   plotScatter_box <<- p
   # modify x and y names for hovertext
   p = plotly_build(p)
-  for(i in 1:length(p$data)){
-    p$data[[i]]$text = gsub('cross.x: ', '', p$data[[i]]$text)
+  if(is.null(p$data)) {
+    for(i in 1:length(p$x$data)){
+      p$x$data[[i]]$text = gsub('cross.x: ', '', p$x$data[[i]]$text)
+    }
+  } else {
+    for(i in 1:length(p$data)){
+      p$data[[i]]$text = gsub('cross.x: ', '', p$data[[i]]$text)
+    }
   }
   return(p)
 }

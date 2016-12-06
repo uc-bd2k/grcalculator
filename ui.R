@@ -53,8 +53,11 @@ shinyUI(
              actionLink('examples', "Load Example")
            ),
            bsModal('loadExamples', "Load Example", "examples",
-                   actionButton('loadExample', 'Load Example (Case A)'),br(),
-                   actionButton('loadExampleC', 'Load Example (Case C)')
+                   actionButton('loadExample', 'Load Example (Case A)'),
+                   span("control values assigned to treated measurements"),
+                   br(),
+                   actionButton('loadExampleC', 'Load Example (Case C)'),
+                   span("control values stacked with treated measurements")
                    ),
            tags$style(type='text/css', "#loadExampleC { margin-top: 10px;}")
         ),

@@ -39,6 +39,9 @@ drawBox <- function(input, values) {
     p1 = plotly_build(p)
     #test_box <<- p1
     # Get y range:
+    if(is.null(p1$data)) {
+      p1 = p1$x
+    }
     top_y = p1[[2]]$yaxis$range[2]
     bottom_y = p1[[2]]$yaxis$range[1]
     total_y_range = top_y - bottom_y
@@ -122,13 +125,13 @@ drawBox <- function(input, values) {
       }
       # p$layout$xaxis$tickangle = -90
       # p$layout$margin$b = 200
-      bottom_margin = max(nchar(p$layout$xaxis$ticktext), na.rm = TRUE)
-      left = nchar(p$layout$xaxis$ticktext[1])
-      p$layout$xaxis$tickangle = -45
-      p$layout$margin$b = 15 + 6*bottom_margin
+      bottom_margin = max(nchar(p$x$layout$xaxis$ticktext), na.rm = TRUE)
+      left = nchar(p$x$layout$xaxis$ticktext[1])
+      p$x$layout$xaxis$tickangle = -45
+      p$x$layout$margin$b = 15 + 6*bottom_margin
       if(left > 10) {
-        left_margin = p$layout$margin$l + (left-10)*6
-        p$layout$margin$l = left_margin
+        left_margin = p$x$layout$margin$l + (left-10)*6
+        p$x$layout$margin$l = left_margin
       }
     } else {
       for(i in 1:length(p$data)){

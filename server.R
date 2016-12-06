@@ -95,6 +95,15 @@ shinyServer(function(input, output,session) {
       values$GR_table_show = NULL
       values$parameter_table_show = NULL
       inFile <- input$url
+      if(grepl("dropbox.com",inFile) & grepl("dl=0", inFile)) {
+        inFile = gsub("dl=0", "dl=1", inFile)
+      } else if(grepl("dropbox.com",inFile) & !grepl("dl=", inFile)) {
+        inFile = paste0(inFile,"?dl=1")
+      } else if(grepl("basecamp.com", inFile) & !grepl("uploads", inFile)) {
+        basecamp = readLines(inFile)
+        line = grep(inFile, basecamp)[1]
+        inFile = strsplit(basecamp[line], '"')[[1]][2]
+      }
       if (is.null(inFile)) {
         return(NULL)
       } else if(input$sep == '\t'){
@@ -704,9 +713,15 @@ print(5)
           df_full <<- NULL
           print(3)
           #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
-          ggplotly(p)
-          print(4)
-          layout(p, hovermode = FALSE)
+          p = plotly_build(p)
+          if(is.null(p$data)) { #newer plotly package
+            ggplotly(p) %>%
+            layout(p, hovermode = FALSE)
+          } else {
+            ggplotly(p)
+            layout(p, hovermode = FALSE)
+          }
+          
         })
       })
       
