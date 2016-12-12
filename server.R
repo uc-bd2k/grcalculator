@@ -485,7 +485,6 @@ print(2)
         })
       })
 
-print(3)      
       output$drc2<-drawDRC(input, values)
 print(4)      
       output$ui <- renderUI({
@@ -711,7 +710,7 @@ print(5)
           p = ggplot(data = mtcars, aes(x = mpg, y = wt)) + geom_abline(slope = 1, intercept = 0, size = .25) + scale_x_continuous(limits = c(all_min, all_max)) + scale_y_continuous(limits = c(all_min, all_max)) + coord_fixed() + xlab('') + ylab('') + ggtitle('') + geom_blank()
           
           df_full <<- NULL
-          print(3)
+          print("test")
           #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
           p = plotly_build(p)
           if(is.null(p$data)) { #newer plotly package
@@ -747,11 +746,20 @@ print(5)
           all_min = -all_max
           print(all_min)
           print(all_max)
-          p = ggplot(data = df_sub, aes(x = get(paste0(parameter_choice,'.x'), envir = as.environment(df_sub)), y = get(paste0(parameter_choice,'.y'), envir = as.environment(df_sub)), colour = cross.x, text = merge_text)) + geom_abline(slope = 1, intercept = 0, size = .25) + scale_x_continuous(limits = c(all_min, all_max)) + scale_y_continuous(limits = c(all_min, all_max)) + coord_fixed() + xlab('') + ylab('') + ggtitle('') + geom_blank()
+          print(parameter_choice)
+          print(head(df_sub))
+          
+          p = ggplot(data = mtcars, aes(x = mpg, y = wt)) + geom_abline(slope = 1, intercept = 0, size = .25) + scale_x_continuous(limits = c(all_min, all_max)) + scale_y_continuous(limits = c(all_min, all_max)) + coord_fixed() + xlab('') + ylab('') + ggtitle('') + geom_blank()
           df_full <<- NULL
           #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
-          ggplotly(p)
-          layout(p, hovermode = FALSE)
+          p = plotly_build(p)
+          if(is.null(p$data)) { #newer plotly package
+            ggplotly(p) %>%
+              layout(p, hovermode = FALSE)
+          } else {
+            ggplotly(p)
+            layout(p, hovermode = FALSE)
+          }
         })
       })
       
