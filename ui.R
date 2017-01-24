@@ -147,9 +147,9 @@ shinyUI(
                                tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
                                DT::dataTableOutput("input_table")
     					         ),
-                       # Dose response curve tab
+                       # Dose-response curve tab
                        tabPanel(value="tab-drc",
-                                "Dose Response by Condition",
+                                "Dose-Response by Condition",
                                 fluidRow(
                                   column(6,
                                          wellPanel(
@@ -189,7 +189,7 @@ shinyUI(
                        ),
                        # Dose-response grid tab
                        tabPanel(value="tab-drc-grid",
-                                "Dose Response Grid",
+                                "Dose-Response Grid",
                                 fluidRow(
                                   column(3, radioButtons("curve_type_grid", label = "Curve type", choices = c("GR","IC"), inline = TRUE)),
                                   column(3, selectizeInput('choiceVar', 'Choose selector variable', choices = NULL)),
