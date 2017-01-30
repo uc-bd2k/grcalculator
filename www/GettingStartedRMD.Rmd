@@ -4,6 +4,11 @@ output: html_document
 ---
 ##### For offline computation, analysis, and visualization, see the Bioconductor R package [*GRmetrics*](https://bioconductor.org/packages/GRmetrics).
 
+
+### Step-by-Step Example
+
+For a step-by-step example of using the GRcalculator, see [*here*](example.html).
+
 ###Instructions
 
 To calculate normalized growth rate inhibition (GR) values and corresponding GR metrics: *GR~50~*, *GEC~50~*, *GR~max~*, *GR~inf~*, *GR~AOC~*, and *h~GR~* based on cell counts measured in dose-response experiments using this online tool, users must provide a data file in which each row represents a separate treatment condition and the columns specify the keys (variables) that define the treatment condition (e.g. cell line, drug or other perturbagen, perturbagen concentration, treatment time, replicate) and the measured cell counts (or surrogate such as CellTiter-Glo® or other readout). Analogous traditional metrics: *IC~50~*, *EC~50~*, *E~max~*, *E~inf~*, *AUC*, and *h* are also computed. Interactive analysis and visualization tools are provided. Detailed instructions can be found below.
