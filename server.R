@@ -549,7 +549,7 @@ print(5)
         return(vars)
       })
       
-      observeEvent(input$factorA, {
+      observeEvent(input$factorA, ignoreNULL = FALSE, {
         picks = sort(input$pick_box_factors)
         picks1 = setdiff(picks, input$factorA)
         updateSelectizeInput(
@@ -559,7 +559,7 @@ print(5)
         )
       })
       
-      observeEvent(input$factorB, {
+      observeEvent(input$factorB, ignoreNULL = FALSE, {
         picks = sort(input$pick_box_factors)
         picks2 = setdiff(picks, input$factorB)
         updateSelectizeInput(
