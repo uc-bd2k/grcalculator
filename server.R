@@ -7,6 +7,7 @@ library(drc)
 library(GRmetrics)
 library(S4Vectors)
 library(stringr)
+library(DT)
 
 source('functions/drawPopup.R')
 source('functions/drawDRC.R', local = T)
@@ -17,7 +18,10 @@ source('functions/parseLabel.R')
 
 shinyServer(function(input, output,session) {
 
-  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, parameter_table = NULL, parameter_table_show = NULL, df_scatter = NULL, showanalyses=0, showdata=0, showanalyses_multi=0, data_dl = NULL, wilcox = NULL)
+  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, 
+                           parameter_table = NULL, parameter_table_show = NULL, 
+                           df_scatter = NULL, showanalyses=0, showdata=0, 
+                           showanalyses_multi=0, data_dl = NULL, wilcox = NULL)
   isolate(values$inData)
 
   observeEvent(input$loadExample, {
@@ -30,10 +34,7 @@ shinyServer(function(input, output,session) {
     values$showanalyses=0
     values$showanalyses_multi=0
     if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-    output$input_table <- DT::renderDataTable(DT::datatable({
-      x<-values$inData
-      data.frame(x)
-    }, rownames= FALSE))
+    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
   observeEvent(input$loadExampleC, {
@@ -46,10 +47,7 @@ shinyServer(function(input, output,session) {
     values$showanalyses=0
     values$showanalyses_multi=0
     if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-    output$input_table <- DT::renderDataTable(DT::datatable({
-      x<-values$inData
-      data.frame(x)
-    }, rownames= FALSE))
+    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
   observeEvent(input$uploadData, {
@@ -60,29 +58,19 @@ shinyServer(function(input, output,session) {
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
     inFile <- input$uploadData
-    if (is.null(inFile)) {
-      return(NULL)
-    } else if(input$sep == '\t'){
-      if(input$euro_in == T) {
-        values$inData <- read_tsv(inFile$datapath, locale = locale(decimal_mark = ','))
-      } else {
-        values$inData <- read_tsv(inFile$datapath)
-      }
+    if (is.null(inFile)) {return(NULL)
+      } else if(input$sep == '\t'){
+      if(input$euro_in == T) {values$inData <- read_tsv(inFile$datapath, locale = locale(decimal_mark = ','))
+      } else {values$inData <- read_tsv(inFile$datapath)}
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     } else if(input$sep == ',') {
-      if(input$euro_in == T) {
-        values$inData <- read_csv2(inFile$datapath)
-      } else {
-        values$inData <- read_csv(inFile$datapath)
-      }
+      if(input$euro_in == T) {values$inData <- read_csv2(inFile$datapath)
+      } else {values$inData <- read_csv(inFile$datapath)}
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     }
-    output$input_table <- DT::renderDataTable(DT::datatable({
-      x<-values$inData
-      data.frame(x)
-    }, rownames= FALSE))
+    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
   observeEvent(input$fetchURLData, {
@@ -123,10 +111,7 @@ shinyServer(function(input, output,session) {
         # Get rid of blank rows at the end of a file
         values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
       }
-      output$input_table <- DT::renderDataTable(DT::datatable({
-        x<-values$inData
-        data.frame(x)
-      }, rownames= FALSE))
+      output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
     }
   })
   
@@ -174,60 +159,35 @@ shinyServer(function(input, output,session) {
             output$input_error = renderText("Your data is not in the correct form. Please read the 'Getting Started' Section.")
         }
     }
-    
     if(!is.null(getData())) values$showdata=1
     return(!is.null(getData()))
   })
   
   outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
   
-  output$input_table <- DT::renderDataTable(DT::datatable({
-    x<-values$inData
-    data.frame(x)
-  }, rownames= FALSE))
+  output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   
   observeEvent(input$pick_data, {
-    if(input$pick_data == 1) {
-      output$input_table <- DT::renderDataTable(DT::datatable({
-        x<-values$inData
-        data.frame(x)
-      }, rownames= FALSE))
-    }
-    
+    if(input$pick_data == 1) {output$input_table <- renderDataTable(datatable(values$inData, rownames = F))}
     if(input$pick_data == 2) {
-      output$input_table <- DT::renderDataTable(DT::datatable({
-        x<-values$GR_table_show
-        if(!is.null(x)) {
-          colnames(x)[which(colnames(x)=="GR")]<-"GR_value"
-        }
-        data.frame(x)
-      }, rownames= FALSE))
+      if(!is.null(values$GR_table_show)) {
+        colnames(values$GR_table_show)[which(colnames(values$GR_table_show)=="GR")]<-"GR_value"
+      }
+      output$input_table <- renderDataTable(datatable(values$GR_table_show, rownames = F))
     }
-    
-    if(input$pick_data == 3) {
-      output$input_table <- DT::renderDataTable(DT::datatable({
-        x<-values$parameter_table_show
-        data.frame(x)
-      }, rownames= FALSE))
-    }
+    if(input$pick_data == 3) {output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))}
   })
   
   observeEvent(input$uploadData, {
-    if(!is.null(input$uploadData)) {
-      toggleModal(session, 'importDialog', toggle = "close")
-    }
+    if(!is.null(input$uploadData)) {toggleModal(session, 'importDialog', toggle = "close")}
   })
-  
+
   observeEvent(input$fetchURLData, {
-    if(input$fetchURLData > 0) {
-      toggleModal(session, 'importDialog', toggle = "close")
-    }
+    if(input$fetchURLData > 0) {toggleModal(session, 'importDialog', toggle = "close")}
   })
-      
+
   observeEvent(c(input$loadExample, input$loadExampleC),{
-    if(input$loadExample > 0 | input$loadExampleC > 0) {
-      toggleModal(session, 'loadExamples', toggle = "close")
-    }
+    if(input$loadExample > 0 | input$loadExampleC > 0) {toggleModal(session, 'loadExamples', toggle = "close")}
   })
     
 #========== Download button data tables =======
@@ -363,10 +323,7 @@ observeEvent(input$analyzeButton, {
 # Make scatterplot reactive to "pick_parameter" after first plot.
   observeEvent(input$pick_parameter, {
     if(input$plot_scatter > 0) {
-      output$plotlyScatter1 <- renderPlotly({
-        #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
-        plot1 = isolate(drawScatter(input, values))
-      })
+      output$plotlyScatter1 <- renderPlotly({isolate(drawScatter(input, values))})
     }
   })
 })
@@ -452,17 +409,12 @@ observeEvent(input$analyzeButton, {
     test_ref_show <<- values$parameter_table_show
     print("finishedParams")
     
+    #=========== data loaded (start) ================
     if (length(values$inData)>0) {
-print(1)
-      
       values$showanalyses<-1
-      if (length(input$groupingVars)>0) {
-          values$showanalyses_multi<-1
-      } else {
-          values$showanalyses_multi<-0
-      }
+      if (length(input$groupingVars)>0) {values$showanalyses_multi<-1
+      } else {values$showanalyses_multi<-0}
       
-print(2)      
       output$plot.ui <- renderUI({
         plotlyOutput("drc2", height = input$height)
       })
@@ -486,7 +438,6 @@ print(2)
       })
 
       output$drc2<-drawDRC(input, values)
-print(4)      
       output$ui <- renderUI({
         n <- length(input$groupingVars)
         if (n>0) {
@@ -495,17 +446,15 @@ print(4)
             codeOutput <- paste("param_", input$groupingVars[i], sep="")
             verbatimTextOutput(codeOutput)
             drc_choices = sort(unique(subset(values$GR_table,select=c(input$groupingVars[i]))[,1])[[1]])
-            selectizeInput(
-              codeOutput, input$groupingVars[i], choices = drc_choices, multiple = TRUE, selected = drc_choices[1]
-            )
+            selectizeInput(codeOutput, input$groupingVars[i], choices = drc_choices, 
+                           multiple = TRUE, selected = drc_choices[1])
           })
         } else code_output_list <- list()
         # Convert the list to a tagList - this is necessary for the list of items
         # to display properly.
         do.call(tagList, code_output_list)
       })
-print(5)
-      
+
       observeEvent(groupingColumns, {
           updateSelectInput(
             session, 'pick_var',
@@ -528,7 +477,6 @@ print(5)
       })
 
       output$boxplot <- renderPlotly({
-        #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
         box = drawBox(input, values)
         if(!is.null(box)) {
           box
@@ -536,12 +484,13 @@ print(5)
       })
       observeEvent(input$plot_scatter, {
         output$plotlyScatter1 <- renderPlotly({
-          #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
           plot1 = isolate(drawScatter(input, values))
         })
       })
     }
+    #=============== data loaded (end) ===================
   })
+#======= analyzeButton (end) ===========
   
   observeEvent(input$analyzeButton, {
       outVar <- reactive({
@@ -594,13 +543,11 @@ print(5)
           picks = sort(input$pick_box_factors)
           updateSelectizeInput(
             session, 'factorA',
-            #choices = unique(values$GR_table[[input$pick_box_x]]),
             choices = picks,
             selected = NULL
           )
           updateSelectizeInput(
             session, 'factorB',
-            #choices = unique(values$GR_table[[input$pick_box_x]]),
             choices = picks,
             selected = NULL
           )
@@ -654,15 +601,21 @@ print(5)
             selectInput('pick_box_y', 'Select parameter', choices = box_scatter_choices),
             selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
             selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
-            selectizeInput('pick_box_factors', 'Select factors of grouping variable', choices = c(), multiple = T),
-            selectizeInput('factorA', 'Choose factors with which to perform a one-sided Wilcoxon rank-sum test', choices = c(), multiple = T),
-            selectizeInput('factorB', '', choices = c(), multiple = T),
+            selectizeInput('pick_box_factors', 'Show/hide data', choices = c(), multiple = T),
+            actionLink('wilcox_panel', 'Compare boxplots'),
+            conditionalPanel(condition = "input.wilcox_panel%2==1",
+                            selectizeInput('factorA', 'Wilcoxon rank-sum test', choices = c(), multiple = T),
+                            selectizeInput('factorB', '', choices = c(), multiple = T),
+                            radioButtons('wilcox_method', label = "",choices = c("One-sided", "Two-sided"), selected = "Two-sided", inline = F),
+            # selectizeInput('factorA', 'Choose factors with which to perform a one-sided Wilcoxon rank-sum test', choices = c(), multiple = T),
+            # selectizeInput('factorB', '', choices = c(), multiple = T),
             textOutput("wilcox")
+            )
           )
         }
       })
       
-      observeEvent(c(input$factorA, input$factorB, input$pick_box_y), {
+      observeEvent(c(input$factorA, input$factorB, input$pick_box_y, input$wilcox_method), {
         wil_data = values$parameter_table
         if(!is.null(input$factorA) & !is.null(input$factorB)) {
           rowsA = wil_data[[input$pick_box_x]] %in% input$factorA
@@ -671,10 +624,14 @@ print(5)
           wil_dataB = wil_data[rowsB,input$pick_box_y]
           print(head(wil_dataA))
           print(head(wil_dataB))
-          wil = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
-          values$wilcox = prettyNum(wil$p.value, digits = 2)
+          wil_less = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
+          wil_greater = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "greater")
+          wil_two_sided = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "two.sided")$p.value
+          wil_one_sided = min(wil_less$p.value,wil_greater$p.value)
+          wil_pval = ifelse(input$wilcox_method == "One-sided", wil_one_sided, wil_two_sided)
+          values$wilcox = prettyNum(wil_pval, digits = 2)
           output$wilcox = renderText({
-            paste("P-value:", prettyNum(wil$p.value, digits = 2))
+            paste("P-value:", prettyNum(wil_pval, digits = 2))
           })
         } else {
           output$wilcox = renderText({

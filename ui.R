@@ -17,10 +17,9 @@ shinyUI(
     useShinyjs(),
     #displaying header
     includeHTML("www/html/nav.html"),
-    titlePanel("GR Calculator"),
     # side column
     column(2, class="leftColWidth",
-           br(),
+           img(src = "images/GRcalculator-logo.jpg", width = "100%"),
            wellPanel(
              bsModal("importDialog", "Import Data", "importData",
                 tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
@@ -84,6 +83,7 @@ shinyUI(
            # Opacity transitions keep the "working" indicator hidden unless the
            # server is busy for more than 0.5s (otherwise the indicator is
            # blinking all the time).
+           br(),
            tags$style("
              .nav-tabs  li  a { font-size:14px; padding:10px 20px 10px 20px; }
              #busy-working {
