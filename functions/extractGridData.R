@@ -12,7 +12,7 @@ extractGridData <- function(input, output, data, choiceVar, groupingVars) {
       data1['Einf'] <- data['GRinf']
       data1['HillSlope'] <- data['h_GR']
       data1['log10[EC50]'] <- lapply(data1['EC50'], log10)
-    } else if(input$curve_type_grid == "IC") {
+    } else if(input$curve_type_grid == "Relative cell count") {
       data1['EC50'] <- data['EC50']
       data1['Einf'] <- data['Einf']
       data1['HillSlope'] <- data['h']

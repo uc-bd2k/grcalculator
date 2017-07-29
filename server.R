@@ -133,9 +133,9 @@ shinyServer(function(input, output,session) {
   
   output$fileUploaded <- reactive({
     output$input_error = renderText("")
-    if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))) == 4) {
+    if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))) == 4 | length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'cell_count__ctrl', 'treatment_duration', 'division_time'))) == 5) {
       print('Input Case A')
-      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))
+      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0', 'treatment_duration', 'division_time'))
       updateSelectizeInput(
         session, 'groupingVars',
         choices = colnames(values$inData)[-delete_cols],
@@ -143,9 +143,10 @@ shinyServer(function(input, output,session) {
         options = c()
       )
       values$case = "A"
+      print("Case A")
     } else if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'time'))) == 3) {
       print('Input Case C')
-      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count'))
+      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'treatment_duration', 'division_time'))
       updateSelectizeInput(
         session, 'groupingVars',
         choices = colnames(values$inData)[-delete_cols],
@@ -153,6 +154,7 @@ shinyServer(function(input, output,session) {
         options = c()
       )
       values$case = "C"
+      print("Case C")
       } else {
         if(!is.null(getData())) {
             print("bad input")
@@ -170,9 +172,9 @@ shinyServer(function(input, output,session) {
   observeEvent(input$pick_data, {
     if(input$pick_data == 1) {output$input_table <- renderDataTable(datatable(values$inData, rownames = F))}
     if(input$pick_data == 2) {
-      if(!is.null(values$GR_table_show)) {
-        colnames(values$GR_table_show)[which(colnames(values$GR_table_show)=="GR")]<-"GR_value"
-      }
+      # if(!is.null(values$GR_table_show)) {
+      #   colnames(values$GR_table_show)[which(colnames(values$GR_table_show)=="GR")]<-"GR_value"
+      # }
       output$input_table <- renderDataTable(datatable(values$GR_table_show, rownames = F))
     }
     if(input$pick_data == 3) {output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))}
@@ -216,9 +218,9 @@ shinyServer(function(input, output,session) {
         data_output = values$inData
       } else if(input$pick_data == 2) {
         data_output = values$GR_table_show
-        if(!is.null(data_output)) {
-          colnames(data_output)[which(colnames(data_output)=="GR")]<-"GR_value"
-        }
+        # if(!is.null(data_output)) {
+        #   colnames(data_output)[which(colnames(data_output)=="GR")]<-"GR_value"
+        # }
       } else {
         data_output = values$parameter_table_show
       }
@@ -339,75 +341,67 @@ observeEvent(input$analyzeButton, {
     print(groupingColumns)
     print("groupingColumns")
     
-    ###### For use with Bioconductor package #####
-    tables <- GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$case)
-    values$parameter_table <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
-    values$GR_table <- S4Vectors::metadata(tables)[[1]]
-    parameters_show <- cbind(as.data.frame(colData(tables)), as.data.frame(t(assay(tables))))
-    ##############################################
+    tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$case))
     
-    # ###### For use with old package #####
-    # tables <- GRfit(values$inData, groupingColumns, GRtable = 'both', force = input$force, cap = input$cap, case = values$case)
-    # values$GR_table <- tables[[1]]
-    # values$parameter_table <- tables[[2]]
-    # parameters_show <- tables[[2]]
-    # #####################################
-    
-    #values$GR_table <- calculate_GR(values$inData,groupingColumns)
-    values$GR_table_show <- values$GR_table
-    values$GR_table_show$GR <- as.numeric(prettyNum(values$GR_table_show$GR, digits = 3))
-    values$GR_table_show$log10_concentration <- as.numeric(prettyNum(values$GR_table_show$log10_concentration, digits = 3))
-    values$GR_table_show$rel_cell_count <- as.numeric(prettyNum(values$GR_table_show$rel_cell_count, digits = 3))
-    test_gr <<- values$GR_table
-    print("finishedGR")
-    #temp_parameter_table = logistic_fit_GR(values$GR_table,groupingColumns)
-    #values$parameter_table <- temp_parameter_table[[1]]
-    
-    
-    #values$parameter_table$GEC50[values$parameter_table$GEC50 == 0] = NA
-    values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
-    values$parameter_table$h_GR[values$parameter_table$h_GR == 0.01] = NA
-    values$parameter_table$`log10(GR50)` = log10(values$parameter_table$GR50)
-    values$parameter_table$`log2(h_GR)` = log2(values$parameter_table$h_GR)
-    
-    values$parameter_table$IC50[is.infinite(values$parameter_table$IC50)] = NA
-    values$parameter_table$h[values$parameter_table$h == 0.01] = NA
-    values$parameter_table$`log10(IC50)` = log10(values$parameter_table$IC50)
-    values$parameter_table$`log2(h)` = log2(values$parameter_table$h)
-    
-    #values$parameter_table$`log10(EC50)` = log10(values$parameter_table$GEC50)
-    
-    # For compatibility with shinyLi dose-response grid visualization
-    #values$parameter_table$Hill = values$parameter_table$h_GR
-    #values$parameter_table$`log2(Hill)` = log2(values$parameter_table$h_GR)
-
-    test_ref <<- values$parameter_table
-    #values$parameter_table_show <- temp_parameter_table[[2]]
-    
-    parameters_show$GR50 = as.numeric(prettyNum(parameters_show$GR50, digits = 3))
-    parameters_show$GRmax = as.numeric(prettyNum(parameters_show$GRmax, digits = 3))
-    parameters_show$GR_AOC = as.numeric(prettyNum(parameters_show$GR_AOC, digits = 3))
-    parameters_show$GEC50 = as.numeric(prettyNum(parameters_show$GEC50, digits = 3))
-    parameters_show$GRinf = as.numeric(prettyNum(parameters_show$GRinf, digits = 3))
-    parameters_show$h_GR = as.numeric(prettyNum(parameters_show$h_GR, digits = 3))
-    parameters_show$r2_GR = as.numeric(prettyNum(parameters_show$r2_GR, digits = 3))
-    parameters_show$pval_GR = as.numeric(prettyNum(parameters_show$pval_GR, digits = 3))
-    parameters_show$flat_fit_GR = as.numeric(prettyNum(parameters_show$flat_fit_GR, digits = 3))
-    
-    parameters_show$IC50 = as.numeric(prettyNum(parameters_show$IC50, digits = 3))
-    parameters_show$Emax = as.numeric(prettyNum(parameters_show$Emax, digits = 3))
-    parameters_show$AUC = as.numeric(prettyNum(parameters_show$AUC, digits = 3))
-    parameters_show$EC50 = as.numeric(prettyNum(parameters_show$EC50, digits = 3))
-    parameters_show$Einf = as.numeric(prettyNum(parameters_show$Einf, digits = 3))
-    parameters_show$h = as.numeric(prettyNum(parameters_show$h, digits = 3))
-    parameters_show$r2_IC = as.numeric(prettyNum(parameters_show$r2_IC, digits = 3))
-    parameters_show$pval_IC = as.numeric(prettyNum(parameters_show$pval_IC, digits = 3))
-    parameters_show$flat_fit_IC = as.numeric(prettyNum(parameters_show$flat_fit_IC, digits = 3))
-    
-    values$parameter_table_show <- parameters_show
-    #=========================
-    test_ref_show <<- values$parameter_table_show
-    print("finishedParams")
+    if(class(tables)!="try-error") {
+      values$parameter_table <- GRgetMetrics(tables)
+      values$GR_table <- GRgetValues(tables)
+      parameters_show <- GRgetMetrics(tables)
+      
+      values$GR_table_show <- values$GR_table
+      values$GR_table_show$GRvalue <- as.numeric(prettyNum(values$GR_table_show$GRvalue, digits = 3))
+      values$GR_table_show$log10_concentration <- as.numeric(prettyNum(values$GR_table_show$log10_concentration, digits = 3))
+      values$GR_table_show$rel_cell_count <- as.numeric(prettyNum(values$GR_table_show$rel_cell_count, digits = 3))
+      test_gr <<- values$GR_table
+      print("finishedGR")
+      
+      values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
+      values$parameter_table$h_GR[values$parameter_table$h_GR == 0.01] = NA
+      values$parameter_table$`log10(GR50)` = log10(values$parameter_table$GR50)
+      values$parameter_table$`log2(h_GR)` = log2(values$parameter_table$h_GR)
+      
+      values$parameter_table$IC50[is.infinite(values$parameter_table$IC50)] = NA
+      values$parameter_table$h[values$parameter_table$h == 0.01] = NA
+      values$parameter_table$`log10(IC50)` = log10(values$parameter_table$IC50)
+      values$parameter_table$`log2(h)` = log2(values$parameter_table$h)
+      
+      #values$parameter_table$`log10(EC50)` = log10(values$parameter_table$GEC50)
+      
+      # For compatibility with shinyLi dose-response grid visualization
+      #values$parameter_table$Hill = values$parameter_table$h_GR
+      #values$parameter_table$`log2(Hill)` = log2(values$parameter_table$h_GR)
+  
+      test_ref <<- values$parameter_table
+      #values$parameter_table_show <- temp_parameter_table[[2]]
+      
+      parameters_show$GR50 = as.numeric(prettyNum(parameters_show$GR50, digits = 3))
+      parameters_show$GRmax = as.numeric(prettyNum(parameters_show$GRmax, digits = 3))
+      parameters_show$GR_AOC = as.numeric(prettyNum(parameters_show$GR_AOC, digits = 3))
+      parameters_show$GEC50 = as.numeric(prettyNum(parameters_show$GEC50, digits = 3))
+      parameters_show$GRinf = as.numeric(prettyNum(parameters_show$GRinf, digits = 3))
+      parameters_show$h_GR = as.numeric(prettyNum(parameters_show$h_GR, digits = 3))
+      parameters_show$r2_GR = as.numeric(prettyNum(parameters_show$r2_GR, digits = 3))
+      parameters_show$pval_GR = as.numeric(prettyNum(parameters_show$pval_GR, digits = 3))
+      parameters_show$flat_fit_GR = as.numeric(prettyNum(parameters_show$flat_fit_GR, digits = 3))
+      
+      parameters_show$IC50 = as.numeric(prettyNum(parameters_show$IC50, digits = 3))
+      parameters_show$Emax = as.numeric(prettyNum(parameters_show$Emax, digits = 3))
+      parameters_show$AUC = as.numeric(prettyNum(parameters_show$AUC, digits = 3))
+      parameters_show$EC50 = as.numeric(prettyNum(parameters_show$EC50, digits = 3))
+      parameters_show$Einf = as.numeric(prettyNum(parameters_show$Einf, digits = 3))
+      parameters_show$h = as.numeric(prettyNum(parameters_show$h, digits = 3))
+      parameters_show$r2_rel_cell = as.numeric(prettyNum(parameters_show$r2_rel_cell, digits = 3))
+      parameters_show$pval_rel_cell = as.numeric(prettyNum(parameters_show$pval_rel_cell, digits = 3))
+      parameters_show$flat_fit_rel_cell = as.numeric(prettyNum(parameters_show$flat_fit_rel_cell, digits = 3))
+      
+      values$parameter_table_show <- parameters_show
+      #=========================
+      test_ref_show <<- values$parameter_table_show
+      print("finishedParams")
+    } else {
+      # When the GRfit function fails for some reason
+      output$input_error = renderText("There was an error in the GR value calculation. Please check that your data is in the correct form.")
+    }
     
     #=========== data loaded (start) ================
     if (length(values$inData)>0) {
@@ -445,7 +439,7 @@ observeEvent(input$analyzeButton, {
             # name the input choice based on the grouping variable names, prefix with "param_" to aviod conflict
             codeOutput <- paste("param_", input$groupingVars[i], sep="")
             verbatimTextOutput(codeOutput)
-            drc_choices = sort(unique(subset(values$GR_table,select=c(input$groupingVars[i]))[,1])[[1]])
+            drc_choices = sort(unique(values$GR_table[[ input$groupingVars[i] ]]))
             selectizeInput(codeOutput, input$groupingVars[i], choices = drc_choices, 
                            multiple = TRUE, selected = drc_choices[1])
           })
@@ -454,7 +448,7 @@ observeEvent(input$analyzeButton, {
         # to display properly.
         do.call(tagList, code_output_list)
       })
-
+      
       observeEvent(groupingColumns, {
           updateSelectInput(
             session, 'pick_var',

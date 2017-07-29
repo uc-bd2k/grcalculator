@@ -182,7 +182,7 @@ shinyUI(
                                   tags$style(type='text/css', "#downloadDRC { margin-top: 20px; margin-bottom: 0px;}")),
                                 fluidRow(
                                   column(2,
-                                         radioButtons("curve_type", label = "Curve type", choices = c("GR","IC"), inline = TRUE),
+                                         radioButtons("curve_type", label = "Curve type", choices = c("GR","Relative cell count"), inline = F),
                                          uiOutput("ui")),
                                   column(10,uiOutput("plot.ui"))
                                   )
@@ -191,7 +191,7 @@ shinyUI(
                        tabPanel(value="tab-drc-grid",
                                 "Dose-Response Grid",
                                 fluidRow(
-                                  column(3, radioButtons("curve_type_grid", label = "Curve type", choices = c("GR","IC"), inline = TRUE)),
+                                  column(3, radioButtons("curve_type_grid", label = "Curve type", choices = c("GR","Relative cell count"), inline = F)),
                                   column(3, selectizeInput('choiceVar', 'Choose selector variable', choices = NULL)),
                                   column(3, selectizeInput('xgroupingVars', 'Choose grid variables', choices = NULL, multiple = TRUE)),
                                   #column(3, br(), actionButton('plot_gr50grid', 'Plot')),

@@ -39,22 +39,22 @@ drawDRC <- function (input, values)
         curve_data = as.matrix(Concentration)
         colnames(curve_data) = "Concentration"
         if(curve_plot$fit_GR[row] == "sigmoid") {
-          GR = apply(curve_data, 1, logistic_3u)
+          GRvalue = apply(curve_data, 1, logistic_3u)
         } else {
-          GR = curve_plot$flat_fit_GR[row]
+          GRvalue = curve_plot$flat_fit_GR[row]
         }
-        curve_data = cbind(curve_data, GR)
-      } else if(input$curve_type == "IC") {
+        curve_data = cbind(curve_data, GRvalue)
+      } else if(input$curve_type == "Relative cell count") {
         EC50 = curve_plot$EC50[row]
         Einf = curve_plot$Einf[row]
         h = curve_plot$h[row]
         logistic_3u = function(c){Einf + (1 - Einf)/(1 + (c/EC50)^h)}
         curve_data = as.matrix(Concentration)
         colnames(curve_data) = "Concentration"
-        if(curve_plot$fit_IC[row] == "sigmoid") {
+        if(curve_plot$fit_rel_cell[row] == "sigmoid") {
           rel_cell_count = apply(curve_data, 1, logistic_3u)
         } else {
-          rel_cell_count = curve_plot$flat_fit_IC[row]
+          rel_cell_count = curve_plot$flat_fit_rel_cell[row]
         }
         curve_data = cbind(curve_data, rel_cell_count)
       }
@@ -71,17 +71,17 @@ drawDRC <- function (input, values)
     print(7)
     if(input$curve_type == "GR") {
       if(input$plot_options == 1) {
-        p = ggplot(data = point_plot, aes(x = log10(concentration), y = GR, colour = experiment)) + geom_point()
+        p = ggplot(data = point_plot, aes(x = log10(concentration), y = GRvalue, colour = experiment)) + geom_point()
       } else if(input$plot_options == 2) {
-        p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_line()
+        p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = GRvalue, colour = experiment)) + geom_line()
       } else if(input$plot_options == 3) {
-        p = ggplot() + geom_line(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_point(data = point_plot, aes(x = log10(concentration), y = GR, colour = experiment))
+        p = ggplot() + geom_line(data = curve_data_all, aes(x = log10(Concentration), y = GRvalue, colour = experiment)) + geom_point(data = point_plot, aes(x = log10(concentration), y = GRvalue, colour = experiment))
       }
       p = p + coord_cartesian(xlim = c(log10(min_conc)-0.1, log10(max_conc)+0.1), ylim = c(-1, 1.5), expand = T) + ggtitle("Concentration vs. GR values") + xlab('Concentration (log10 scale)') + ylab('GR value') + labs(colour = "") + geom_hline(yintercept = 1, size = .25) + geom_hline(yintercept = 0, size = .25) + geom_hline(yintercept = -1, size = .25)
       
       print(10)
       plotDRC <<- p
-    } else if(input$curve_type == "IC") {
+    } else if(input$curve_type == "Relative cell count") {
       if(input$plot_options == 1) {
       p = ggplot(data = point_plot, aes(x = log10(concentration), y = rel_cell_count, colour = experiment)) + geom_point()
     } else if(input$plot_options == 2) {
