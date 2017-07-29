@@ -16,14 +16,14 @@ drawPopup <- function(curve_plot, curve_type, min_conc, max_conc) {
         GR = curve_plot$GRinf[row]
       }
       curve_data = cbind(curve_data, GR)
-    } else if(curve_type == "IC") {
+    } else if(curve_type == "Relative cell count") {
       EC50 = curve_plot$EC50[row]
       Einf = curve_plot$Einf[row]
       h = curve_plot$h[row]
       logistic_3u = function(c){Einf + (1 - Einf)/(1 + (c/EC50)^h)}
       curve_data = as.matrix(Concentration)
       colnames(curve_data) = "Concentration"
-      if(curve_plot$fit_IC[row] == "sigmoid") {
+      if(curve_plot$fit_rel_cell[row] == "sigmoid") {
         rel_cell_count = apply(curve_data, 1, logistic_3u)
       } else {
         rel_cell_count = curve_plot$Einf[row]
@@ -42,7 +42,7 @@ drawPopup <- function(curve_plot, curve_type, min_conc, max_conc) {
   curve_data_all$experiment = as.factor(curve_data_all$experiment)
   if(curve_type == "GR") {
     p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = GR, colour = experiment)) + geom_line() + ggtitle("Concentration vs. GR values") + xlab('Concentration (log10 scale)') + ylab('GR value') + labs(colour = "") + geom_hline(yintercept = 1, size = .25) + geom_hline(yintercept = 0, size = .25) + geom_hline(yintercept = -1, size = .25)
-  } else if(curve_type == "IC") {
+  } else if(curve_type == "Relative cell count") {
     p = ggplot(data = curve_data_all, aes(x = log10(Concentration), y = rel_cell_count, colour = experiment)) + geom_line() + ggtitle("Concentration vs. Relative cell count") + xlab('Concentration (log10 scale)') + ylab('Relative cell count') + labs(colour = "") + geom_hline(yintercept = 1, size = .25) + geom_hline(yintercept = 0, size = .25) + geom_hline(yintercept = -1, size = .25)
   }
   #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))

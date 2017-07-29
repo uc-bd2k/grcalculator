@@ -21,7 +21,8 @@ shinyServer(function(input, output,session) {
   values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, 
                            parameter_table = NULL, parameter_table_show = NULL, 
                            df_scatter = NULL, showanalyses=0, showdata=0, 
-                           showanalyses_multi=0, data_dl = NULL, wilcox = NULL)
+                           showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
+                           clearScatter = F)
   isolate(values$inData)
 
   observeEvent(input$loadExample, {
@@ -320,18 +321,43 @@ shinyServer(function(input, output,session) {
       toggleModal(session,"graphPopup")
     }
   })
- 
-observeEvent(input$analyzeButton, { 
-# Make scatterplot reactive to "pick_parameter" after first plot.
-  observeEvent(input$pick_parameter, {
-    if(input$plot_scatter > 0) {
-      output$plotlyScatter1 <- renderPlotly({isolate(drawScatter(input, values))})
-    }
+  
+  observeEvent(input$plot_scatter, {
+    print('clearScatter = F')
+    values$clearScatter = F
   })
-})
+ 
+observeEvent(c(input$plot_scatter,input$pick_parameter), { 
+  print('plot_scatter clicked')
+# Make scatterplot reactive to "pick_parameter" after first plot.
+    #if(input$plot_scatter > 0) {
+      output$plotlyScatter1 <- renderPlotly({
+        if(values$clearScatter) {
+           return()
+         } else {
+          isolate(drawScatter(input, values))
+        }
+      })
+}, ignoreInit = T)
 
     
 #================= analyzeButton ================================
+  observeEvent(input$analyzeButton, {
+    df_full <<- NULL
+    values$clearScatter = T
+  })
+
+  observeEvent(input$clear, {
+    df_full <<- NULL
+    values$clearScatter = T
+  })
+  
+  observeEvent(input$pick_var, {
+    df_full <<- NULL
+    values$clearScatter = T
+  })
+
+
   observeEvent(input$analyzeButton,{
     df_full <<- NULL
     all_inputs <- names(input)
@@ -476,11 +502,11 @@ observeEvent(input$analyzeButton, {
           box
         } else {stop()}
       })
-      observeEvent(input$plot_scatter, {
-        output$plotlyScatter1 <- renderPlotly({
-          plot1 = isolate(drawScatter(input, values))
-        })
-      })
+      # observeEvent(input$plot_scatter, {
+      #   output$plotlyScatter1 <- renderPlotly({
+      #     plot1 = isolate(drawScatter(input, values))
+      #   })
+      # })
     }
     #=============== data loaded (end) ===================
   })
@@ -633,85 +659,6 @@ observeEvent(input$analyzeButton, {
           })
           values$wilcox = NULL
         }
-      })
-      
-#==== Clear scatterplot on "analyze" =========
-      
-      observeEvent(input$analyzeButton, {
-        output$plotlyScatter1 <- renderPlotly({
-          parameter_choice = input$pick_parameter
-          if(parameter_choice == 'GR50') {
-            parameter_choice = 'log10(GR50)'
-          } else if(parameter_choice == 'h_GR') {
-            parameter_choice = 'log2(h_GR)'
-          }
-          padding = 0.05
-          scatter_values = values$parameter_table[,parameter_choice]
-          finite_values = which(is.finite(scatter_values))
-          scatter_values = scatter_values[finite_values]
-          x_min = min(scatter_values, na.rm = T)
-          x_max = max(scatter_values, na.rm = T)
-          y_min = min(scatter_values, na.rm = T)
-          y_max = max(scatter_values, na.rm = T)
-          all_max = max(abs(c(x_max, y_max, x_min, y_min)), na.rm = T)
-          all_range = 2*all_max
-          all_max = all_max + padding*all_range
-          all_min = -all_max
-          # plug in a filler data frame
-          p = ggplot(data = mtcars, aes(x = mpg, y = wt)) + geom_abline(slope = 1, intercept = 0, size = .25) + scale_x_continuous(limits = c(all_min, all_max)) + scale_y_continuous(limits = c(all_min, all_max)) + coord_fixed() + xlab('') + ylab('') + ggtitle('') + geom_blank()
-          
-          df_full <<- NULL
-          print("test")
-          #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
-          p = plotly_build(p)
-          if(is.null(p$data)) { #newer plotly package
-            ggplotly(p) %>%
-            layout(p, hovermode = FALSE)
-          } else {
-            ggplotly(p)
-            layout(p, hovermode = FALSE)
-          }
-          
-        })
-      })
-      
-#===== Clear button ========
-      observeEvent(input$clear, {
-        output$plotlyScatter1 <- renderPlotly({
-          parameter_choice = input$pick_parameter
-          if(parameter_choice == 'GR50') {
-            parameter_choice = 'log10(GR50)'
-          }
-          if(parameter_choice == 'h_GR') {
-            parameter_choice = 'log2(h_GR)'
-          }
-          padding = 0.05
-          scatter_values = values$parameter_table[,parameter_choice]
-          x_min = min(scatter_values, na.rm = T)
-          x_max = max(scatter_values, na.rm = T)
-          y_min = min(scatter_values, na.rm = T)
-          y_max = max(scatter_values, na.rm = T)
-          all_max = max(abs(c(x_max, y_max, x_min, y_min)), na.rm = T)
-          all_range = 2*all_max
-          all_max = all_max + padding*all_range
-          all_min = -all_max
-          print(all_min)
-          print(all_max)
-          print(parameter_choice)
-          print(head(df_sub))
-          
-          p = ggplot(data = mtcars, aes(x = mpg, y = wt)) + geom_abline(slope = 1, intercept = 0, size = .25) + scale_x_continuous(limits = c(all_min, all_max)) + scale_y_continuous(limits = c(all_min, all_max)) + coord_fixed() + xlab('') + ylab('') + ggtitle('') + geom_blank()
-          df_full <<- NULL
-          #try(png(paste("/mnt/raid/tmp/junk1",gsub(" ","_",date()),as.character(as.integer(1000000*runif(1))),".png",sep="_")))
-          p = plotly_build(p)
-          if(is.null(p$data)) { #newer plotly package
-            ggplotly(p) %>%
-              layout(p, hovermode = FALSE)
-          } else {
-            ggplotly(p)
-            layout(p, hovermode = FALSE)
-          }
-        })
       })
       
     observeEvent(input$analyzeButton, {
