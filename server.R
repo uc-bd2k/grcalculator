@@ -204,19 +204,21 @@ shinyServer(function(input, output,session) {
   check_col_names = function(col_names, expected) {
     check_cols = col_names[!col_names %in% expected]
     missing_cols = expected[!expected %in% col_names]
-    df = data.frame(cols = check_cols, possibilities = NA)
+    n <- max(length(check_cols), length(missing_cols))
+    length(check_cols) <- n                      
+    length(missing_cols) <- n
+    df = data.frame(missing = missing_cols, cols = check_cols, check.names = F)
     for(i in 1:length(check_cols)) {
       hits = agrep(check_cols[i], missing_cols, value = T)
-      df$possibilities[i] = hits[1]
+      df$missing[i] = hits[1]
     }
-    df = df[!is.na(df$possibilities),]
+    df = df[!is.na(df$missing),]
     test_cols = NULL
     print(df)
     for(i in 1:dim(df)[1]) {
-      test_cols = c(test_cols, agrepl(df$possibilities[i], df$cols[i])[1])
+      test_cols = c(test_cols, agrepl(df$missing[i], df$cols[i])[1])
     }
     df = df[test_cols,]
-    colnames(df) = c("Column name", "Suggestion")
     return(df)
   }
   
@@ -230,12 +232,15 @@ shinyServer(function(input, output,session) {
         print(sug)
         print(dim(sug))
         if(dim(sug)[1] > 0) {
-          output$col_suggest = renderTable(sug)
+          message = NULL
+          for(i in 1:dim(sug)[1]) {
+            message = paste(message, 'Column ', '<font color="navy"><b>', sug[i,1], '</b><font color="black">', ' is missing.', ' It may be misnamed as ', '<b><font color="maroon">', sug[i,2], '</b><font color="black">', '.', '<br>','<br>', sep = '')
+          }
+          output$col_suggest = renderText(message)
         }
       }
       #"division_time", "treatment_duration")
-      df = data.frame(cell_count = F, cell_count__ctrl = F, cell_count__time0 = F,
-                      division_time = F, treatment_duration = F,
+      df = data.frame(concentration = F,cell_count = F, cell_count__ctrl = F, cell_count__time0 = F,
                       check.names = F)
       rownames(df)[1] = "Necessary columns"
       col_expected = colnames(df)

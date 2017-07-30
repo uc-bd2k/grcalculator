@@ -153,7 +153,7 @@ shinyUI(
                   				          )
                   				      ),
     					                 formattableOutput('input_check'),
-    					                 tableOutput('col_suggest'),
+    					                 htmlOutput('col_suggest'),
                                tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
                                DT::dataTableOutput("input_table")
     					         ),
