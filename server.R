@@ -8,6 +8,7 @@ library(GRmetrics)
 library(S4Vectors)
 library(stringr)
 library(DT)
+library(formattable)
 
 source('functions/drawPopup.R')
 source('functions/drawDRC.R', local = T)
@@ -26,6 +27,7 @@ shinyServer(function(input, output,session) {
   isolate(values$inData)
 
   observeEvent(input$loadExample, {
+    values$input_case = "A"
     values$data_dl = 'example'
     output$input_error = renderText("")
     session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
@@ -39,6 +41,7 @@ shinyServer(function(input, output,session) {
   })
   
   observeEvent(input$loadExampleC, {
+    values$input_case = "C"
     values$data_dl = 'example'
     output$input_error = renderText("")
     session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
@@ -52,6 +55,7 @@ shinyServer(function(input, output,session) {
   })
   
   observeEvent(input$uploadData, {
+    values$input_case = input$input_case
     values$data_dl = 'input'
     values$showanalyses=0
     values$showanalyses_multi=0
@@ -132,41 +136,44 @@ shinyServer(function(input, output,session) {
     return(NULL)
   })
   
-  output$fileUploaded <- reactive({
-    output$input_error = renderText("")
-    if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0'))) == 4 | length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'cell_count__ctrl', 'treatment_duration', 'division_time'))) == 5) {
-      print('Input Case A')
-      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0', 'treatment_duration', 'division_time'))
-      updateSelectizeInput(
-        session, 'groupingVars',
-        choices = colnames(values$inData)[-delete_cols],
-        selected = colnames(values$inData)[-delete_cols],
-        options = c()
-      )
-      values$case = "A"
-      print("Case A")
-    } else if(length(intersect(colnames(values$inData), c('concentration', 'cell_count', 'time'))) == 3) {
-      print('Input Case C')
-      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'treatment_duration', 'division_time'))
-      updateSelectizeInput(
-        session, 'groupingVars',
-        choices = colnames(values$inData)[-delete_cols],
-        selected = colnames(values$inData)[-delete_cols],
-        options = c()
-      )
-      values$case = "C"
-      print("Case C")
-      } else {
-        if(!is.null(getData())) {
-            print("bad input")
-            output$input_error = renderText("Your data is not in the correct form. Please read the 'Getting Started' Section.")
+  observeEvent(values$inData, {
+    output$fileUploaded <- reactive({
+      output$input_error = renderText("")
+      
+      caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
+      time0_param = 'cell_count__time0'
+      div_params = c('treatment_duration', 'division_time')
+      if(values$input_case == "A") {
+        if(!time0_param %in% colnames(values$inData)) {
+          
         }
-    }
-    if(!is.null(getData())) values$showdata=1
-    return(!is.null(getData()))
+          delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0', 'treatment_duration', 'division_time'))
+          updateSelectizeInput(
+            session, 'groupingVars',
+            choices = colnames(values$inData)[-delete_cols],
+            selected = colnames(values$inData)[-delete_cols],
+            options = c()
+          )
+      } else if(values$input_case == "C") {
+        delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'treatment_duration', 'division_time'))
+        updateSelectizeInput(
+          session, 'groupingVars',
+          choices = colnames(values$inData)[-delete_cols],
+          selected = colnames(values$inData)[-delete_cols],
+          options = c()
+        )
+        } else {
+          if(!is.null(getData())) {
+              print("bad input")
+              output$input_error = renderText("Your data is not in the correct form. Please read the 'Getting Started' Section.")
+          }
+      }
+      if(!is.null(getData())) values$showdata=1
+      return(!is.null(getData()))
+    })
+    
+    outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
   })
-  
-  outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
   
   output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   
@@ -191,6 +198,60 @@ shinyServer(function(input, output,session) {
 
   observeEvent(c(input$loadExample, input$loadExampleC),{
     if(input$loadExample > 0 | input$loadExampleC > 0) {toggleModal(session, 'loadExamples', toggle = "close")}
+  })
+  
+  # Function to check for slightly misspelled column names
+  check_col_names = function(col_names, expected) {
+    check_cols = col_names[!col_names %in% expected]
+    missing_cols = expected[!expected %in% col_names]
+    df = data.frame(cols = check_cols, possibilities = NA)
+    for(i in 1:length(check_cols)) {
+      hits = agrep(check_cols[i], missing_cols, value = T)
+      df$possibilities[i] = hits[1]
+    }
+    df = df[!is.na(df$possibilities),]
+    test_cols = NULL
+    print(df)
+    for(i in 1:dim(df)[1]) {
+      test_cols = c(test_cols, agrepl(df$possibilities[i], df$cols[i])[1])
+    }
+    df = df[test_cols,]
+    colnames(df) = c("Column name", "Suggestion")
+    return(df)
+  }
+  
+  observeEvent(input$uploadData, {
+    if(values$input_case == "A") {
+      caseA_cols = c("cell_count", "cell_count__ctrl", "cell_count__time0",
+                     "concentration")
+      incols = colnames(values$inData)
+      if(length(intersect(caseA_cols, incols)) != 4) {
+        sug = check_col_names(incols, caseA_cols)
+        print(sug)
+        print(dim(sug))
+        if(dim(sug)[1] > 0) {
+          output$col_suggest = renderTable(sug)
+        }
+      }
+      #"division_time", "treatment_duration")
+      df = data.frame(cell_count = F, cell_count__ctrl = F, cell_count__time0 = F,
+                      division_time = F, treatment_duration = F,
+                      check.names = F)
+      rownames(df)[1] = "Necessary columns"
+      col_expected = colnames(df)
+      for(i in 1:length(col_expected)) {
+        df[1,i] = ifelse(col_expected[i] %in% colnames(values$inData), T, F)
+      }
+      df$`Additional grouping variables` = ifelse (length(setdiff(col_expected, colnames(values$inData))) > 0, T, F)
+      formats = as.list(df)
+      for(i in 1:length(formats)) {
+        formats[[i]] = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
+                                 x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No")))
+      }
+    }
+    output$input_check = renderFormattable({
+      formattable(df, formats)
+    })
   })
     
 #========== Download button data tables =======
@@ -327,17 +388,14 @@ shinyServer(function(input, output,session) {
     values$clearScatter = F
   })
  
-observeEvent(c(input$plot_scatter,input$pick_parameter), { 
-  print('plot_scatter clicked')
-# Make scatterplot reactive to "pick_parameter" after first plot.
-    #if(input$plot_scatter > 0) {
-      output$plotlyScatter1 <- renderPlotly({
-        if(values$clearScatter) {
-           return()
-         } else {
-          isolate(drawScatter(input, values))
-        }
-      })
+observeEvent(c(input$plot_scatter,input$pick_parameter), {
+  output$plotlyScatter1 <- renderPlotly({
+    if(values$clearScatter) {
+       return()
+     } else {
+      isolate(drawScatter(input, values))
+    }
+  })
 }, ignoreInit = T)
 
     
@@ -367,7 +425,7 @@ observeEvent(c(input$plot_scatter,input$pick_parameter), {
     print(groupingColumns)
     print("groupingColumns")
     
-    tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$case))
+    tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$input_case))
     
     if(class(tables)!="try-error") {
       values$parameter_table <- GRgetMetrics(tables)
@@ -502,11 +560,6 @@ observeEvent(c(input$plot_scatter,input$pick_parameter), {
           box
         } else {stop()}
       })
-      # observeEvent(input$plot_scatter, {
-      #   output$plotlyScatter1 <- renderPlotly({
-      #     plot1 = isolate(drawScatter(input, values))
-      #   })
-      # })
     }
     #=============== data loaded (end) ===================
   })

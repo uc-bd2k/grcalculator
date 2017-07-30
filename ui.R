@@ -33,11 +33,19 @@ shinyUI(
                 fluidRow(
                   column(6,
                     fileInput('uploadData', 'Open data file (.tsv, .csv)', multiple = FALSE, accept = NULL, width = NULL),
+                    # The following tag allows for the same file path to be used twice in a row for upload
+                    tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });'),
                     tags$style(type='text/css', "#uploadData {width: 80px}"),
                     wellPanel(
                       radioButtons('sep', 'Separator',
                                    c(Comma=',',Tab='\t'), selected = ',', inline = T),
-                      checkboxInput('euro_in', "Input with commas as decimal points", value = F)
+                      radioButtons('input_case', 'Input Format', c('Case A' = 'A','Case C' = 'C'),
+                                   selected = 'A', inline = T),
+                      actionButton('import_options', 'Advanced Options'),
+                      conditionalPanel(
+                        condition = "input.import_options % 2 == 1",
+                        checkboxInput('euro_in', "Input with commas as decimal points", value = F)
+                      )
                     )
                     ),
                   column(6,
@@ -144,6 +152,8 @@ shinyUI(
                                        )
                   				          )
                   				      ),
+    					                 formattableOutput('input_check'),
+    					                 tableOutput('col_suggest'),
                                tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
                                DT::dataTableOutput("input_table")
     					         ),
