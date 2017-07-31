@@ -215,20 +215,25 @@ shinyServer(function(input, output,session) {
     df = df[!is.na(df$missing),]
     test_cols = NULL
     print(df)
-    for(i in 1:dim(df)[1]) {
-      test_cols = c(test_cols, agrepl(df$missing[i], df$cols[i])[1])
-    }
+    if(dim(df)[1] > 0) {
+      for(i in 1:dim(df)[1]) {
+        test_cols = c(test_cols, agrepl(df$missing[i], df$cols[i])[1])
+      }
     df = df[test_cols,]
+    }
     return(df)
   }
   
   observeEvent(input$uploadData, {
-    if(values$input_case == "A") {
-      caseA_cols = c("cell_count", "cell_count__ctrl", "cell_count__time0",
-                     "concentration")
+      caseA_cols = c("concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
+      caseC_cols = c("concentration", "cell_count", "time")
+      print(values$input_case)
+      if(values$input_case == "A") {cols = caseA_cols} else {cols = caseC_cols}
+      print(cols)
       incols = colnames(values$inData)
-      if(length(intersect(caseA_cols, incols)) != 4) {
-        sug = check_col_names(incols, caseA_cols)
+      print(incols)
+      if(length(intersect(cols, incols)) != 4) {
+        sug = check_col_names(incols, cols)
         print(sug)
         print(dim(sug))
         if(dim(sug)[1] > 0) {
@@ -239,21 +244,20 @@ shinyServer(function(input, output,session) {
           output$col_suggest = renderText(message)
         }
       }
-      #"division_time", "treatment_duration")
-      df = data.frame(concentration = F,cell_count = F, cell_count__ctrl = F, cell_count__time0 = F,
-                      check.names = F)
+      df = as.data.frame(matrix(nrow = 1, ncol = length(cols)))
+      colnames(df) = cols
       rownames(df)[1] = "Necessary columns"
       col_expected = colnames(df)
       for(i in 1:length(col_expected)) {
         df[1,i] = ifelse(col_expected[i] %in% colnames(values$inData), T, F)
       }
-      df$`Additional grouping variables` = ifelse (length(setdiff(col_expected, colnames(values$inData))) > 0, T, F)
+      delete_cols = which(colnames(values$inData) %in% cols)
+      df$`Additional grouping variables` = ifelse (dim(values$inData[,-delete_cols, drop = F])[2] > 0, T, F)
       formats = as.list(df)
       for(i in 1:length(formats)) {
         formats[[i]] = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
                                  x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No")))
       }
-    }
     output$input_check = renderFormattable({
       formattable(df, formats)
     })
