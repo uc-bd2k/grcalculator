@@ -4,6 +4,7 @@ library(shinyBS)
 library(plotly)
 library(ggplot2)
 library(shinyLi)
+library(formattable)
 
 
 shinyUI(
@@ -21,7 +22,37 @@ shinyUI(
     column(2, class="leftColWidth",
            img(src = "images/GRcalculator-logo.jpg", width = "100%"),
            wellPanel(
-             bsModal("importDialog", "Import Data", "importData",
+             bsModal("importDialog1", "GR value Calculation", "importData",
+                     column(6,
+                     actionButton('initialCellCount', "Initial cell count"),
+                     br(),
+                     p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.")
+                     ),
+                     column(6,
+                     actionButton('divisionRate', "Division rates"),
+                     br(),
+                     p("Use cell line division rates (instead of initial cell count) to calculate GR values.")
+                     )
+                     ),
+             bsModal("importDialog2_time0", "Data format", "initialCellCount",
+                     column(6,
+                            actionButton('caseA_time0', "Case A"),
+                            includeMarkdown('www/caseA.md')
+                     ),
+                     column(6,
+                           actionButton('caseC_time0', "Case C"),
+                           includeMarkdown('www/caseC.md')
+                     ), size = "large"
+                     ),
+             bsModal("importDialog2_div_rate", "Data format", "divisionRate",
+                     actionButton('caseA_div', "Case A"),
+                     actionButton('caseC_div', "Case C")
+             ),
+             bsModal("importDialog3", "Comma or tab separated file", "caseA_time0",
+                     actionButton('comma_input', "Comma"),
+                     actionButton('tab_input', "Tab")
+             ),
+             bsModal("importDialog4", "Import Data", "comma_input",
                 tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
                       var el = $("#" + x);
                       el.replaceWith(el = el.clone(true));
@@ -29,6 +60,20 @@ shinyUI(
                       $(id).css("visibility", "hidden");
                       });
                       '),
+                bsModal("importDialog_div", "Add division rates and assay duration", trigger = NULL,
+                        selectizeInput('pick_cl_col', 'Pick cell line column:', choices = c()),
+                        fluidRow(
+                          column(4
+                            #tableOutput('cell_lines')
+                          ),
+                          column(4,
+                            textInput('div_rate','Division rates')
+                            ),
+                          column(4,
+                            textInput('assay_duration', 'Assay Duration')
+                            )
+                        )
+                ),
                 br(),
                 fluidRow(
                   column(6,
@@ -36,22 +81,16 @@ shinyUI(
                     # The following tag allows for the same file path to be used twice in a row for upload
                     tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });'),
                     tags$style(type='text/css', "#uploadData {width: 80px}"),
+                    textInput("url", "URL data file (.tsv, .csv)"),
+                    actionButton("fetchURLData", "Fetch Data"),
                     wellPanel(
-                      radioButtons('sep', 'Separator',
-                                   c(Comma=',',Tab='\t'), selected = ',', inline = T),
-                      radioButtons('input_case', 'Input Format', c('Case A' = 'A','Case C' = 'C'),
-                                   selected = 'A', inline = T),
                       actionButton('import_options', 'Advanced Options'),
                       conditionalPanel(
                         condition = "input.import_options % 2 == 1",
                         checkboxInput('euro_in', "Input with commas as decimal points", value = F)
                       )
                     )
-                    ),
-                  column(6,
-                         textInput("url", "URL data file (.tsv, .csv)"),
-                         actionButton("fetchURLData", "Fetch Data")
-                  )
+                    )
                 )
            ),
            tags$div(
@@ -152,8 +191,18 @@ shinyUI(
                                        )
                   				          )
                   				      ),
-    					                 formattableOutput('input_check'),
-    					                 htmlOutput('col_suggest'),
+    					                 fluidRow(
+    					                 column(3,
+    					                 formattableOutput('input_check', width = "300px")
+    					                 ),
+    					                 column(1),
+    					                 column(3,
+    					                 formattableOutput('input_check2', width = "300px")
+    					                 ),
+    					                 column(3,
+    					                 htmlOutput('col_suggest')
+    					                 )
+    					                 ),
                                tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
                                DT::dataTableOutput("input_table")
     					         ),

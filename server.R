@@ -19,12 +19,24 @@ source('functions/parseLabel.R')
 
 shinyServer(function(input, output,session) {
 
-  values <- reactiveValues(inData=NULL, case = "A", GR_table = NULL, GR_table_show = NULL, 
+  values <- reactiveValues(inData=NULL, input_case = NULL, GR_table = NULL, GR_table_show = NULL, 
                            parameter_table = NULL, parameter_table_show = NULL, 
                            df_scatter = NULL, showanalyses=0, showdata=0, 
                            showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
-                           clearScatter = F)
+                           clearScatter = F, separator = NULL, div_rate = NULL)
   isolate(values$inData)
+  
+  # Save the input format (case A vs. case C)
+  observeEvent(c(input$caseA_div, input$caseA_time0), { values$input_case = "A" })
+  observeEvent(c(input$caseC_div, input$caseC_time0), { values$input_case = "C" })
+  
+  # Save the input format (comma vs. tab separated)
+  observeEvent(input$comma_input,{ values$separator = ","})
+  observeEvent(input$tab_input,{ values$separator = "\t"})
+  
+  # Save the input format (initial cell count vs. division rate)
+  observeEvent(c(input$caseA_time0, input$caseC_time0), { values$div_rate = F })
+  observeEvent(c(input$caseA_div, input$caseC_div), { values$div_rate = T })
 
   observeEvent(input$loadExample, {
     values$input_case = "A"
@@ -55,7 +67,6 @@ shinyServer(function(input, output,session) {
   })
   
   observeEvent(input$uploadData, {
-    values$input_case = input$input_case
     values$data_dl = 'input'
     values$showanalyses=0
     values$showanalyses_multi=0
@@ -64,12 +75,12 @@ shinyServer(function(input, output,session) {
     values$parameter_table_show = NULL
     inFile <- input$uploadData
     if (is.null(inFile)) {return(NULL)
-      } else if(input$sep == '\t'){
+      } else if(values$separator == '\t'){
       if(input$euro_in == T) {values$inData <- read_tsv(inFile$datapath, locale = locale(decimal_mark = ','))
       } else {values$inData <- read_tsv(inFile$datapath)}
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
-    } else if(input$sep == ',') {
+    } else if(values$separator == ',') {
       if(input$euro_in == T) {values$inData <- read_csv2(inFile$datapath)
       } else {values$inData <- read_csv(inFile$datapath)}
       # Get rid of blank rows at the end of a file
@@ -99,7 +110,7 @@ shinyServer(function(input, output,session) {
       }
       if (is.null(inFile)) {
         return(NULL)
-      } else if(input$sep == '\t'){
+      } else if(values$separator == '\t'){
         if(input$euro_in == T) {
           values$inData <- read_tsv(inFile, locale = locale(decimal_mark = ','))
         } else {
@@ -107,7 +118,7 @@ shinyServer(function(input, output,session) {
         }
         # Get rid of blank rows at the end of a file
         values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
-      } else if(input$sep == ',') {
+      } else if(values$separator == ',') {
         if(input$euro_in == T) {
           values$inData <- read_csv2(inFile)
         } else {
@@ -188,16 +199,32 @@ shinyServer(function(input, output,session) {
     if(input$pick_data == 3) {output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))}
   })
   
-  observeEvent(input$uploadData, {
-    if(!is.null(input$uploadData)) {toggleModal(session, 'importDialog', toggle = "close")}
-  })
-
-  observeEvent(input$fetchURLData, {
-    if(input$fetchURLData > 0) {toggleModal(session, 'importDialog', toggle = "close")}
-  })
-
+  ###### Hide pop-up "modals" when next choice is made
+  observeEvent(c(input$initialCellCount, input$divisionRate), {
+    toggleModal(session, 'importDialog1', toggle = "close")
+  }, ignoreInit = T)
+  observeEvent(c(input$caseA_time0, input$caseC_time0), {
+    toggleModal(session, 'importDialog2_time0', toggle = "close")
+  }, ignoreInit = T)
+  observeEvent(c(input$caseA_div, input$caseC_div), {
+    toggleModal(session, 'importDialog2_div_rate', toggle = "close")
+  }, ignoreInit = T)
+  observeEvent(c(input$comma_input, input$tab_input), {
+    toggleModal(session, 'importDialog3', toggle = "close")
+  }, ignoreInit = T)
+  observeEvent(c(input$uploadData,input$fetchURLData), {
+    toggleModal(session, 'importDialog4', toggle = "close")
+  }, ignoreInit = T)
   observeEvent(c(input$loadExample, input$loadExampleC),{
-    if(input$loadExample > 0 | input$loadExampleC > 0) {toggleModal(session, 'loadExamples', toggle = "close")}
+    toggleModal(session, 'loadExamples', toggle = "close")
+  }, ignoreInit = T)
+  # Add other triggers for comma/tab separator input popup
+  observeEvent(c(input$caseA_div, input$caseC_time0, input$caseC_div), {
+    toggleModal(session, 'importDialog3', toggle = "open")
+  }, ignoreInit = T)
+  # Add other trigger for final input popup
+  observeEvent(input$tab_input, {
+    toggleModal(session, 'importDialog4', toggle = "open")
   })
   
   # Function to check for slightly misspelled column names
@@ -225,41 +252,62 @@ shinyServer(function(input, output,session) {
   }
   
   observeEvent(input$uploadData, {
-      caseA_cols = c("concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
-      caseC_cols = c("concentration", "cell_count", "time")
-      print(values$input_case)
-      if(values$input_case == "A") {cols = caseA_cols} else {cols = caseC_cols}
-      print(cols)
-      incols = colnames(values$inData)
-      print(incols)
-      if(length(intersect(cols, incols)) != 4) {
-        sug = check_col_names(incols, cols)
-        print(sug)
-        print(dim(sug))
-        if(dim(sug)[1] > 0) {
-          message = NULL
-          for(i in 1:dim(sug)[1]) {
-            message = paste(message, 'Column ', '<font color="navy"><b>', sug[i,1], '</b><font color="black">', ' is missing.', ' It may be misnamed as ', '<b><font color="maroon">', sug[i,2], '</b><font color="black">', '.', '<br>','<br>', sep = '')
-          }
-          output$col_suggest = renderText(message)
+    # Check input table column names for slight misspellings
+    caseA_cols = c("cell_line", "drug", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
+    caseC_cols = c("cell_line", "drug", "concentration", "cell_count", "time")
+    if(values$input_case == "A" & !values$div_rate) {cols = caseA_cols}
+    if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:5]}
+    if(values$input_case == "C") {cols = caseC_cols}
+    
+    print(cols)
+    incols = colnames(values$inData)
+    print(incols)
+    if(length(intersect(cols, incols)) != 4) {
+      sug = check_col_names(incols, cols)
+      print(sug)
+      print(dim(sug))
+      if(dim(sug)[1] > 0) {
+        message = NULL
+        for(i in 1:dim(sug)[1]) {
+          message = paste(message, 'Column ', '<font color="navy"><b>', sug[i,1], '</b><font color="black">', ' is missing.', ' It may be misnamed as ', '<b><font color="maroon">', sug[i,2], '</b><font color="black">', '.', '<br>','<br>', sep = '')
         }
+        output$col_suggest = renderText(message)
       }
-      df = as.data.frame(matrix(nrow = 1, ncol = length(cols)))
-      colnames(df) = cols
-      rownames(df)[1] = "Necessary columns"
-      col_expected = colnames(df)
-      for(i in 1:length(col_expected)) {
-        df[1,i] = ifelse(col_expected[i] %in% colnames(values$inData), T, F)
-      }
-      delete_cols = which(colnames(values$inData) %in% cols)
-      df$`Additional grouping variables` = ifelse (dim(values$inData[,-delete_cols, drop = F])[2] > 0, T, F)
-      formats = as.list(df)
-      for(i in 1:length(formats)) {
-        formats[[i]] = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
-                                 x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No")))
-      }
+    }
+    
+    # Check that necessary columns of input table exist, check other table properties
+    # Display output table showing pass/fail for these properties
+    df = data.frame(matrix(nrow = length(cols), ncol = 2), check.names = F)
+    colnames(df) = c("Necessary column", "pass/fail")
+    for(i in 1:length(cols)) {
+      df[i,1]= cols[i]
+      df[i,2] = ifelse(cols[i] %in% colnames(values$inData), T, F)
+    }
+    delete_cols = which(colnames(values$inData) %in% cols)
+    check1 = ifelse (dim(values$inData[,-delete_cols, drop = F])[2] > 0, T, F)
+    df = rbind(df, c("Additional grouping variables", check1))
+    formats = list(`pass/fail` = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
+                               x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No"))))
+    
+    df2 = data.frame(matrix(nrow = 1, ncol = 2), check.names = F)
+    colnames(df2) = c("check", "pass/fail")
+    if(values$input_case == "A") {
+      df2[1,1] = "Concentration values are all greater than 0"
+      df2[1,2] = ifelse (sum(values$inData$concentration <= 0) == 0, T, F)
+    } else {
+      df2[1,1] = "Concentration values are all non-negative"
+      df2[1,2] = ifelse (sum(values$inData$concentration < 0) == 0, T, F)
+      df2[2,1] = "Rows with concentration equal to zero (control cell counts)"
+      df2[2,2] = ifelse (sum(values$inData$concentration == 0) > 0, T, F)
+      df2[2,1] = "Rows with time equal to zero (initial cell counts)"
+      df2[2,2] = ifelse (sum(values$inData$time == 0) > 0, T, F)
+    }
+
     output$input_check = renderFormattable({
-      formattable(df, formats)
+      formattable(df, formats, align = "l")
+    })
+    output$input_check2 = renderFormattable({
+      formattable(df2, formats, align = "l")
     })
   })
     
