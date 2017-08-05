@@ -9,6 +9,7 @@ library(S4Vectors)
 library(stringr)
 library(DT)
 library(formattable)
+library(plyr)
 
 source('functions/drawPopup.R')
 source('functions/drawDRC.R', local = T)
@@ -16,28 +17,86 @@ source('functions/extractGridData.R')
 source('functions/drawScatter.R', local = T)
 source('functions/drawBox.R')
 source('functions/parseLabel.R')
+source('functions/check_col_names.R')
+
 
 shinyServer(function(input, output,session) {
+  # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
+  observeEvent(values$div_rate, {
+    if(values$div_rate) {
+      showElement(id = "div_rate_desc")
+      hideElement(id = "init_count_desc")
+    }
+  }, ignoreInit = T)
+  observeEvent(values$init_count, {
+    if(values$init_count) {
+      showElement(id = "init_count_desc")
+      hideElement(id = "div_rate_desc")
+    }
+  }, ignoreInit = T)
+  
+  # Code to show caseA/caseC choice buttons
+  observeEvent(c(input$divisionRate, input$initialCellCount), {
+    showElement(id = "case_buttons", anim = T, animType = "fade")
+  }, ignoreInit = T)
+  # Code to show csv/tsv choice buttons
+  observeEvent(c(input$caseA, input$caseC), {
+    showElement(id = "comma_tab_buttons", anim = T, animType = "fade")
+  }, ignoreInit = T)
+
+  # Code to make import dialog csv/tsv buttons work like radiobuttons
+  observeEvent(input$comma_input, {
+    addClass(id = "comma_input", class = "active")
+    removeClass(id = "tab_input", class = "active")
+    values$separator = ","
+  }, ignoreInit = T)
+  observeEvent(input$tab_input, {
+    addClass(id = "tab_input", class = "active")
+    removeClass(id = "comma_input", class = "active")
+    values$separator = "\t"
+  }, ignoreInit = T)
+  # Code to make import dialog initial cell count/division rate buttons work like radiobuttons
+  observeEvent(input$initialCellCount, {
+    addClass(id = "initialCellCount", class = "active")
+    removeClass(id = "divisionRate", class = "active")
+    values$div_rate = F
+    values$init_count = T
+  }, ignoreInit = T)
+  observeEvent(input$divisionRate, {
+    addClass(id = "divisionRate", class = "active")
+    removeClass(id = "initialCellCount", class = "active")
+    values$div_rate = T
+    values$init_count = F
+  }, ignoreInit = T)
+  # Code to make import dialog caseA/caseC buttons work like radiobuttons
+  observeEvent(input$caseA, {
+    addClass(id = "caseA", class = "active")
+    removeClass(id = "caseC", class = "active")
+    values$input_case = "A"
+  }, ignoreInit = T)
+  observeEvent(input$caseC, {
+    addClass(id = "caseC", class = "active")
+    removeClass(id = "caseA", class = "active")
+    values$input_case = "C"
+  }, ignoreInit = T)
 
   values <- reactiveValues(inData=NULL, input_case = NULL, GR_table = NULL, GR_table_show = NULL, 
                            parameter_table = NULL, parameter_table_show = NULL, 
                            df_scatter = NULL, showanalyses=0, showdata=0, 
                            showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
-                           clearScatter = F, separator = NULL, div_rate = NULL)
+                           clearScatter = F, separator = NULL, div_rate = logical(0),
+                           init_count = logical(0),
+                           cell_lines = NULL, div_rate_test = NULL)
   isolate(values$inData)
   
-  # Save the input format (case A vs. case C)
-  observeEvent(c(input$caseA_div, input$caseA_time0), { values$input_case = "A" })
-  observeEvent(c(input$caseC_div, input$caseC_time0), { values$input_case = "C" })
-  
-  # Save the input format (comma vs. tab separated)
-  observeEvent(input$comma_input,{ values$separator = ","})
-  observeEvent(input$tab_input,{ values$separator = "\t"})
-  
-  # Save the input format (initial cell count vs. division rate)
-  observeEvent(c(input$caseA_time0, input$caseC_time0), { values$div_rate = F })
-  observeEvent(c(input$caseA_div, input$caseC_div), { values$div_rate = T })
+  observeEvent(c(input$uploadData,input$fetchURLData), {
+    toggleModal(session, 'importDialog4', toggle = "close")
+  }, ignoreInit = T)
+  observeEvent(c(input$loadExample, input$loadExampleC),{
+    toggleModal(session, 'loadExamples', toggle = "close")
+  }, ignoreInit = T)
 
+  # Code for loading example data for input Case A
   observeEvent(input$loadExample, {
     values$input_case = "A"
     values$data_dl = 'example'
@@ -52,6 +111,7 @@ shinyServer(function(input, output,session) {
     output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
+  # Code for loading example data for input Case C
   observeEvent(input$loadExampleC, {
     values$input_case = "C"
     values$data_dl = 'example'
@@ -66,7 +126,9 @@ shinyServer(function(input, output,session) {
     output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
+  # Code for loading data from file
   observeEvent(input$uploadData, {
+    print('data upload')
     values$data_dl = 'input'
     values$showanalyses=0
     values$showanalyses_multi=0
@@ -89,6 +151,7 @@ shinyServer(function(input, output,session) {
     output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
+  # Code for loading data from URL
   observeEvent(input$fetchURLData, {
     # Somehow add test to make sure that input$url is a proper url/text file
     if(input$url != "") {
@@ -131,127 +194,41 @@ shinyServer(function(input, output,session) {
     }
   })
   
+  # Code for division rate case, showing cell lines
+  observeEvent(c(input$uploadData,input$fetchURLData), {
+    values$cell_lines = sort(unique(values$inData$cell_line))
+    df = data.frame(cell_lines = values$cell_lines)
+    output$cell_lines = renderTable(df)
+  })
+  
+  # Code for adding division rates to input data
+  observeEvent(input$div_rate_input, {
+    # parse division rate input from text box
+    div_rates = as.numeric(unlist(strsplit(input$div_rate, "\n")))
+    values$div_rate_test = ifelse(sum(is.na(div_rates)) == 0, T, F)
+    values$inData$division_time = mapvalues(values$inData$cell_line, values$cell_lines, div_rates)
+    values$inData$treatment_duration = input$treatment_duration
+    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+  })
+  
+  # Code for showing/hiding tabs
   observe({
     toggle(condition = values$showdata, selector = "#tabs li a[data-value=tab-data]")
     toggle(condition = values$showanalyses, selector = "#tabs li a[data-value=tab-drc]")
     toggle(condition = values$showanalyses_multi, selector = "#tabs li a[data-value=tab-drc-grid]")
     toggle(condition = values$showanalyses_multi, selector = "#tabs li a[data-value=tab-gr-metric]")
   })
+  
   observe({
     if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
   })
-  getData <- reactive({
-    input$loadExample
-    if(!is.null(input$uploadData)) return('ok')
-    if(length(values$inData)>0) return('ok')
-    return(NULL)
-  })
   
   observeEvent(values$inData, {
-    output$fileUploaded <- reactive({
-      output$input_error = renderText("")
-      
-      caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
-      time0_param = 'cell_count__time0'
-      div_params = c('treatment_duration', 'division_time')
-      if(values$input_case == "A") {
-        if(!time0_param %in% colnames(values$inData)) {
-          
-        }
-          delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0', 'treatment_duration', 'division_time'))
-          updateSelectizeInput(
-            session, 'groupingVars',
-            choices = colnames(values$inData)[-delete_cols],
-            selected = colnames(values$inData)[-delete_cols],
-            options = c()
-          )
-      } else if(values$input_case == "C") {
-        delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'treatment_duration', 'division_time'))
-        updateSelectizeInput(
-          session, 'groupingVars',
-          choices = colnames(values$inData)[-delete_cols],
-          selected = colnames(values$inData)[-delete_cols],
-          options = c()
-        )
-        } else {
-          if(!is.null(getData())) {
-              print("bad input")
-              output$input_error = renderText("Your data is not in the correct form. Please read the 'Getting Started' Section.")
-          }
-      }
-      if(!is.null(getData())) values$showdata=1
-      return(!is.null(getData()))
-    })
-    
-    outputOptions(output, 'fileUploaded', suspendWhenHidden=FALSE)
+    values$showdata = 1
   })
   
-  output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
-  
-  observeEvent(input$pick_data, {
-    if(input$pick_data == 1) {output$input_table <- renderDataTable(datatable(values$inData, rownames = F))}
-    if(input$pick_data == 2) {
-      # if(!is.null(values$GR_table_show)) {
-      #   colnames(values$GR_table_show)[which(colnames(values$GR_table_show)=="GR")]<-"GR_value"
-      # }
-      output$input_table <- renderDataTable(datatable(values$GR_table_show, rownames = F))
-    }
-    if(input$pick_data == 3) {output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))}
-  })
-  
-  ###### Hide pop-up "modals" when next choice is made
-  observeEvent(c(input$initialCellCount, input$divisionRate), {
-    toggleModal(session, 'importDialog1', toggle = "close")
-  }, ignoreInit = T)
-  observeEvent(c(input$caseA_time0, input$caseC_time0), {
-    toggleModal(session, 'importDialog2_time0', toggle = "close")
-  }, ignoreInit = T)
-  observeEvent(c(input$caseA_div, input$caseC_div), {
-    toggleModal(session, 'importDialog2_div_rate', toggle = "close")
-  }, ignoreInit = T)
-  observeEvent(c(input$comma_input, input$tab_input), {
-    toggleModal(session, 'importDialog3', toggle = "close")
-  }, ignoreInit = T)
+  # Code for checking input and providing feedback to user
   observeEvent(c(input$uploadData,input$fetchURLData), {
-    toggleModal(session, 'importDialog4', toggle = "close")
-  }, ignoreInit = T)
-  observeEvent(c(input$loadExample, input$loadExampleC),{
-    toggleModal(session, 'loadExamples', toggle = "close")
-  }, ignoreInit = T)
-  # Add other triggers for comma/tab separator input popup
-  observeEvent(c(input$caseA_div, input$caseC_time0, input$caseC_div), {
-    toggleModal(session, 'importDialog3', toggle = "open")
-  }, ignoreInit = T)
-  # Add other trigger for final input popup
-  observeEvent(input$tab_input, {
-    toggleModal(session, 'importDialog4', toggle = "open")
-  })
-  
-  # Function to check for slightly misspelled column names
-  check_col_names = function(col_names, expected) {
-    check_cols = col_names[!col_names %in% expected]
-    missing_cols = expected[!expected %in% col_names]
-    n <- max(length(check_cols), length(missing_cols))
-    length(check_cols) <- n                      
-    length(missing_cols) <- n
-    df = data.frame(missing = missing_cols, cols = check_cols, check.names = F)
-    for(i in 1:length(check_cols)) {
-      hits = agrep(check_cols[i], missing_cols, value = T)
-      df$missing[i] = hits[1]
-    }
-    df = df[!is.na(df$missing),]
-    test_cols = NULL
-    print(df)
-    if(dim(df)[1] > 0) {
-      for(i in 1:dim(df)[1]) {
-        test_cols = c(test_cols, agrepl(df$missing[i], df$cols[i])[1])
-      }
-    df = df[test_cols,]
-    }
-    return(df)
-  }
-  
-  observeEvent(input$uploadData, {
     # Check input table column names for slight misspellings
     caseA_cols = c("cell_line", "drug", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
     caseC_cols = c("cell_line", "drug", "concentration", "cell_count", "time")
@@ -287,7 +264,7 @@ shinyServer(function(input, output,session) {
     check1 = ifelse (dim(values$inData[,-delete_cols, drop = F])[2] > 0, T, F)
     df = rbind(df, c("Additional grouping variables", check1))
     formats = list(`pass/fail` = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
-                               x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No"))))
+                                           x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No"))))
     
     df2 = data.frame(matrix(nrow = 1, ncol = 2), check.names = F)
     colnames(df2) = c("check", "pass/fail")
@@ -302,13 +279,60 @@ shinyServer(function(input, output,session) {
       df2[2,1] = "Rows with time equal to zero (initial cell counts)"
       df2[2,2] = ifelse (sum(values$inData$time == 0) > 0, T, F)
     }
-
+    
     output$input_check = renderFormattable({
       formattable(df, formats, align = "l")
     })
     output$input_check2 = renderFormattable({
       formattable(df2, formats, align = "l")
     })
+  }, ignoreInit = T)
+  
+  # Code to show/hide elements after data is uploaded
+  observeEvent(values$inData, {
+    output$fileUploaded <- reactive(T)
+    outputOptions(output, "fileUploaded", suspendWhenHidden = FALSE)
+  })
+  
+  # Code for updating grouping variable selection boxes
+  observeEvent(values$inData, {
+    caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
+    caseC_params = c('concentration', 'cell_count', 'time')
+    time0_param = 'cell_count__time0'
+    div_params = c('treatment_duration', 'division_time')
+    if(values$input_case == "A") {
+        delete_cols = which(colnames(values$inData) %in% c(caseA_params, time0_param, div_params))
+        updateSelectizeInput(
+          session, 'groupingVars',
+          choices = colnames(values$inData)[-delete_cols],
+          selected = colnames(values$inData)[-delete_cols],
+          options = c()
+        )
+    } else {
+      delete_cols = which(colnames(values$inData) %in% c(caseC_params, div_params))
+      updateSelectizeInput(
+        session, 'groupingVars',
+        choices = colnames(values$inData)[-delete_cols],
+        selected = colnames(values$inData)[-delete_cols],
+        options = c()
+      )
+    }
+  })
+  
+  # Define the table showing the input data
+  output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+  
+  # Change table shown from input to GR values to GR metrics based on radio buttons
+  observeEvent(input$pick_data, {
+    if(input$pick_data == 1) {
+      output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+      }
+    if(input$pick_data == 2) {
+      output$input_table <- renderDataTable(datatable(values$GR_table_show, rownames = F))
+    }
+    if(input$pick_data == 3) {
+      output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))
+      }
   })
     
 #========== Download button data tables =======
@@ -337,9 +361,6 @@ shinyServer(function(input, output,session) {
         data_output = values$inData
       } else if(input$pick_data == 2) {
         data_output = values$GR_table_show
-        # if(!is.null(data_output)) {
-        #   colnames(data_output)[which(colnames(data_output)=="GR")]<-"GR_value"
-        # }
       } else {
         data_output = values$parameter_table_show
       }
@@ -358,8 +379,6 @@ shinyServer(function(input, output,session) {
       }
       
     }
-    #,
-    #contentType = paste('text/', input$download_type, sep = "")
   )
 
 #========== Download buttons for DRC plots =======
@@ -440,28 +459,26 @@ shinyServer(function(input, output,session) {
     }
   })
   
+#=========== Scatterplot drawing/clearing code ===========
   observeEvent(input$plot_scatter, {
     print('clearScatter = F')
     values$clearScatter = F
   })
- 
-observeEvent(c(input$plot_scatter,input$pick_parameter), {
-  output$plotlyScatter1 <- renderPlotly({
-    if(values$clearScatter) {
-       return()
-     } else {
-      isolate(drawScatter(input, values))
-    }
-  })
-}, ignoreInit = T)
-
-    
-#================= analyzeButton ================================
+  observeEvent(c(input$plot_scatter,input$pick_parameter), {
+    output$plotlyScatter1 <- renderPlotly({
+      if(values$clearScatter) {
+         return()
+       } else {
+        isolate(drawScatter(input, values))
+      }
+    })
+  }, ignoreInit = T)
+  
   observeEvent(input$analyzeButton, {
     df_full <<- NULL
     values$clearScatter = T
   })
-
+  
   observeEvent(input$clear, {
     df_full <<- NULL
     values$clearScatter = T
@@ -471,8 +488,8 @@ observeEvent(c(input$plot_scatter,input$pick_parameter), {
     df_full <<- NULL
     values$clearScatter = T
   })
-
-
+    
+#================= analyzeButton ================================
   observeEvent(input$analyzeButton,{
     df_full <<- NULL
     all_inputs <- names(input)
@@ -541,7 +558,8 @@ observeEvent(c(input$plot_scatter,input$pick_parameter), {
       print("finishedParams")
     } else {
       # When the GRfit function fails for some reason
-      output$input_error = renderText("There was an error in the GR value calculation. Please check that your data is in the correct form.")
+      err = attributes(tables)$condition
+      output$input_error = renderText(paste("There was an error in the GR value calculation. Please check that your data is in the correct form.", "\n", err))
     }
     
     #=========== data loaded (start) ================

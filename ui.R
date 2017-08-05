@@ -22,37 +22,38 @@ shinyUI(
     column(2, class="leftColWidth",
            img(src = "images/GRcalculator-logo.jpg", width = "100%"),
            wellPanel(
-             bsModal("importDialog1", "GR value Calculation", "importData",
-                     column(6,
-                     actionButton('initialCellCount', "Initial cell count"),
-                     br(),
-                     p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.")
-                     ),
-                     column(6,
-                     actionButton('divisionRate', "Division rates"),
-                     br(),
-                     p("Use cell line division rates (instead of initial cell count) to calculate GR values.")
+             bsModal("importDialog1", "GR value calculation", "importData",
+                     fluidRow(column(12,
+                      p("Step 1: Choose GR calculation method"),
+                      div(class = "btn-group",
+                      bsButton('initialCellCount', label = "Initial cell counts (default)",
+                              style = "primary"),
+                      bsButton('divisionRate', label = "Cell division times", style = "primary")))),
+                     fluidRow(column(12,
+                                     shinyjs::hidden(
+                      p("Use cell line division rates (instead of initial cell count) to calculate GR values.", id = "div_rate_desc"),
+                      p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.", id = "init_count_desc")
+                     ))),br(),
+                     fluidRow(column(12,
+                              shinyjs::hidden(
+                                div(class = "btn-group", `data-toggle` = "buttons", id = "case_buttons",
+                                    p("Step 2: Choose input file format"),
+                                    bsButton("caseA", label = "Case A", value = "caseA", style = "primary", type = "toggle"),
+                                    bsButton("caseC", label = "Case C", value = "caseC", style = "primary", type = "toggle")
+                                    )
+                              )
+                              )
+                     ), br(),
+                     fluidRow(column(12,
+                                     shinyjs::hidden(
+                                       
+                                       div(class = "btn-group", `data-toggle` = "buttons", id = "comma_tab_buttons",
+                                           p("Step 3: Select file type"),
+                                           bsButton("comma_input", label = "comma-separated (.csv)", value = "comma", style = "primary"),
+                                           bsButton("tab_input", label = "tab-separated (.tsv)", value = "tab", style = "primary"))))
                      )
                      ),
-             bsModal("importDialog2_time0", "Data format", "initialCellCount",
-                     column(6,
-                            actionButton('caseA_time0', "Case A"),
-                            includeMarkdown('www/caseA.md')
-                     ),
-                     column(6,
-                           actionButton('caseC_time0', "Case C"),
-                           includeMarkdown('www/caseC.md')
-                     ), size = "large"
-                     ),
-             bsModal("importDialog2_div_rate", "Data format", "divisionRate",
-                     actionButton('caseA_div', "Case A"),
-                     actionButton('caseC_div', "Case C")
-             ),
-             bsModal("importDialog3", "Comma or tab separated file", "caseA_time0",
-                     actionButton('comma_input', "Comma"),
-                     actionButton('tab_input', "Tab")
-             ),
-             bsModal("importDialog4", "Import Data", "comma_input",
+             bsModal("importDialog4", "Import Data", "",
                 tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
                       var el = $("#" + x);
                       el.replaceWith(el = el.clone(true));
@@ -60,20 +61,6 @@ shinyUI(
                       $(id).css("visibility", "hidden");
                       });
                       '),
-                bsModal("importDialog_div", "Add division rates and assay duration", trigger = NULL,
-                        selectizeInput('pick_cl_col', 'Pick cell line column:', choices = c()),
-                        fluidRow(
-                          column(4
-                            #tableOutput('cell_lines')
-                          ),
-                          column(4,
-                            textInput('div_rate','Division rates')
-                            ),
-                          column(4,
-                            textInput('assay_duration', 'Assay Duration')
-                            )
-                        )
-                ),
                 br(),
                 fluidRow(
                   column(6,
@@ -92,6 +79,23 @@ shinyUI(
                     )
                     )
                 )
+           ),
+           bsModal("importDialog_div", "Add division rates and assay duration", "do_not_open",
+                   fluidRow(
+                     column(4,
+                            tableOutput('cell_lines')
+                     ),
+                     column(4,
+                            textAreaInput('div_rate','Division times', height = "300px",
+                                          placeholder = "Enter the time it takes for each cell line to undergo one division. Each line should contain one number.")
+                     ),
+                     column(4,
+                            textInput('treatment_duration', 'Treatment Duration')
+                     )
+                   ),
+                   fluidRow(
+                   actionButton('div_rate_input', "Submit division")
+                   )
            ),
            tags$div(
              actionButton('importData', 'Open data file'),
