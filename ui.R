@@ -38,8 +38,8 @@ shinyUI(
                               shinyjs::hidden(
                                 div(class = "btn-group", `data-toggle` = "buttons", id = "case_buttons",
                                     p("Step 2: Choose input file format"),
-                                    bsButton("caseA", label = "Case A", value = "caseA", style = "primary", type = "toggle"),
-                                    bsButton("caseC", label = "Case C", value = "caseC", style = "primary", type = "toggle")
+                                    bsButton("caseA", label = "Case A", value = "caseA", style = "primary"),
+                                    bsButton("caseC", label = "Case C", value = "caseC", style = "primary")
                                     )
                               )
                               )
@@ -51,16 +51,26 @@ shinyUI(
                                            p("Step 3: Select file type"),
                                            bsButton("comma_input", label = "comma-separated (.csv)", value = "comma", style = "primary"),
                                            bsButton("tab_input", label = "tab-separated (.tsv)", value = "tab", style = "primary"))))
-                     )
+                     ), br(),
+                     fluidRow(column(12, shinyjs::hidden(
+                       div(id = 'upload_button', p("Step 4: Upload data file"),
+                     fileInput('uploadData', '', multiple = FALSE, accept = NULL, width = NULL),
+                     # The following tag allows for the same file path to be used twice in a row for upload
+                     tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });'),
+                     tags$style(type='text/css', "#uploadData {width: 80px}"),
+                     p("Or load data from a URL:"),
+                     textInput("url", ""),
+                     actionButton("fetchURLData", "Fetch Data")
+                     ))))
                      ),
              bsModal("importDialog4", "Import Data", "",
-                tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
-                      var el = $("#" + x);
-                      el.replaceWith(el = el.clone(true));
-                      var id = "#" + x + "_progress";     
-                      $(id).css("visibility", "hidden");
-                      });
-                      '),
+                # tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
+                #       var el = $("#" + x);
+                #       el.replaceWith(el = el.clone(true));
+                #       var id = "#" + x + "_progress";     
+                #       $(id).css("visibility", "hidden");
+                #       });
+                #       '),
                 br(),
                 fluidRow(
                   column(6,

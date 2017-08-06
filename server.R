@@ -21,6 +21,16 @@ source('functions/check_col_names.R')
 
 
 shinyServer(function(input, output,session) {
+  # initialize variables for saving various user inputs, parameters, etc.
+  values <- reactiveValues(inData=NULL, GR_table = NULL, GR_table_show = NULL, 
+                           parameter_table = NULL, parameter_table_show = NULL, 
+                           df_scatter = NULL, showanalyses=0, showdata=0, 
+                           showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
+                           clearScatter = F, separator = NULL, div_rate = logical(0),
+                           init_count = logical(0), input_case = NULL,
+                           cell_lines = NULL, div_rate_test = NULL)
+  #isolate(values$inData)
+  
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
   observeEvent(values$div_rate, {
     if(values$div_rate) {
@@ -49,11 +59,13 @@ shinyServer(function(input, output,session) {
     addClass(id = "comma_input", class = "active")
     removeClass(id = "tab_input", class = "active")
     values$separator = ","
+    showElement(id = "upload_button", anim = T, animType = "fade")
   }, ignoreInit = T)
   observeEvent(input$tab_input, {
     addClass(id = "tab_input", class = "active")
     removeClass(id = "comma_input", class = "active")
     values$separator = "\t"
+    showElement(id = "upload_button", anim = T, animType = "fade")
   }, ignoreInit = T)
   # Code to make import dialog initial cell count/division rate buttons work like radiobuttons
   observeEvent(input$initialCellCount, {
@@ -80,17 +92,9 @@ shinyServer(function(input, output,session) {
     values$input_case = "C"
   }, ignoreInit = T)
 
-  values <- reactiveValues(inData=NULL, input_case = NULL, GR_table = NULL, GR_table_show = NULL, 
-                           parameter_table = NULL, parameter_table_show = NULL, 
-                           df_scatter = NULL, showanalyses=0, showdata=0, 
-                           showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
-                           clearScatter = F, separator = NULL, div_rate = logical(0),
-                           init_count = logical(0),
-                           cell_lines = NULL, div_rate_test = NULL)
-  isolate(values$inData)
-  
+  # Code for closing input dialog when data is uploaded
   observeEvent(c(input$uploadData,input$fetchURLData), {
-    toggleModal(session, 'importDialog4', toggle = "close")
+    toggleModal(session, 'importDialog1', toggle = "close")
   }, ignoreInit = T)
   observeEvent(c(input$loadExample, input$loadExampleC),{
     toggleModal(session, 'loadExamples', toggle = "close")
@@ -101,7 +105,7 @@ shinyServer(function(input, output,session) {
     values$input_case = "A"
     values$data_dl = 'example'
     output$input_error = renderText("")
-    session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
+    #session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
     values$inData <- read_tsv('resources/toy_example_input1_edited.tsv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
@@ -116,7 +120,7 @@ shinyServer(function(input, output,session) {
     values$input_case = "C"
     values$data_dl = 'example'
     output$input_error = renderText("")
-    session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
+    #session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
     values$inData <- read_tsv('resources/toy_example_input4_edited.tsv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
