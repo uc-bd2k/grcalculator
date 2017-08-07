@@ -255,7 +255,7 @@ shinyServer(function(input, output,session) {
   observeEvent(c(input$uploadData,input$fetchURLData), {
     values$cell_lines = sort(unique(values$inData$cell_line))
     df = data.frame(cell_lines = values$cell_lines)
-    colnames(df) = "Cell lines"
+    print(df)
     output$cell_lines = renderTable(df)
   }, ignoreInit = T)
   
@@ -294,10 +294,10 @@ shinyServer(function(input, output,session) {
   # Code for checking input and providing feedback to user
   observeEvent(c(input$uploadData,input$fetchURLData), {
     # Check input table column names for slight misspellings
-    caseA_cols = c("cell_line", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
-    caseC_cols = c("cell_line", "concentration", "cell_count", "time")
+    caseA_cols = c("cell_line","treatment", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
+    caseC_cols = c("cell_line","treatment", "concentration", "cell_count", "time")
     if(values$input_case == "A" & !values$div_rate) {cols = caseA_cols}
-    if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:4]}
+    if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:5]}
     if(values$input_case == "C") {cols = caseC_cols}
     
     print(cols)

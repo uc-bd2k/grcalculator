@@ -5,41 +5,8 @@ output: html_document
 ##### For offline computation, analysis, and visualization, see the Bioconductor R package [*GRmetrics*](https://bioconductor.org/packages/GRmetrics). <br> For a step-by-step example of using the GRcalculator, see [*here*](example.html).
 
 ### Formatting input files
-# {.tabset .tabset-fade .tabset-pills}
-## Case A
-####Case A: a single file with control values assigned to treated measurements
- 
-The input file(s) must have the following column headers (first row of the file):
 
-1. **concentration** = concentration values (not log transformed) of the perturbagen on which dose-response curves will be evaluated
-2. **cell_count** = measure of cell number (or a surrogate of cell number such as CellTiter-Glo® staining) after treatment
-3. **cell_count\_\_time0** - initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment
-4. **cell_count\_\_ctrl** - column with the Control cell count: the measure of cell number in control (e.g. untreated or DMSO-treated) wells from the same plate
-
-All other columns will be treated as additional keys on which the data will be 
-grouped (e.g. *cell_line*, *drug*, *time*, *replicate*)
-
-## Case C
-####Case C: a single file with control values stacked with treated measurements
-
-In the most general case, the control cell counts are in the same file and 
-format as the treated cell counts. Control cell counts will be averaged (using 
-a 50%-trimmed mean) and automatically matched to the treated cell counts based 
-on the keys (columns in the data file). The control cell count values must 
-have a value of 0 for *concentration* and a value for *time* that matches the 
-treated measurements. The time 0 cell count values must have value of 0 for 
-*time*. If the structure of the data is complex, users should 
-format their data as described in Case A as the underlying scripts may 
-inappropriately match control and treated cell counts.
-
-The input file(s) must have the following column headers (first row of the file):
-
-1. **concentration** - column with concentration values (not log transformed) of the perturbagen on which dose-response curves will be evaluated
-2. **cell_count** - column with the measure of cell number (or a surrogate of cell number such as CellTiter-Glo® staining)
-3. **time** - column with the time at which a cell count is observed
-
-All other columns will be treated as additional keys on which the data will be 
-grouped (e.g. *cell_line*, *drug*, *replicate*)
+Input files may be either comma- or tab-separated text files (.csv or .tsv). For more information about the input format, click "Import data file" and make a selection.
 
 ###Instructions
 

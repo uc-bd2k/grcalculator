@@ -1,4 +1,4 @@
-cell_line	agent	perturbation	replicate	time	concentration	cell_count
+cell_line	treatment	perturbation	replicate	time	concentration	cell_count
 lineA	-	0	NA	0	0	294
 lineA	-	0	NA	0	0	318
 lineA	-	0	NA	0	0	287

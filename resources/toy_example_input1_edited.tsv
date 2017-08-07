@@ -1,4 +1,4 @@
-cell_line	agent	perturbation	replicate	time	concentration	cell_count	cell_count__ctrl	cell_count__time0
+cell_line	treatment	perturbation	replicate	time	concentration	cell_count	cell_count__ctrl	cell_count__time0
 lineA	drugA	0	1	48	0.001	1131	1212.5	299.5
 lineA	drugA	0	1	48	0.003162	1205	1212.5	299.5
 lineA	drugA	0	1	48	0.01	1021	1212.5	299.5

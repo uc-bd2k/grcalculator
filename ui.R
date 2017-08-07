@@ -29,34 +29,35 @@ shinyUI(
                       bsButton('initialCellCount', label = "Initial cell counts (default)",
                               style = "primary"),
                       bsButton('divisionRate', label = "Cell division times", style = "primary")))),
+                     br(),
                      fluidRow(column(12,
                                      shinyjs::hidden(
-                      p("Use cell line division rates (instead of initial cell count) to calculate GR values.", id = "div_rate_desc"),
+                      p("Use cell line division times (instead of initial cell count) to calculate GR values.", id = "div_rate_desc"),
                       p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.", id = "init_count_desc")
                      ))),br(),
                      fluidRow(column(12,
                               shinyjs::hidden(
                                 div(class = "btn-group", `data-toggle` = "buttons", id = "case_buttons",
                                     p("Step 2: Choose input file format"),
-                                    bsButton("caseA", label = "Case A", value = "caseA", style = "primary"),
-                                    bsButton("caseC", label = "Case C", value = "caseC", style = "primary")
+                                    bsButton("caseA", label = "Case A (multiple cell counts per row)", value = "caseA", style = "primary"),
+                                    bsButton("caseC", label = "Case C (one cell count per row)", value = "caseC", style = "primary")
                                     )
                               )
                               )
                      ),
-                     fluidRow(class = "column_desc", 
+                     fluidRow(
                        column(12,
                                      shinyjs::hidden(
-                                       div(id = "caseA_div_desc", align = "left",
+                                       div(id = "caseA_div_desc",
                                            includeMarkdown("www/caseA_div.md")
                                        ),
-                                       div(id = "caseA_initial_desc", align = "left",
+                                       div(id = "caseA_initial_desc",
                                            includeMarkdown("www/caseA_initial.md")
                                        ),
-                                       div(id = "caseC_initial_desc", align = "left",
+                                       div(id = "caseC_initial_desc",
                                            includeMarkdown("www/caseC_initial.md")
                                        ),
-                                       div(id = "caseC_div_desc", align = "left",
+                                       div(id = "caseC_div_desc",
                                            includeMarkdown("www/caseC_div.md")
                                        )
                                      ))),br(),
@@ -130,7 +131,7 @@ shinyUI(
                          htmlOutput('col_suggest'))
                 )
                    ),
-           bsModal("importDialog_div", "Add division rates and assay duration", "do_not_open",
+           bsModal("importDialog_div", "Add division times and assay duration", "do_not_open",
                    fluidRow(column(12,
                                    p("Type the length of treatment below. (Do not include units)"),
                                    textInput('treatment_duration', '',width = '200px')
@@ -154,7 +155,7 @@ shinyUI(
                    )
            ),
            tags$div(
-             actionButton('importData', 'Open data file'),
+             actionButton('importData', 'Import data file'),
              tags$hr(),
              actionLink('examples', "Load Example")
            ),
