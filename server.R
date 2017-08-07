@@ -26,7 +26,7 @@ shinyServer(function(input, output,session) {
                            parameter_table = NULL, parameter_table_show = NULL, 
                            df_scatter = NULL, showanalyses=0, showdata=0, 
                            showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
-                           clearScatter = F, separator = NULL, div_rate = logical(0),
+                           clearScatter = F, separator = NULL, div_rate = NULL,
                            init_count = logical(0), input_case = NULL,
                            cell_lines = NULL, div_rate_test = NULL, check_fail = NULL)
   #isolate(values$inData)
@@ -44,6 +44,38 @@ shinyServer(function(input, output,session) {
       hideElement(id = "div_rate_desc")
     }
   }, ignoreInit = T)
+  
+  # Code to show/hide descriptions of necessary columns for input
+  observeEvent(c(values$input_case, values$div_rate, values$init_count), {
+    if(!is.null(values$input_case) & !is.null(values$div_rate)) {
+      div_names = c("caseA_initial_desc", "caseA_div_desc", "caseC_initial_desc", "caseC_div_desc")
+      div_loc = NULL
+      if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
+      if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
+      if(values$input_case == "C" & !values$div_rate) { div_loc = 3 }
+      if(values$input_case == "C" & values$div_rate) { div_loc = 4 }
+      # Hide descriptions
+      for(i in 1:4) {
+        args = list(id = div_names[i])
+        if(i != div_loc) {
+          do.call(what = "hideElement", args = args)
+        }
+      }
+      # Show relevant description
+      args = list(id = div_names[div_loc])
+      do.call(what = "showElement", args = args)
+    }
+  }, ignoreInit = T)
+  # observeEvent(values$input_case, {
+  #   div_names = c("caseA_initial_desc", "caseA_div_desc", "caseC_initial_desc", "caseC_div_desc")
+  #   if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
+  #   if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
+  #   if(values$input_case == "C" & !values$div_rate) { div_loc = 3 }
+  #   if(values$input_case == "C" & !values$div_rate) { div_loc = 4 }
+  #   # show correct description
+  #   args = list(id = div_names[div_loc])
+  #   do.call(what = "showElement", args = args)
+  # }, ignoreInit = T, priority = -1)
   
   # Code to show caseA/caseC choice buttons
   observeEvent(c(input$divisionRate, input$initialCellCount), {
@@ -223,17 +255,17 @@ shinyServer(function(input, output,session) {
   observeEvent(c(input$uploadData,input$fetchURLData), {
     values$cell_lines = sort(unique(values$inData$cell_line))
     df = data.frame(cell_lines = values$cell_lines)
+    colnames(df) = "Cell lines"
     output$cell_lines = renderTable(df)
-  })
+  }, ignoreInit = T)
   
   # Code for adding division rates to input data
   observeEvent(input$div_rate_input, {
     # parse division rate input from text box
     div_rates = as.numeric(unlist(strsplit(input$div_rate, "\n")))
     values$div_rate_test = ifelse(sum(is.na(div_rates)) == 0, T, F)
-    #### Note: add check here on input values
-    values$inData$division_time = mapvalues(values$inData$cell_line, values$cell_lines, div_rates)
-    values$inData$treatment_duration = input$treatment_duration
+    values$inData$division_time = as.numeric(mapvalues(values$inData$cell_line, values$cell_lines, div_rates))
+    values$inData$treatment_duration = as.numeric(input$treatment_duration)
     print(head(values$inData))
     output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })

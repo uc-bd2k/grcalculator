@@ -22,7 +22,7 @@ shinyUI(
     column(2, class="leftColWidth",
            img(src = "images/GRcalculator-logo.jpg", width = "100%"),
            wellPanel(
-             bsModal("importDialog1", "GR value calculation", "importData",
+             bsModal("importDialog1", "", "importData", size = "large",
                      fluidRow(column(12,
                       p("Step 1: Choose GR calculation method"),
                       div(class = "btn-group",
@@ -43,7 +43,23 @@ shinyUI(
                                     )
                               )
                               )
-                     ), br(),
+                     ),
+                     fluidRow(class = "column_desc", 
+                       column(12,
+                                     shinyjs::hidden(
+                                       div(id = "caseA_div_desc", align = "left",
+                                           includeMarkdown("www/caseA_div.md")
+                                       ),
+                                       div(id = "caseA_initial_desc", align = "left",
+                                           includeMarkdown("www/caseA_initial.md")
+                                       ),
+                                       div(id = "caseC_initial_desc", align = "left",
+                                           includeMarkdown("www/caseC_initial.md")
+                                       ),
+                                       div(id = "caseC_div_desc", align = "left",
+                                           includeMarkdown("www/caseC_div.md")
+                                       )
+                                     ))),br(),
                      fluidRow(column(12,
                                      shinyjs::hidden(
                                        
@@ -115,20 +131,26 @@ shinyUI(
                 )
                    ),
            bsModal("importDialog_div", "Add division rates and assay duration", "do_not_open",
+                   fluidRow(column(12,
+                                   p("Type the length of treatment below. (Do not include units)"),
+                                   textInput('treatment_duration', '',width = '200px')
+                                   )),
+                   fluidRow(column(12,
+                    p("Type or copy/paste the time it takes for each (untreated) cell line to undergo one division."),
+                    p("Each line should contain one number (no units), in the order listed.")
+                                   )),
                    fluidRow(
-                     column(4,
+                     column(6,
                             tableOutput('cell_lines')
                      ),
-                     column(4,
-                            textAreaInput('div_rate','Division times', height = "300px",
-                                          placeholder = "Enter the time it takes for each cell line to undergo one division. Each line should contain one number.")
-                     ),
-                     column(4,
-                            textInput('treatment_duration', 'Treatment Duration')
+                     column(6,
+                            textAreaInput('div_rate','Division times', height = "100px",
+                                          placeholder = "23.1 \n13.2 \n...\netc.")
                      )
                    ),
                    fluidRow(column(12,
-                   actionButton('div_rate_input', "Submit division"))
+                    p("Note that although units (hours, days, etc.) are not included above, the division times and duration of treatment must all be measured in the same units."),
+                   actionButton('div_rate_input', "Submit"))
                    )
            ),
            tags$div(
