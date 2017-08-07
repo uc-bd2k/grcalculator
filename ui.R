@@ -51,45 +51,69 @@ shinyUI(
                                            p("Step 3: Select file type"),
                                            bsButton("comma_input", label = "comma-separated (.csv)", value = "comma", style = "primary"),
                                            bsButton("tab_input", label = "tab-separated (.tsv)", value = "tab", style = "primary"))))
-                     ), br(),
-                     fluidRow(column(12, shinyjs::hidden(
+                     ), br(),shinyjs::hidden(
                        div(id = 'upload_button', p("Step 4: Upload data file"),
+                     fluidRow(column(6, p('From your computer:'),
                      fileInput('uploadData', '', multiple = FALSE, accept = NULL, width = NULL),
                      # The following tag allows for the same file path to be used twice in a row for upload
                      tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });'),
-                     tags$style(type='text/css', "#uploadData {width: 80px}"),
-                     p("Or load data from a URL:"),
+                     tags$style(type='text/css', "#uploadData {width: 80px}")),
+                     column(6,
+                     p("Or from a URL:"),
                      textInput("url", ""),
                      actionButton("fetchURLData", "Fetch Data")
-                     ))))
+                     )))), br(),
+                     fluidRow(column(12,
+                                     shinyjs::hidden(
+                                       div(id = 'advanced_input',
+                                     actionButton('import_options', 'Advanced Options'),
+                                     conditionalPanel(
+                                       condition = "input.import_options % 2 == 1",
+                                       checkboxInput('euro_in', "Input with commas as decimal points", value = F)
+                                     )))
+                                     ))
                      ),
-             bsModal("importDialog4", "Import Data", "",
-                # tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {   
-                #       var el = $("#" + x);
-                #       el.replaceWith(el = el.clone(true));
-                #       var id = "#" + x + "_progress";     
-                #       $(id).css("visibility", "hidden");
-                #       });
-                #       '),
-                br(),
-                fluidRow(
-                  column(6,
-                    fileInput('uploadData', 'Open data file (.tsv, .csv)', multiple = FALSE, accept = NULL, width = NULL),
-                    # The following tag allows for the same file path to be used twice in a row for upload
-                    tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });'),
-                    tags$style(type='text/css', "#uploadData {width: 80px}"),
-                    textInput("url", "URL data file (.tsv, .csv)"),
-                    actionButton("fetchURLData", "Fetch Data"),
-                    wellPanel(
-                      actionButton('import_options', 'Advanced Options'),
-                      conditionalPanel(
-                        condition = "input.import_options % 2 == 1",
-                        checkboxInput('euro_in', "Input with commas as decimal points", value = F)
-                      )
-                    )
-                    )
+           #   bsModal("importDialog4", "Import Data", "",
+           #      tags$script('Shiny.addCustomMessageHandler("resetFileInputHandler", function(x) {
+           #            var el = $("#" + x);
+           #            el.replaceWith(el = el.clone(true));
+           #            var id = "#" + x + "_progress";
+           #            $(id).css("visibility", "hidden");
+           #            });
+           #            '),
+           #      br(),
+           #      fluidRow(
+           #        column(6,
+           #          fileInput('uploadData', 'Open data file (.tsv, .csv)', multiple = FALSE, accept = NULL, width = NULL),
+           #          # The following tag allows for the same file path to be used twice in a row for upload
+           #          tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });'),
+           #          tags$style(type='text/css', "#uploadData {width: 80px}"),
+           #          textInput("url", "URL data file (.tsv, .csv)"),
+           #          actionButton("fetchURLData", "Fetch Data"),
+                    # wellPanel(
+                    #   actionButton('import_options', 'Advanced Options'),
+                    #   conditionalPanel(
+                    #     condition = "input.import_options % 2 == 1",
+                    #     checkboxInput('euro_in', "Input with commas as decimal points", value = F)
+                    #   )
+                    # )
+           #          )
+           #      )
+           # ),
+           bsModal("import_fail", "File formatting issues", "do_not_open",
+                   fluidRow(column(12,
+                p("Your input file is not in the correct format."),
+                p("Please fix the following issues and re-upload your file."))),
+                fluidRow(column(12,
+                         formattableOutput('input_check'))
+                ),
+                fluidRow(column(12,
+                         formattableOutput('input_check2'))
+                ),
+                fluidRow(column(12,
+                         htmlOutput('col_suggest'))
                 )
-           ),
+                   ),
            bsModal("importDialog_div", "Add division rates and assay duration", "do_not_open",
                    fluidRow(
                      column(4,
@@ -103,8 +127,8 @@ shinyUI(
                             textInput('treatment_duration', 'Treatment Duration')
                      )
                    ),
-                   fluidRow(
-                   actionButton('div_rate_input', "Submit division")
+                   fluidRow(column(12,
+                   actionButton('div_rate_input', "Submit division"))
                    )
            ),
            tags$div(
@@ -121,23 +145,38 @@ shinyUI(
                    ),
            tags$style(type='text/css', "#loadExampleC { margin-top: 10px;}")
         ),
-        conditionalPanel(
-          condition = "output.fileUploaded",
-          actionButton('advanced', 'Advanced options')
-        ),
+        br(),
+        shinyjs::hidden(
+        div(id = 'advanced_analysis',
+        actionButton('advanced', 'Advanced options'),
         tags$style(type='text/css', "#advanced { margin: 10px;}"),
         conditionalPanel(
           condition = "input.advanced % 2 == 1",
           checkboxInput('cap', "Cap GR values below 1", value = F),
           checkboxInput('force', "Force sigmoidal fit", value = F)
         ),
-        conditionalPanel(
-          condition = "output.fileUploaded",
           wellPanel(
             selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE),
             actionButton("analyzeButton", "Analyze")
           )
-        )
+        ))
+        # conditionalPanel(
+        #   condition = "output.fileUploaded",
+        #   actionButton('advanced', 'Advanced options')
+        # ),
+        # tags$style(type='text/css', "#advanced { margin: 10px;}"),
+        # conditionalPanel(
+        #   condition = "input.advanced % 2 == 1",
+        #   checkboxInput('cap', "Cap GR values below 1", value = F),
+        #   checkboxInput('force', "Force sigmoidal fit", value = F)
+        # ),
+        # conditionalPanel(
+        #   condition = "output.fileUploaded",
+        #   wellPanel(
+        #     selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE),
+        #     actionButton("analyzeButton", "Analyze")
+        #   )
+        # )
     ),
     # main column
     column(10,
@@ -205,18 +244,18 @@ shinyUI(
                                        )
                   				          )
                   				      ),
-    					                 fluidRow(
-    					                 column(3,
-    					                 formattableOutput('input_check', width = "300px")
-    					                 ),
-    					                 column(1),
-    					                 column(3,
-    					                 formattableOutput('input_check2', width = "300px")
-    					                 ),
-    					                 column(3,
-    					                 htmlOutput('col_suggest')
-    					                 )
-    					                 ),
+    					                 # fluidRow(
+    					                 # column(3,
+    					                 # formattableOutput('input_check', width = "300px")
+    					                 # ),
+    					                 # column(1),
+    					                 # column(3,
+    					                 # formattableOutput('input_check2', width = "300px")
+    					                 # ),
+    					                 # column(3,
+    					                 # htmlOutput('col_suggest')
+    					                 # )
+    					                 # ),
                                tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
                                DT::dataTableOutput("input_table")
     					         ),

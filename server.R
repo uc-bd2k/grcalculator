@@ -28,7 +28,7 @@ shinyServer(function(input, output,session) {
                            showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
                            clearScatter = F, separator = NULL, div_rate = logical(0),
                            init_count = logical(0), input_case = NULL,
-                           cell_lines = NULL, div_rate_test = NULL)
+                           cell_lines = NULL, div_rate_test = NULL, check_fail = NULL)
   #isolate(values$inData)
   
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
@@ -60,12 +60,14 @@ shinyServer(function(input, output,session) {
     removeClass(id = "tab_input", class = "active")
     values$separator = ","
     showElement(id = "upload_button", anim = T, animType = "fade")
+    showElement(id = "advanced_input", anim = T, animType = "fade")
   }, ignoreInit = T)
   observeEvent(input$tab_input, {
     addClass(id = "tab_input", class = "active")
     removeClass(id = "comma_input", class = "active")
     values$separator = "\t"
     showElement(id = "upload_button", anim = T, animType = "fade")
+    showElement(id = "advanced_input", anim = T, animType = "fade")
   }, ignoreInit = T)
   # Code to make import dialog initial cell count/division rate buttons work like radiobuttons
   observeEvent(input$initialCellCount, {
@@ -93,11 +95,28 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T)
 
   # Code for closing input dialog when data is uploaded
-  observeEvent(c(input$uploadData,input$fetchURLData), {
-    toggleModal(session, 'importDialog1', toggle = "close")
-  }, ignoreInit = T)
+# observeEvent(c(input$uploadData,input$fetchURLData), {
+#   #observeEvent(values$check_fail, {
+#     toggleModal(session, 'importDialog1', toggle = "close")
+#   }, ignoreInit = T)
   observeEvent(c(input$loadExample, input$loadExampleC),{
     toggleModal(session, 'loadExamples', toggle = "close")
+  }, ignoreInit = T)
+  observeEvent(input$div_rate_input,{
+    toggleModal(session, 'importDialog_div', toggle = "close")
+  }, ignoreInit = T)
+  
+  # Open division rate input dialog if necessary
+#  observeEvent(c(input$uploadData, input$fetchURLData), {
+  observeEvent(values$check_fail, {
+    toggleModal(session, 'importDialog1', toggle = "close")
+    if(!values$check_fail) {
+      if(values$div_rate) {
+        toggleModal(session, 'importDialog_div', toggle = "open")
+      }
+    } else {
+      toggleModal(session, 'import_fail', toggle = "open")
+    }
   }, ignoreInit = T)
 
   # Code for loading example data for input Case A
@@ -132,6 +151,7 @@ shinyServer(function(input, output,session) {
   
   # Code for loading data from file
   observeEvent(input$uploadData, {
+    values$check_fail = NULL
     print('data upload')
     values$data_dl = 'input'
     values$showanalyses=0
@@ -157,6 +177,7 @@ shinyServer(function(input, output,session) {
   
   # Code for loading data from URL
   observeEvent(input$fetchURLData, {
+    values$check_fail = NULL
     # Somehow add test to make sure that input$url is a proper url/text file
     if(input$url != "") {
       values$data_dl = 'input'
@@ -210,11 +231,18 @@ shinyServer(function(input, output,session) {
     # parse division rate input from text box
     div_rates = as.numeric(unlist(strsplit(input$div_rate, "\n")))
     values$div_rate_test = ifelse(sum(is.na(div_rates)) == 0, T, F)
+    #### Note: add check here on input values
     values$inData$division_time = mapvalues(values$inData$cell_line, values$cell_lines, div_rates)
     values$inData$treatment_duration = input$treatment_duration
+    print(head(values$inData))
     output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
+  # Code for showing/hiding advanced analysis options
+  observeEvent(values$inData, {
+    showElement(id = "advanced_analysis", anim = T, animType = "fade")
+  })
+
   # Code for showing/hiding tabs
   observe({
     toggle(condition = values$showdata, selector = "#tabs li a[data-value=tab-data]")
@@ -234,10 +262,10 @@ shinyServer(function(input, output,session) {
   # Code for checking input and providing feedback to user
   observeEvent(c(input$uploadData,input$fetchURLData), {
     # Check input table column names for slight misspellings
-    caseA_cols = c("cell_line", "drug", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
-    caseC_cols = c("cell_line", "drug", "concentration", "cell_count", "time")
+    caseA_cols = c("cell_line", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
+    caseC_cols = c("cell_line", "concentration", "cell_count", "time")
     if(values$input_case == "A" & !values$div_rate) {cols = caseA_cols}
-    if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:5]}
+    if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:4]}
     if(values$input_case == "C") {cols = caseC_cols}
     
     print(cols)
@@ -283,20 +311,37 @@ shinyServer(function(input, output,session) {
       df2[2,1] = "Rows with time equal to zero (initial cell counts)"
       df2[2,2] = ifelse (sum(values$inData$time == 0) > 0, T, F)
     }
-    
+    check1_fail = F
+    check2_fail = F
+    if(sum(!check1) > 0) {
+      check1_fail = T
+    } else {
+      check1_fail = F
+    }
     output$input_check = renderFormattable({
       formattable(df, formats, align = "l")
     })
+    if(sum(!df2[,2]) > 0) {
+      check2_fail = T
+    } else {
+      check2_fail = F
+    }
     output$input_check2 = renderFormattable({
       formattable(df2, formats, align = "l")
     })
+    # If either checks fail, take note
+    if(sum(check1_fail, check2_fail) > 0) {
+      values$check_fail = T
+    } else {
+      values$check_fail = F
+    }
   }, ignoreInit = T)
   
   # Code to show/hide elements after data is uploaded
-  observeEvent(values$inData, {
-    output$fileUploaded <- reactive(T)
-    outputOptions(output, "fileUploaded", suspendWhenHidden = FALSE)
-  })
+  # observeEvent(values$inData, {
+  #   output$fileUploaded <- reactive(T)
+  #   outputOptions(output, "fileUploaded", suspendWhenHidden = FALSE)
+  # })
   
   # Code for updating grouping variable selection boxes
   observeEvent(values$inData, {
