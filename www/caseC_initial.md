@@ -1,4 +1,4 @@
-#### Case C: One measurement per row
+#### Case B: One measurement per row
 
 Necessary columns: 
 

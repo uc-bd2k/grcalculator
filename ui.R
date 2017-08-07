@@ -40,7 +40,7 @@ shinyUI(
                                 div(class = "btn-group", `data-toggle` = "buttons", id = "case_buttons",
                                     p("Step 2: Choose input file format"),
                                     bsButton("caseA", label = "Case A (multiple cell counts per row)", value = "caseA", style = "primary"),
-                                    bsButton("caseC", label = "Case C (one cell count per row)", value = "caseC", style = "primary")
+                                    bsButton("caseC", label = "Case B (one cell count per row)", value = "caseC", style = "primary")
                                     )
                               )
                               )
@@ -163,7 +163,7 @@ shinyUI(
                    actionButton('loadExample', 'Load Example (Case A)'),
                    span("control values assigned to treated measurements"),
                    br(),
-                   actionButton('loadExampleC', 'Load Example (Case C)'),
+                   actionButton('loadExampleC', 'Load Example (Case B)'),
                    span("control values stacked with treated measurements")
                    ),
            tags$style(type='text/css', "#loadExampleC { margin-top: 10px;}")

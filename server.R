@@ -324,9 +324,8 @@ shinyServer(function(input, output,session) {
       df[i,1]= cols[i]
       df[i,2] = ifelse(cols[i] %in% colnames(values$inData), T, F)
     }
-    delete_cols = which(colnames(values$inData) %in% cols)
-    check1 = ifelse (dim(values$inData[,-delete_cols, drop = F])[2] > 0, T, F)
-    df = rbind(df, c("Additional grouping variables", check1))
+    print('df')
+    print(df)
     formats = list(`pass/fail` = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
                                            x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No"))))
     
@@ -345,7 +344,7 @@ shinyServer(function(input, output,session) {
     }
     check1_fail = F
     check2_fail = F
-    if(sum(!check1) > 0) {
+    if(sum(!df[,2]) > 0) {
       check1_fail = T
     } else {
       check1_fail = F
