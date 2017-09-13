@@ -303,7 +303,10 @@ shinyServer(function(input, output,session) {
     print(cols)
     incols = colnames(values$inData)
     print(incols)
-    if(length(intersect(cols, incols)) != 4) {
+    # run check_col_names function to search for slightly misnamed columns
+    # if all of the necessary column names are not in the input data and
+    # there are extra columns
+    if(length(intersect(cols, incols)) != length(cols) & length(incols) >= length(cols)) {
       sug = check_col_names(incols, cols)
       print(sug)
       print(dim(sug))
