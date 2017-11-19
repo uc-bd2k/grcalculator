@@ -4,13 +4,16 @@
 
 ## GRcalculator: an online tool for calculating and mining drug response data
 
-GRcalculator is a Shiny application (http://www.grcalculator.org) developed to accompany the Nature paper *Growth rate inhibition metrics correct for confounders in measuring sensitivity to cancer drugs* by Hafner et al. (2016) http://dx.doi.org/10.1038/nmeth.3853.
+GRcalculator is a Shiny application (http://www.grcalculator.org) developed to accompany the Nature paper *Growth rate inhibition metrics correct for confounders in measuring sensitivity to cancer drugs* by Hafner et al. (2016).
 
 For a brief overview of the GRcalculator and the importance of the newly developed GR metrics methodology (Hafner et al. 2016), see this poster:
 https://figshare.com/articles/GRcalculator_an_online_tool_for_calculating_and_mining_drug_response_data/4244408
 
-#### Citation
-Hafner M, Niepel M, Chung M, Sorger PK: Growth rate inhibition metrics correct for confounders in measuring sensitivity to cancer drugs. Nature Methods 2016, 13(6):521-527.
+#### Citations
+
+Clark NA, Hafner M, Kouril M, Williams EH, Muhlich JL, Pilarczyk M, et al. GRcalculator: an online tool for calculating and mining dose–response data. BMC Cancer 2017, 17(1):698. (https://doi.org/10.1186/s12885-017-3689-3)
+
+Hafner M, Niepel M, Chung M, Sorger PK. Growth rate inhibition metrics correct for confounders in measuring sensitivity to cancer drugs. Nature Methods 2016, 13(6):521-527. (https://doi.org/10.1038/nmeth.3853)
 
 #### Website design and online tool development
 
@@ -62,5 +65,5 @@ source("http://bioconductor.org/biocLite.R")
 biocLite("GRmetrics")
 ```
 
-### MATLAB and Python tools (https://github.com/sorgerlab/gr50_tools)
+### MATLAB and Python tools (https://github.com/datarail/gr_metrics)
 This repository contains the MATLAB, Python, and R implementations of GR metrics calculations with examples and supplementary information.
