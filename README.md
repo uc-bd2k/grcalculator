@@ -36,7 +36,7 @@ biocLite("S4Vectors")
 install.packages("devtools")
 devtools::install_github("uc-bd2k/shinyLi")
 # Install CRAN package dependencies
-install.packages(c("shiny","shinyjs","shinyBS","ggplot2","plotly","drc","stringr","readr"))
+install.packages(c("shiny","shinyjs","shinyBS","ggplot2","plotly","drc","stringr","readr", "formattable", "plyr", "markdown"))
 
 ```
 Run the application from the R command line:
