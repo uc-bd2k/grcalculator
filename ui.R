@@ -317,7 +317,15 @@ shinyUI(
                                   tags$style(type='text/css', "#downloadDRC { margin-top: 20px; margin-bottom: 0px;}")),
                                 fluidRow(
                                   column(2,
-                                         radioButtons("curve_type", label = "Curve type", choices = c("GR","Relative cell count"), inline = F),
+     selectizeInput("drc2_metric", label = "Metric", choices = list(GR ="GR", `Relative cell count` = "rel_cell") ),
+     selectizeInput("drc2_curves", label = "Curves", choices = c("fit", "line", "none") ),
+     selectizeInput("drc2_points", label = "Points", choices = c("average", "all", "none") ),
+     selectizeInput("drc2_bars", label = "Error bars", choices = c("none", "sd", "se") ),
+     selectizeInput("drc2_xrug", label = "x-axis rug", choices = c("none", "GR50", "GEC50", "IC50", "EC50") ),
+     selectizeInput("drc2_yrug", label = "y-axis rug", choices = c("none", "GRinf", "GRmax", "Einf", "Emax") ),
+     selectizeInput("drc2_facet_row", label = "Row facet", choices = "none"),
+     selectizeInput("drc2_facet_col", label = "Column facet", choices = "none"),
+     selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("static", "interactive")),
                                          uiOutput("ui")),
                                   column(10,uiOutput("plot.ui"))
                                   )

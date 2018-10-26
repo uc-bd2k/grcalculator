@@ -12,7 +12,7 @@ library(formattable)
 library(plyr)
 
 source('functions/drawPopup.R')
-source('functions/drawDRC.R', local = T)
+#source('functions/drawDRC.R', local = T)
 source('functions/extractGridData.R')
 source('functions/drawScatter.R', local = T)
 source('functions/drawBox.R')
@@ -583,7 +583,6 @@ shinyServer(function(input, output,session) {
     print("groupingColumns")
     
     tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$input_case))
-    
     if(class(tables)!="try-error") {
       values$parameter_table <- GRgetMetrics(tables)
       values$GR_table <- GRgetValues(tables)
@@ -651,8 +650,11 @@ shinyServer(function(input, output,session) {
       if (length(input$groupingVars)>0) {values$showanalyses_multi<-1
       } else {values$showanalyses_multi<-0}
       
+
       output$plot.ui <- renderUI({
-        plotlyOutput("drc2", height = input$height)
+        #if(input$drc2_plot_type == "static") 
+        plotOutput("drc2", height = input$height)
+        #if(input$drc2_plot_type == "interactive") plotlyOutput("drc2_plotly", height = input$height)
       })
       
       output$plot.ui2 <- renderUI({
@@ -673,7 +675,23 @@ shinyServer(function(input, output,session) {
         })
       })
 
-      output$drc2<-drawDRC(input, values)
+      #output$drc2<-drawDRC(input, values)
+      # observeEvent(c(input$drc2_metric, input$drc2_curves, input$drc2_points, input$drc2_bars,
+      #                input$drc2_facet_row, input$drc2_facet_col, input$drc2_plot_type, input$drc2_xrug,
+      #                input$drc2_yrug), {
+        # values$drc2 = GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
+        #                  points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+        #                  facet_row = input$drc2_facet_row, facet_col = input$drc2_facet_col)
+        #drc2_plotly = ggplotly(drc2)
+        #output$drc2<- renderPlot(drc2)
+        output$drc2<- renderPlot(GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
+                                           points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                           facet_row = input$drc2_facet_row, facet_col = input$drc2_facet_col))
+      
+        #output$drc2_plotly<- renderPlotly(drc2_plotly)
+      # }, ignoreInit = T, ignoreNULL = T)
+      
+      
       output$ui <- renderUI({
         n <- length(input$groupingVars)
         if (n>0) {
@@ -876,8 +894,13 @@ shinyServer(function(input, output,session) {
       updateSelectizeInput(session, 'choiceVar', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
       if (length(input$groupingVars)==1) {
          updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
+        ### update row and column facets for main plot
+        updateSelectizeInput(session, 'drc2_facet_row', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
       } else {
          updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[2])
+        ### update row and column facets for main plot
+        updateSelectizeInput(session, 'drc2_facet_row', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[1])
+        updateSelectizeInput(session, 'drc2_facet_col', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[2])
       }
       
 #       observeEvent(input$plot_gr50grid, {
