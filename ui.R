@@ -286,12 +286,12 @@ shinyUI(
                        tabPanel(value="tab-drc",
                                 "Dose-Response by Condition",
                                 fluidRow(
-                                  column(6,
-                                         wellPanel(
-                                            tags$style(type='text/css', "#plot_options { margin-bottom: 0px; margin-top: 0px;}"),
-                                            radioButtons("plot_options", label = NULL, choices = list("Data Points" = 1, "Fitted Curves" = 2, "Both" = 3), selected = 3, inline = T)
-                                            , style = "padding-top: 5px;margin-top: 10px; padding-bottom:5px; margin-bottom: 0px;")
-                                         ),
+                                  # column(6,
+                                  #        wellPanel(
+                                  #           tags$style(type='text/css', "#plot_options { margin-bottom: 0px; margin-top: 0px;}"),
+                                  #           radioButtons("plot_options", label = NULL, choices = list("Data Points" = 1, "Fitted Curves" = 2, "Both" = 3), selected = 3, inline = T)
+                                  #           , style = "padding-top: 5px;margin-top: 10px; padding-bottom:5px; margin-bottom: 0px;")
+                                  #        ),
                                   column(2,
                                          tags$style(type='text/css', "#shareImageData { margin-top: 10px; margin-bottom: 20px;}"),
                                          actionButton("shareImageData", "Download Image File"),
@@ -315,20 +315,25 @@ shinyUI(
                                   tags$style(type='text/css', "#plotBoxL1 { white-space: nowrap; margin-top: 25px; margin-left: 0px; margin-right: 0px;}"),
                                   tags$style(type='text/css', "#drcImageType { margin-top: 0px; margin-bottom: 30px;margin-right: 0px;margin-left: 0px;}"),
                                   tags$style(type='text/css', "#downloadDRC { margin-top: 20px; margin-bottom: 0px;}")),
-                                fluidRow(
-                                  column(2,
-     selectizeInput("drc2_metric", label = "Metric", choices = list(GR ="GR", `Relative cell count` = "rel_cell") ),
-     selectizeInput("drc2_curves", label = "Curves", choices = c("fit", "line", "none") ),
+                                column(2,
+                                       fluidRow(
+                                  
+     selectizeInput("drc2_metric", label = "Metric", choices = list(GR ="GR", `Relative cell count` = "rel_cell")),
+     selectizeInput("drc2_curves", label = "Curves", choices = c("fit", "line", "none") )
+     ),
+     fluidRow(
      selectizeInput("drc2_points", label = "Points", choices = c("average", "all", "none") ),
-     selectizeInput("drc2_bars", label = "Error bars", choices = c("none", "sd", "se") ),
+     selectizeInput("drc2_bars", label = "Error bars", choices = c("none", "sd", "se") )
+     ),
+     fluidRow(
      selectizeInput("drc2_xrug", label = "x-axis rug", choices = c("none", "GR50", "GEC50", "IC50", "EC50") ),
      selectizeInput("drc2_yrug", label = "y-axis rug", choices = c("none", "GRinf", "GRmax", "Einf", "Emax") ),
-     selectizeInput("drc2_facet_row", label = "Row facet", choices = "none"),
-     selectizeInput("drc2_facet_col", label = "Column facet", choices = "none"),
-     selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("static", "interactive")),
-                                         uiOutput("ui")),
-                                  column(10,uiOutput("plot.ui"))
-                                  )
+     selectizeInput("drc2_facet", label = "Facet variable", choices = "none"),
+     selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("interactive", "static")),
+                                         uiOutput("ui"))
+     ),
+                                  column(9,uiOutput("plot.ui"))
+                                  
                        ),
                        # Dose-response grid tab
                        tabPanel(value="tab-drc-grid",

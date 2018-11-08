@@ -651,11 +651,18 @@ shinyServer(function(input, output,session) {
       } else {values$showanalyses_multi<-0}
       
 
-      output$plot.ui <- renderUI({
-        #if(input$drc2_plot_type == "static") 
-        plotOutput("drc2", height = input$height)
-        #if(input$drc2_plot_type == "interactive") plotlyOutput("drc2_plotly", height = input$height)
+      observeEvent(input$drc2_plot_type, {
+        if(input$drc2_plot_type == "interactive") {
+          output$plot.ui <- renderUI({
+            plotlyOutput("drc2_plotly", height = input$height, width = "800px")
+          })
+        } else if(input$drc2_plot_type == "static") {
+          output$plot.ui <- renderUI({
+            plotOutput("drc2", height = input$height, width = "800px")
+          })
+        }
       })
+      
       
       output$plot.ui2 <- renderUI({
         if(input$box_scatter == "Box plot") {
@@ -686,9 +693,15 @@ shinyServer(function(input, output,session) {
         #output$drc2<- renderPlot(drc2)
         output$drc2<- renderPlot(GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
                                            points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                                           facet_row = input$drc2_facet_row, facet_col = input$drc2_facet_col))
+                                           facet = input$drc2_facet,
+                                           bars = input$drc2_bars,
+                                           plot_type = input$drc2_plot_type))
       
-        #output$drc2_plotly<- renderPlotly(drc2_plotly)
+        output$drc2_plotly<- renderPlotly(ggplotly(
+          GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
+            points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+            facet = input$drc2_facet,
+            bars = input$drc2_bars, plot_type = input$drc2_plot_type)))
       # }, ignoreInit = T, ignoreNULL = T)
       
       
@@ -894,14 +907,11 @@ shinyServer(function(input, output,session) {
       updateSelectizeInput(session, 'choiceVar', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
       if (length(input$groupingVars)==1) {
          updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
-        ### update row and column facets for main plot
-        updateSelectizeInput(session, 'drc2_facet_row', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
       } else {
-         updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[2])
-        ### update row and column facets for main plot
-        updateSelectizeInput(session, 'drc2_facet_row', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[1])
-        updateSelectizeInput(session, 'drc2_facet_col', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[2])
+         updateSelectizeInput(session, 'xgroupingVars', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[2])
       }
+      ### update facets for main plot
+      updateSelectizeInput(session, 'drc2_facet', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[1])
       
 #       observeEvent(input$plot_gr50grid, {
 #         output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
