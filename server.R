@@ -5,6 +5,7 @@ library(ggplot2)
 library(readr)
 library(drc)
 library(GRmetrics)
+library(magrittr)
 library(S4Vectors)
 library(stringr)
 library(DT)
@@ -19,6 +20,27 @@ source('functions/drawBox.R')
 source('functions/parseLabel.R')
 source('functions/check_col_names.R')
 
+about.modal.js = "$('.ui.small.modal')
+.modal({
+    blurring: true
+})
+$('#about_modal').modal('show')
+;"
+contact.modal.js = "$('.ui.mini.modal')
+.modal({
+    blurring: true
+})
+$('#contact_modal').modal('show')
+;"
+import.modal.js = "$('.ui.small.modal')
+.modal({
+    blurring: true
+})
+$('#import_modal').modal('show')
+;"
+tab.js = "$('.menu .item')
+.tab()
+;"
 
 shinyServer(function(input, output,session) {
   # initialize variables for saving various user inputs, parameters, etc.
@@ -30,6 +52,17 @@ shinyServer(function(input, output,session) {
                            init_count = logical(0), input_case = NULL,
                            cell_lines = NULL, div_rate_test = NULL, check_fail = NULL)
   #isolate(values$inData)
+  runjs(tab.js)
+
+  observeEvent(input$import_button, {
+    runjs(import.modal.js)
+  })
+  observeEvent(input$about, {
+    runjs(about.modal.js)
+  })
+  observeEvent(input$contact, {
+    runjs(contact.modal.js)
+  })
   
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
   observeEvent(values$div_rate, {
@@ -48,12 +81,12 @@ shinyServer(function(input, output,session) {
   # Code to show/hide descriptions of necessary columns for input
   observeEvent(c(values$input_case, values$div_rate, values$init_count), {
     if(!is.null(values$input_case) & !is.null(values$div_rate)) {
-      div_names = c("caseA_initial_desc", "caseA_div_desc", "caseC_initial_desc", "caseC_div_desc")
+      div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
       div_loc = NULL
       if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
       if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
-      if(values$input_case == "C" & !values$div_rate) { div_loc = 3 }
-      if(values$input_case == "C" & values$div_rate) { div_loc = 4 }
+      if(values$input_case == "B" & !values$div_rate) { div_loc = 3 }
+      if(values$input_case == "B" & values$div_rate) { div_loc = 4 }
       # Hide descriptions
       for(i in 1:4) {
         args = list(id = div_names[i])
@@ -67,7 +100,7 @@ shinyServer(function(input, output,session) {
     }
   }, ignoreInit = T)
   # observeEvent(values$input_case, {
-  #   div_names = c("caseA_initial_desc", "caseA_div_desc", "caseC_initial_desc", "caseC_div_desc")
+  #   div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
   #   if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
   #   if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
   #   if(values$input_case == "C" & !values$div_rate) { div_loc = 3 }
@@ -77,12 +110,12 @@ shinyServer(function(input, output,session) {
   #   do.call(what = "showElement", args = args)
   # }, ignoreInit = T, priority = -1)
   
-  # Code to show caseA/caseC choice buttons
+  # Code to show caseA/caseB choice buttons
   observeEvent(c(input$divisionRate, input$initialCellCount), {
     showElement(id = "case_buttons", anim = T, animType = "fade")
   }, ignoreInit = T)
   # Code to show csv/tsv choice buttons
-  observeEvent(c(input$caseA, input$caseC), {
+  observeEvent(c(input$caseA, input$caseB), {
     showElement(id = "comma_tab_buttons", anim = T, animType = "fade")
   }, ignoreInit = T)
 
@@ -114,22 +147,22 @@ shinyServer(function(input, output,session) {
     values$div_rate = T
     values$init_count = F
   }, ignoreInit = T)
-  # Code to make import dialog caseA/caseC buttons work like radiobuttons
+  # Code to make import dialog caseA/caseB buttons work like radiobuttons
   observeEvent(input$caseA, {
     addClass(id = "caseA", class = "active")
-    removeClass(id = "caseC", class = "active")
+    removeClass(id = "caseB", class = "active")
     values$input_case = "A"
   }, ignoreInit = T)
-  observeEvent(input$caseC, {
-    addClass(id = "caseC", class = "active")
+  observeEvent(input$caseB, {
+    addClass(id = "caseB", class = "active")
     removeClass(id = "caseA", class = "active")
-    values$input_case = "C"
+    values$input_case = "B"
   }, ignoreInit = T)
 
   # Code for closing input dialog when data is uploaded
 # observeEvent(c(input$uploadData,input$fetchURLData), {
 #   #observeEvent(values$check_fail, {
-#     toggleModal(session, 'importDialog1', toggle = "close")
+#     toggleModal(session, 'import_button', toggle = "close")
 #   }, ignoreInit = T)
   observeEvent(c(input$loadExample, input$loadExampleC),{
     toggleModal(session, 'loadExamples', toggle = "close")
@@ -141,7 +174,7 @@ shinyServer(function(input, output,session) {
   # Open division rate input dialog if necessary
 #  observeEvent(c(input$uploadData, input$fetchURLData), {
   observeEvent(values$check_fail, {
-    toggleModal(session, 'importDialog1', toggle = "close")
+    toggleModal(session, 'import_button', toggle = "close")
     if(!values$check_fail) {
       if(values$div_rate) {
         toggleModal(session, 'importDialog_div', toggle = "open")
@@ -295,10 +328,10 @@ shinyServer(function(input, output,session) {
   observeEvent(c(input$uploadData,input$fetchURLData), {
     # Check input table column names for slight misspellings
     caseA_cols = c("cell_line","treatment", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
-    caseC_cols = c("cell_line","treatment", "concentration", "cell_count", "time")
+    caseB_cols = c("cell_line","treatment", "concentration", "cell_count", "time")
     if(values$input_case == "A" & !values$div_rate) {cols = caseA_cols}
     if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:5]}
-    if(values$input_case == "C") {cols = caseC_cols}
+    if(values$input_case == "B") {cols = caseB_cols}
     
     print(cols)
     incols = colnames(values$inData)
@@ -380,7 +413,7 @@ shinyServer(function(input, output,session) {
   # Code for updating grouping variable selection boxes
   observeEvent(values$inData, {
     caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
-    caseC_params = c('concentration', 'cell_count', 'time')
+    caseB_params = c('concentration', 'cell_count', 'time')
     time0_param = 'cell_count__time0'
     div_params = c('treatment_duration', 'division_time')
     if(values$input_case == "A") {
@@ -392,7 +425,7 @@ shinyServer(function(input, output,session) {
           options = c()
         )
     } else {
-      delete_cols = which(colnames(values$inData) %in% c(caseC_params, div_params))
+      delete_cols = which(colnames(values$inData) %in% c(caseB_params, div_params))
       updateSelectizeInput(
         session, 'groupingVars',
         choices = colnames(values$inData)[-delete_cols],
@@ -584,60 +617,63 @@ shinyServer(function(input, output,session) {
     
     tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$input_case))
     if(class(tables)!="try-error") {
-      values$parameter_table <- GRgetMetrics(tables)
-      values$GR_table <- GRgetValues(tables)
-      parameters_show <- GRgetMetrics(tables)
-      
-      values$GR_table_show <- values$GR_table
-      values$GR_table_show$GRvalue <- as.numeric(prettyNum(values$GR_table_show$GRvalue, digits = 3))
-      values$GR_table_show$log10_concentration <- as.numeric(prettyNum(values$GR_table_show$log10_concentration, digits = 3))
-      values$GR_table_show$rel_cell_count <- as.numeric(prettyNum(values$GR_table_show$rel_cell_count, digits = 3))
-      test_gr <<- values$GR_table
-      print("finishedGR")
-      
-      values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
-      values$parameter_table$h_GR[values$parameter_table$h_GR == 0.01] = NA
-      values$parameter_table$`log10(GR50)` = log10(values$parameter_table$GR50)
-      values$parameter_table$`log2(h_GR)` = log2(values$parameter_table$h_GR)
-      
-      values$parameter_table$IC50[is.infinite(values$parameter_table$IC50)] = NA
-      values$parameter_table$h[values$parameter_table$h == 0.01] = NA
-      values$parameter_table$`log10(IC50)` = log10(values$parameter_table$IC50)
-      values$parameter_table$`log2(h)` = log2(values$parameter_table$h)
-      
-      #values$parameter_table$`log10(EC50)` = log10(values$parameter_table$GEC50)
-      
-      # For compatibility with shinyLi dose-response grid visualization
-      #values$parameter_table$Hill = values$parameter_table$h_GR
-      #values$parameter_table$`log2(Hill)` = log2(values$parameter_table$h_GR)
-  
-      test_ref <<- values$parameter_table
-      #values$parameter_table_show <- temp_parameter_table[[2]]
-      
-      parameters_show$GR50 = as.numeric(prettyNum(parameters_show$GR50, digits = 3))
-      parameters_show$GRmax = as.numeric(prettyNum(parameters_show$GRmax, digits = 3))
-      parameters_show$GR_AOC = as.numeric(prettyNum(parameters_show$GR_AOC, digits = 3))
-      parameters_show$GEC50 = as.numeric(prettyNum(parameters_show$GEC50, digits = 3))
-      parameters_show$GRinf = as.numeric(prettyNum(parameters_show$GRinf, digits = 3))
-      parameters_show$h_GR = as.numeric(prettyNum(parameters_show$h_GR, digits = 3))
-      parameters_show$r2_GR = as.numeric(prettyNum(parameters_show$r2_GR, digits = 3))
-      parameters_show$pval_GR = as.numeric(prettyNum(parameters_show$pval_GR, digits = 3))
-      parameters_show$flat_fit_GR = as.numeric(prettyNum(parameters_show$flat_fit_GR, digits = 3))
-      
-      parameters_show$IC50 = as.numeric(prettyNum(parameters_show$IC50, digits = 3))
-      parameters_show$Emax = as.numeric(prettyNum(parameters_show$Emax, digits = 3))
-      parameters_show$AUC = as.numeric(prettyNum(parameters_show$AUC, digits = 3))
-      parameters_show$EC50 = as.numeric(prettyNum(parameters_show$EC50, digits = 3))
-      parameters_show$Einf = as.numeric(prettyNum(parameters_show$Einf, digits = 3))
-      parameters_show$h = as.numeric(prettyNum(parameters_show$h, digits = 3))
-      parameters_show$r2_rel_cell = as.numeric(prettyNum(parameters_show$r2_rel_cell, digits = 3))
-      parameters_show$pval_rel_cell = as.numeric(prettyNum(parameters_show$pval_rel_cell, digits = 3))
-      parameters_show$flat_fit_rel_cell = as.numeric(prettyNum(parameters_show$flat_fit_rel_cell, digits = 3))
-      
-      values$parameter_table_show <- parameters_show
-      #=========================
-      test_ref_show <<- values$parameter_table_show
-      print("finishedParams")
+      values$parameters_all = tables
+      values$parameter_table = tables$GR$sigmoid$normal
+      values$parameter_table_show <- tables$GR$sigmoid$normal
+      # values$parameter_table <- GRgetMetrics(tables)
+      # values$GR_table <- GRgetValues(tables)
+      # parameters_show <- GRgetMetrics(tables)
+      # 
+      # values$GR_table_show <- values$GR_table
+      # values$GR_table_show$GRvalue <- as.numeric(prettyNum(values$GR_table_show$GRvalue, digits = 3))
+      # values$GR_table_show$log10_concentration <- as.numeric(prettyNum(values$GR_table_show$log10_concentration, digits = 3))
+      # values$GR_table_show$rel_cell_count <- as.numeric(prettyNum(values$GR_table_show$rel_cell_count, digits = 3))
+      # test_gr <<- values$GR_table
+      # print("finishedGR")
+      # 
+      # values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
+      # values$parameter_table$h_GR[values$parameter_table$h_GR == 0.01] = NA
+      # values$parameter_table$`log10(GR50)` = log10(values$parameter_table$GR50)
+      # values$parameter_table$`log2(h_GR)` = log2(values$parameter_table$h_GR)
+      # 
+      # values$parameter_table$IC50[is.infinite(values$parameter_table$IC50)] = NA
+      # values$parameter_table$h[values$parameter_table$h == 0.01] = NA
+      # values$parameter_table$`log10(IC50)` = log10(values$parameter_table$IC50)
+      # values$parameter_table$`log2(h)` = log2(values$parameter_table$h)
+      # 
+      # #values$parameter_table$`log10(EC50)` = log10(values$parameter_table$GEC50)
+      # 
+      # # For compatibility with shinyLi dose-response grid visualization
+      # #values$parameter_table$Hill = values$parameter_table$h_GR
+      # #values$parameter_table$`log2(Hill)` = log2(values$parameter_table$h_GR)
+      # 
+      # test_ref <<- values$parameter_table
+      # #values$parameter_table_show <- temp_parameter_table[[2]]
+      # 
+      # parameters_show$GR50 = as.numeric(prettyNum(parameters_show$GR50, digits = 3))
+      # parameters_show$GRmax = as.numeric(prettyNum(parameters_show$GRmax, digits = 3))
+      # parameters_show$GR_AOC = as.numeric(prettyNum(parameters_show$GR_AOC, digits = 3))
+      # parameters_show$GEC50 = as.numeric(prettyNum(parameters_show$GEC50, digits = 3))
+      # parameters_show$GRinf = as.numeric(prettyNum(parameters_show$GRinf, digits = 3))
+      # parameters_show$h_GR = as.numeric(prettyNum(parameters_show$h_GR, digits = 3))
+      # parameters_show$r2_GR = as.numeric(prettyNum(parameters_show$r2_GR, digits = 3))
+      # parameters_show$pval_GR = as.numeric(prettyNum(parameters_show$pval_GR, digits = 3))
+      # parameters_show$flat_fit_GR = as.numeric(prettyNum(parameters_show$flat_fit_GR, digits = 3))
+      # 
+      # parameters_show$IC50 = as.numeric(prettyNum(parameters_show$IC50, digits = 3))
+      # parameters_show$Emax = as.numeric(prettyNum(parameters_show$Emax, digits = 3))
+      # parameters_show$AUC = as.numeric(prettyNum(parameters_show$AUC, digits = 3))
+      # parameters_show$EC50 = as.numeric(prettyNum(parameters_show$EC50, digits = 3))
+      # parameters_show$Einf = as.numeric(prettyNum(parameters_show$Einf, digits = 3))
+      # parameters_show$h = as.numeric(prettyNum(parameters_show$h, digits = 3))
+      # parameters_show$r2_rel_cell = as.numeric(prettyNum(parameters_show$r2_rel_cell, digits = 3))
+      # parameters_show$pval_rel_cell = as.numeric(prettyNum(parameters_show$pval_rel_cell, digits = 3))
+      # parameters_show$flat_fit_rel_cell = as.numeric(prettyNum(parameters_show$flat_fit_rel_cell, digits = 3))
+      # 
+      # values$parameter_table_show <- parameters_show
+      # #=========================
+      # test_ref_show <<- values$parameter_table_show
+      # print("finishedParams")
     } else {
       # When the GRfit function fails for some reason
       err = attributes(tables)$condition
@@ -691,17 +727,19 @@ shinyServer(function(input, output,session) {
         #                  facet_row = input$drc2_facet_row, facet_col = input$drc2_facet_col)
         #drc2_plotly = ggplotly(drc2)
         #output$drc2<- renderPlot(drc2)
-        output$drc2<- renderPlot(GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
-                                           points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                                           facet = input$drc2_facet,
-                                           bars = input$drc2_bars,
-                                           plot_type = input$drc2_plot_type))
+        output$drc2<- renderPlot(
+          GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
+                    points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                    facet = input$drc2_facet, bars = input$drc2_bars,
+                    color = input$drc2_color, plot_type = input$drc2_plot_type)
+          )
       
         output$drc2_plotly<- renderPlotly(ggplotly(
           GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
-            points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-            facet = input$drc2_facet,
-            bars = input$drc2_bars, plot_type = input$drc2_plot_type)))
+                    points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                    facet = input$drc2_facet, bars = input$drc2_bars,
+                    color = input$drc2_color, plot_type = input$drc2_plot_type)
+          ))
       # }, ignoreInit = T, ignoreNULL = T)
       
       
@@ -903,6 +941,17 @@ shinyServer(function(input, output,session) {
         }
       })
       
+      
+      observeEvent(input$drc2_metric, {
+        if(input$drc2_metric == "GR") {
+          updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
+          updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
+        }
+        if(input$drc2_metric == "rel_cell") {
+          updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
+          updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
+        }
+      })
     observeEvent(input$analyzeButton, {
       updateSelectizeInput(session, 'choiceVar', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
       if (length(input$groupingVars)==1) {
@@ -912,6 +961,8 @@ shinyServer(function(input, output,session) {
       }
       ### update facets for main plot
       updateSelectizeInput(session, 'drc2_facet', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[1])
+      updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), server = TRUE, selected= "experiment")
+      
       
 #       observeEvent(input$plot_gr50grid, {
 #         output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
