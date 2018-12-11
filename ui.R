@@ -8,7 +8,7 @@ library(formattable)
 library(shiny.semantic)
 #library(dplyr)
 #library(readr)
-#library(DT)
+library(DT)
 #library(crosstalk)
 #library(magrittr)
 #library(markdown)
@@ -153,6 +153,29 @@ shinyUI(
       )
       )
     ),
+    div(class = "ui mini modal", id = 'example_modal', 
+        div(class = "ui basic segment",
+        #"Load Example", "examples",
+        p("Case A: control values assigned to treated measurements"),
+        p("Case B: control values stacked with treated measurements"),
+            div(class = "ui buttons", "Load example:",
+                div(class = "ui positive button action-button", id = 'loadExample',
+                    'Case A'),
+                div(class = "or"),
+                div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
+        )
+    )),
+    div(class = "ui small modal", id = 'instructions_modal', 
+        div(class = "ui basic segment",
+            includeMarkdown("www/GettingStartedModal.md")
+            )
+        ),
+    div(class = "ui small modal", id = "download_plot_drc_modal", 
+      div(class = "ui basic segment",
+        downloadButton('downloadDRC', label = "Download image"),
+        radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff'), inline = F)
+        )
+    ),
     div(class = "ui container",
         div(class = "ui top attached inverted seven item stackable menu",
             div(class = "ui center aligned container",
@@ -170,21 +193,98 @@ shinyUI(
         div(class = "ui main attached segment",
           div(class="ui top attached tabular menu", id = "tabs",
               a(class="active item", `data-tab`="first", "Getting Started"),
-              a(class="item", `data-tab`="second", "Data Tables"),
-              a(class="item", `data-tab`="third", "Dose-Response by Condition"),
+              a(class="item", `data-tab`="second", "Data Tables", id = "second_top"),
+              a(class="item", `data-tab`="third", "Dose-Response by Condition", id = "third_top"),
               a(class="item", `data-tab`="fourth", "Dose-Response Grid"),
               a(class="item", `data-tab`="fifth", "GR Metric Comparison")
           ),
           div(class="ui active bottom center attached tab segment", `data-tab`="first",
-              div(class="ui primary button action-button", "Import data", id = "import_button")
+            div(class = "ui two column grid",
+              div(class = "three wide column",
+                div(class="ui primary button action-button", "Import data", id = "import_button"),
+                br(), br(),
+                div(class = "item action-button shiny-bound-input", id = "examples",
+                    h4(a(class = "action-button", id = "example_button", "Or load example", uiicon("lightning"), href = "#"))
+                    ),
+                br(),
+                shinyjs::hidden(
+                div(id = 'advanced_analysis',
+                    selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE, width = "200px"),
+                    div(class = "ui primary button action-button", id = "analyzeButton", "Analyze"),
+                    br(), br(),
+                    div(class = "ui button action-button", id = 'advanced', 'Advanced options'),
+                    conditionalPanel(
+                      condition = "input.advanced % 2 == 1",
+                      div(class = "ui checkbox", 
+                          tags$input(type = "checkbox", name = "public", 
+                                     id = 'cap', tags$label("Cap GR values below 1"))
+                      ),
+                      div(class = "ui checkbox", 
+                          tags$input(type = "checkbox", name = "public", 
+                                     id = 'force', tags$label("Force sigmoidal fit"))
+                      )
+                    )
+                ))
+              ),
+              div(class = "thirteen wide column",
+                  div(class = "ui basic segment",
+                      includeMarkdown("www/GettingStarted.md"),
+                      tags$button(class = "ui green button action-button", id = "instructions_button", "Detailed instructions")
+                  )
+              )
+            )
           ),
-          div(class="ui bottom center attached tab segment", `data-tab`="second",
-              #includeMarkdown("www/home.md")
-              p("second")
+          div(class="ui bottom center attached tab segment", `data-tab`="second", id = "second_bottom",
+              div(class="ui three top attached buttons",
+                  tags$button(class = "ui button action-button", id = "input_table_button", "Input data"),
+                  div(class = "or"),
+                  tags$button(class = "ui button action-button", id = "gr_table_button", "GR values"),
+                  div(class = "or"),
+                  tags$button(class = "ui button action-button", id = "parameter_table_button", "Parameter values")
+                  ),
+              textOutput(outputId = 'input_error'),
+              tags$head(tags$style("#input_error{color: red; font-size: 20px; }")),
+              div(class = "ui basic segment",
+                DT::dataTableOutput("current_table", width = "500px", height = "500px"),
+                tags$head(tags$style("#current_table  {white-space: nowrap;  }"))
+                # div(class = "ui primary button action-button",
+                #     downloadLink("download_button", "Download Data File", style = "color: white;")
+                #     )
+              )
           ),
           div(class="ui bottom center attached tab segment", `data-tab`="third",
-              #includeMarkdown("www/home.md")
-              p("third")
+            div(class = "ui basic segment",
+              div(class = "ui black top attached button action-button","Plot options",id="plot_options_button"),
+              shinyjs::hidden(
+              div( id = "plot_options",
+                div(class = "ui four column grid",
+                  div(class = "four wide column",
+                      div(id='plotBoxL1',"Plot height"),
+                      textInput('height', NULL, value = 500),
+                      uiOutput("ui")
+                  ),
+                  div(class = "four wide column",
+  selectizeInput("drc2_metric", label = "Metric", choices = list(GR ="GR", `Relative cell count` = "rel_cell")),
+  selectizeInput("drc2_curves", label = "Curves", choices = c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none") ),
+  selectizeInput("drc2_points", label = "Points", choices = c("average", "all", "none") )
+),
+                  div(class = "four wide column",
+                      selectizeInput("drc2_bars", label = "Error bars", choices = c("none", "sd", "se") ),
+                      selectizeInput("drc2_xrug", label = "x-axis rug", choices = c("none") ),
+                      selectizeInput("drc2_yrug", label = "y-axis rug", choices = c("none") )
+                  ),
+                  div(class = "four wide column",
+                      selectizeInput("drc2_facet", label = "Facet variable", choices = "none"),
+                      selectizeInput("drc2_color", label = "Color", choices = "none"),
+                      selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("interactive", "static"))
+                  )
+                )
+                )
+                ),
+                uiOutput("plot.ui"),
+                tags$button(class = "ui button action-button", id = "download_plot_drc_button", 
+                            "Download Image File")
+            )
           ),
           div(class="ui bottom center attached tab segment", `data-tab`="fourth",
               #includeMarkdown("www/home.md")

@@ -20,6 +20,27 @@ source('functions/drawBox.R')
 source('functions/parseLabel.R')
 source('functions/check_col_names.R')
 
+zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
+  dir = tempdir()
+  mkdir = paste0("mkdir ", dir, "/", stamp)
+  system(mkdir)
+  len = length(df_list)
+  for(i in 1:len) {
+    # filename in temp directory 
+    assign(paste0("temp",i), paste0(dir, "/", stamp, "/", filenames[i], ".csv"))
+    # write temp csv
+    write_csv(df_list[[i]], path=get(paste0("temp",i)))
+  }
+  # zip temp csv
+  print(dir)
+  print(filenames)
+  zip(zippedfile, paste0(dir,"/", stamp, "/", filenames, ".csv"), flags = "-j" )
+  # delete temp csv
+  for(i in 1:len) {
+    unlink( paste0("temp",i) )
+  }
+}
+
 about.modal.js = "$('.ui.small.modal')
 .modal({
     blurring: true
@@ -38,11 +59,34 @@ import.modal.js = "$('.ui.small.modal')
 })
 $('#import_modal').modal('show')
 ;"
+
+example.modal.js = "$('.ui.mini.modal')
+.modal({
+    blurring: true
+})
+$('#example_modal').modal('show')
+;"
+
+instructions.modal.js = "$('.ui.small.modal')
+.modal({
+    blurring: true
+})
+$('#instructions_modal').modal('show')
+;"
+
+download_plot_drc.modal.js = "$('.ui.small.modal')
+.modal({
+    blurring: true
+})
+$('#download_plot_drc_modal').modal('show')
+;"
+
 tab.js = "$('.menu .item')
 .tab()
 ;"
 
 shinyServer(function(input, output,session) {
+  runjs(tab.js)
   # initialize variables for saving various user inputs, parameters, etc.
   values <- reactiveValues(inData=NULL, GR_table = NULL, GR_table_show = NULL, 
                            parameter_table = NULL, parameter_table_show = NULL, 
@@ -50,18 +94,95 @@ shinyServer(function(input, output,session) {
                            showanalyses_multi=0, data_dl = NULL, wilcox = NULL,
                            clearScatter = F, separator = NULL, div_rate = NULL,
                            init_count = logical(0), input_case = NULL,
-                           cell_lines = NULL, div_rate_test = NULL, check_fail = NULL)
+                           cell_lines = NULL, div_rate_test = NULL, check_fail = NULL,
+                           current_data = NULL, current_table_button = NULL)
   #isolate(values$inData)
-  runjs(tab.js)
-
+  ### initialize main data table and make sure it updates when hidden
+  output$current_table = renderDataTable({ values$inData })
+  outputOptions(output, "current_table", suspendWhenHidden = FALSE)
+  ### initialize main plot and make sure it updates when hidden
+  #output$drc2<- renderPlot(NULL)
+  #outputOptions(output, "drc2", suspendWhenHidden = FALSE)
+  shinyjs::onclick("analyzeButton", {
+    print("analyze")
+    shinyjs::click(id = "third_top")
+  })
+  ### on click of data table tab, "click" current data table button to make sure it shows up
+  shinyjs::onclick("second_top", {
+    print("second_top")
+    print(values$current_table_button)
+    shinyjs::click(values$current_table_button)
+  })
+  ### on click of drc plot tab, "click" plot button to make sure it shows up
+  shinyjs::onclick("third_top", {
+    print("third_top")
+    #shinyjs::click(values$current_table_button)
+    shinyjs::show("ui")
+    shinyjs::show("plot.ui")
+  })
+  shinyjs::onclick("plot_options_button", {
+    shinyjs::toggle(id = "plot_options", animType = "slide")
+  })
+  ### set which table to show in data table tab
+  shinyjs::click(id = "input_table_button")
+  observeEvent(input$input_table_button, {
+    values$current_table_button = "input_table_button"
+    values$current_data = values$inData
+    ## emphasize the selected data table button
+    shinyjs::addClass(id = "input_table_button", class = "green")
+    shinyjs::removeClass(id = "gr_table_button", class = "green")
+    shinyjs::removeClass(id = "parameter_table_button", class = "green")
+  })
+  observeEvent(input$gr_table_button, {
+    values$current_table_button = "gr_table_button"
+    values$current_data = values$GR_table_show
+    ## emphasize the selected data table button
+    shinyjs::removeClass(id = "input_table_button", class = "green")
+    shinyjs::addClass(id = "gr_table_button", class = "green")
+    shinyjs::removeClass(id = "parameter_table_button", class = "green")
+  })
+  observeEvent(input$parameter_table_button, {
+    values$current_table_button = "parameter_table_button"
+    values$current_data = values$parameter_table_show
+    ## emphasize the selected data table button
+    shinyjs::removeClass(id = "input_table_button", class = "green")
+    shinyjs::removeClass(id = "gr_table_button", class = "green")
+    shinyjs::addClass(id = "parameter_table_button", class = "green")
+  })
+  observeEvent(values$current_data, {
+    output$current_table = renderDataTable({ values$current_data })
+  }, ignoreNULL = F)
+  
   observeEvent(input$import_button, {
     runjs(import.modal.js)
   })
+  observeEvent(input$example_button, {
+    runjs(example.modal.js)
+  })
+  observeEvent(input$instructions_button, {
+    runjs(instructions.modal.js)
+  })
+  observeEvent(c(input$loadExample, input$loadExampleB), {
+    runjs("$('#example_modal').modal('hide')")
+  })
+  observeEvent(input$download_plot_drc.modal_button, {
+    runjs(download_plot_drc.modal.js)
+  })
+  
   observeEvent(input$about, {
     runjs(about.modal.js)
   })
   observeEvent(input$contact, {
     runjs(contact.modal.js)
+  })
+  
+  # Jump to results tab when "Submit" is clicked
+  observeEvent(input$analyzeButton, {
+    #showElement("tab2_top")
+    #removeClass(id = "tab1_top", class = "active")
+    #removeClass(id = "tab1_bottom", class = "active")
+    #addClass(id = "second", class = "active")
+    #addClass(id = "tab2_bottom", class = "active")
   })
   
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
@@ -164,8 +285,8 @@ shinyServer(function(input, output,session) {
 #   #observeEvent(values$check_fail, {
 #     toggleModal(session, 'import_button', toggle = "close")
 #   }, ignoreInit = T)
-  observeEvent(c(input$loadExample, input$loadExampleC),{
-    toggleModal(session, 'loadExamples', toggle = "close")
+  observeEvent(c(input$loadExample, input$loadExampleB),{
+    toggleModal(session, 'example_modal', toggle = "close")
   }, ignoreInit = T)
   observeEvent(input$div_rate_input,{
     toggleModal(session, 'importDialog_div', toggle = "close")
@@ -186,6 +307,7 @@ shinyServer(function(input, output,session) {
 
   # Code for loading example data for input Case A
   observeEvent(input$loadExample, {
+    print("load example a")
     values$input_case = "A"
     values$data_dl = 'example'
     output$input_error = renderText("")
@@ -195,13 +317,14 @@ shinyServer(function(input, output,session) {
     values$parameter_table_show = NULL
     values$showanalyses=0
     values$showanalyses_multi=0
-    if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+    #if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
+    output$input_table <- DT::renderDataTable(datatable(values$inData, rownames = F))
+    print("load example a done")
   })
   
-  # Code for loading example data for input Case C
-  observeEvent(input$loadExampleC, {
-    values$input_case = "C"
+  # Code for loading example data for input Case B
+  observeEvent(input$loadExampleB, {
+    values$input_case = "B"
     values$data_dl = 'example'
     output$input_error = renderText("")
     #session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
@@ -452,50 +575,73 @@ shinyServer(function(input, output,session) {
   })
     
 #========== Download button data tables =======
-  output$downloadData <- downloadHandler(
+  output$downloadBind <- downloadHandler(
     filename = function() {
-      if(values$data_dl == 'input') {
-        if(input$pick_data == 1) {
-          return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), ".", input$download_type, sep=''))
-        } else if(input$pick_data == 2) {
-          return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), '_GRvalues', ".", input$download_type, sep=''))
-        } else {
-          return(paste(sub("^(.*)[.].*", "\\1", input$uploadData),'_FittedParameters', ".", input$download_type, sep = ''))
-        }
-      } else if(values$data_dl == 'example') {
-        if(input$pick_data == 1) {
-          return(paste("example.", input$download_type, sep = ""))
-        } else if(input$pick_data == 2) {
-          return(paste("example_GRvalues.", input$download_type, sep = ""))
-        } else {
-          return(paste("example_FittedParameters.", input$download_type, sep = ""))
-        }
-      }
+      return(paste0("GRdata_", format(Sys.time(), "%Y%m%d_%I%M%S"), 
+                    ".zip", sep = ""))
     },
     content = function(filename) {
-      if(input$pick_data == 1) {
-        data_output = values$inData
-      } else if(input$pick_data == 2) {
-        data_output = values$GR_table_show
+      files_all = list(values$inData,
+                       values$GR_table_show,
+                       values$parameter_table_show)
+      # take only tables that exist
+      drugs = NULL
+      if(values$num_selected > 0) {
+        files = files_all[1:values$num_selected]
+        for(i in 1:3) {
+          drugs = c(drugs, values[[paste0("selection.drug", i)]])
+        }
       } else {
-        data_output = values$parameter_table_show
+        files = NULL
+        drugs = NULL
       }
-      if(input$download_type == "tsv") {
-        if(input$euro_out == T) {
-          write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T, dec = ',')
-        } else {
-          write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T)
-        }
-      } else if(input$download_type == "csv") {
-        if(input$euro_out == T) {
-          write.table(data_output, file = filename, quote = F, sep = ';', row.names = F, col.names = T, dec = ',')
-        } else {
-          write.table(data_output, file = filename, quote = F, sep = ',', row.names = F, col.names = T)
-        }
-      }
-      
-    }
+      zipped_csv(files, filename, paste0("BindingData_", drugs), format(Sys.time(), "%Y%m%d_%I%M%S") )
+    }, contentType = "application/zip"
   )
+  # output$downloadData <- downloadHandler(
+  #   filename = function() {
+  #     if(values$data_dl == 'input') {
+  #       if(input$pick_data == 1) {
+  #         return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), ".", input$download_type, sep=''))
+  #       } else if(input$pick_data == 2) {
+  #         return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), '_GRvalues', ".", input$download_type, sep=''))
+  #       } else {
+  #         return(paste(sub("^(.*)[.].*", "\\1", input$uploadData),'_FittedParameters', ".", input$download_type, sep = ''))
+  #       }
+  #     } else if(values$data_dl == 'example') {
+  #       if(input$pick_data == 1) {
+  #         return(paste("example.", input$download_type, sep = ""))
+  #       } else if(input$pick_data == 2) {
+  #         return(paste("example_GRvalues.", input$download_type, sep = ""))
+  #       } else {
+  #         return(paste("example_FittedParameters.", input$download_type, sep = ""))
+  #       }
+  #     }
+  #   },
+  #   content = function(filename) {
+  #     if(input$pick_data == 1) {
+  #       data_output = values$inData
+  #     } else if(input$pick_data == 2) {
+  #       data_output = values$GR_table_show
+  #     } else {
+  #       data_output = values$parameter_table_show
+  #     }
+  #     if(input$download_type == "tsv") {
+  #       if(input$euro_out == T) {
+  #         write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T, dec = ',')
+  #       } else {
+  #         write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T)
+  #       }
+  #     } else if(input$download_type == "csv") {
+  #       if(input$euro_out == T) {
+  #         write.table(data_output, file = filename, quote = F, sep = ';', row.names = F, col.names = T, dec = ',')
+  #       } else {
+  #         write.table(data_output, file = filename, quote = F, sep = ',', row.names = F, col.names = T)
+  #       }
+  #     }
+  #     
+  #   }
+  # )
 
 #========== Download buttons for DRC plots =======
   output$downloadDRC = downloadHandler(
@@ -617,9 +763,12 @@ shinyServer(function(input, output,session) {
     
     tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$input_case))
     if(class(tables)!="try-error") {
-      values$parameters_all = tables
-      values$parameter_table = tables$GR$sigmoid$normal
-      values$parameter_table_show <- tables$GR$sigmoid$normal
+      values$parameters_all = GRgetMetrics(tables)
+      values$parameter_table = values$parameters_all$GR$sigmoid$normal
+      values$parameter_table_show = values$parameter_table
+      values$GR_table = GRgetValues(tables)
+      values$GR_table_show = values$GR_table
+      
       # values$parameter_table <- GRgetMetrics(tables)
       # values$GR_table <- GRgetValues(tables)
       # parameters_show <- GRgetMetrics(tables)
