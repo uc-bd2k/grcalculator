@@ -106,9 +106,9 @@ shinyServer(function(input, output,session) {
                            init_count = logical(0), input_case = NULL,
                            cell_lines = NULL, div_rate_test = NULL, check_fail = NULL,
                            current_data = NULL, current_table_button = NULL,
-                           tables = NULL)
+                           tables = NULL, grid_vs_single = "grid")
   
-  
+  ### initialize modals
   observeEvent(input$import_button, {
     runjs(import.modal.js)
   })
@@ -134,33 +134,24 @@ shinyServer(function(input, output,session) {
     runjs(contact.modal.js)
   })
   
-  ### initialize main data table and make sure it updates when hidden
-  output$current_table = renderDataTable({ values$inData })
-  outputOptions(output, "current_table", suspendWhenHidden = FALSE)
-  ### initialize main plot and make sure it updates when hidden
-  #output$drc2<- renderPlot(NULL)
-  #outputOptions(output, "drc2", suspendWhenHidden = FALSE)
   ### start loader on analyze button first
   observeEvent(input$analyzeButton, {
     shinyjs::addClass(id = "analyze_loader", "active")
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
-  ### then start loaders on plots
+  ### then jump to plots tab
   shinyjs::onclick("analyzeButton", {
     shinyjs::click(id = "third_top")
     shinyjs::removeClass(id = "analyze_loader", "active")
   })
   ### on click of data table tab, "click" current data table button to make sure it shows up
   shinyjs::onclick("output_tables_top", {
-    print("output_tables_top")
-    print(values$current_table_button)
     shinyjs::click(values$current_table_button)
   })
   ### on click of drc plot tab, "click" plot button to make sure it shows up
   shinyjs::onclick("third_top", {
-    print("third_top")
-    #shinyjs::click(values$current_table_button)
-    shinyjs::show("ui")
-    shinyjs::show("plot.ui")
+    # shinyjs::show("ui")
+    # shinyjs::show("plot.ui")
+    shinyjs::show("plots_grid")
   })
   shinyjs::onclick("plot_options_button", {
     shinyjs::toggle(id = "plot_options", animType = "slide")
@@ -168,9 +159,23 @@ shinyServer(function(input, output,session) {
   ### set which table to show in data table tab
   shinyjs::click(id = "input_table_button")
   
+  ## record whether we want a grid plot or a single plot for curves
+  observeEvent(c(input$grid_button, input$single_button), {
+    shinyjs::toggleElement("grid_button")
+    shinyjs::toggleElement("single_button")
+    shinyjs::toggleElement("height")
+    shinyjs::toggleElement("drc2_facet")
+    shinyjs::toggleElement("nplots")
+    
+    values$grid_vs_single = ifelse(values$grid_vs_single == "grid", "single", "grid")
+  }, ignoreInit = T, ignoreNULL = F, priority = 1000)
+  
   observeEvent(values$inData, {
     shinyjs::click(id = "input_top")
-    output$input_table = renderDataTable({ datatable(values$inData,  extensions = c('Buttons', 'FixedHeader'),
+    output$input_table = renderDataTable({ datatable(values$inData,  
+            extensions = c('Buttons'
+            #, 'FixedHeader'
+                  ),
                                          filter = 'top',
                                          rownames = F, options = list(
                                            dom = 'lBfrtip',
@@ -212,7 +217,8 @@ shinyServer(function(input, output,session) {
     shinyjs::addClass(id = "parameter_table_button", class = "green")
   })
   observeEvent(values$current_data, {
-    output$current_table = renderDataTable({ datatable(values$current_data,  extensions = c('Buttons', 'FixedHeader'),
+    output$current_table = renderDataTable({ datatable(values$current_data,  extensions = c('Buttons'#, 'FixedHeader'
+                  ),
                    filter = 'top',
                    rownames = F, options = list(
                      dom = 'lBfrtip',
@@ -229,34 +235,37 @@ shinyServer(function(input, output,session) {
   }, ignoreNULL = F)
 
   
-  observeEvent(c(input$nplots, values$tables), {
+  observeEvent(c(input$nplots, values$tables, values$grid_vs_single), {
     output$plots_grid <- renderUI({
       print(input$drc2_color)
       print(input$drc2_facet)
-      plots = try(GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
-                        points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                        facet = input$drc2_facet, bars = input$drc2_bars,
-                        color = input$drc2_color, plot_type = input$drc2_plot_type,
-                        output_type = "separate"))
-      for (i in 1:length(plots)) {
-        local({
-          n <- i # Make local variable
-          plotname <- paste("plot", n , sep="")
-          output[[plotname]] <- renderPlotly({
-            plots[[n]]
+      print("values$grid_vs_single")
+      print(values$grid_vs_single)
+      if(values$grid_vs_single == "grid") {
+        plots = try(GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
+                              points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                              facet = input$drc2_facet, bars = input$drc2_bars,
+                              color = input$drc2_color, plot_type = input$drc2_plot_type,
+                              output_type = "separate"))
+        for (i in 1:length(plots)) {
+          local({
+            n <- i # Make local variable
+            plotname <- paste("plot", n , sep="")
+            output[[plotname]] <- renderPlotly({
+              plots[[n]]
+            })
           })
-        })
-      }
-      #col.width <- round(16/input$ncol) # Calculate bootstrap column width
-      col.width <- 300
-      #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
-      #n.row = input$nrow
-      #n.col = input$ncol
-      cnter <<- 0 # Counter variable
-      #n_pages =  ceiling(n_total_plots/input$nplots)
-      
-      # Create row with columns
-      #rows  <- lapply(1:n.row,function(row.num){
+        }
+        #col.width <- round(16/input$ncol) # Calculate bootstrap column width
+        col.width <- 300
+        #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
+        #n.row = input$nrow
+        #n.col = input$ncol
+        cnter <<- 0 # Counter variable
+        #n_pages =  ceiling(n_total_plots/input$nplots)
+        
+        # Create row with columns
+        #rows  <- lapply(1:n.row,function(row.num){
         cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
           cnter    <<- cnter + 1
           plotname <- paste("plot", cnter, sep="")
@@ -264,11 +273,20 @@ shinyServer(function(input, output,session) {
               plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
               # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
               #tags$p(paste0("plot", i))
-              )
+          )
         })
         do.call(tagList, cols)
+      } else {
+        single_plot = try(GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
+                              points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                              facet = "none", bars = input$drc2_bars,
+                              color = input$drc2_color, plot_type = input$drc2_plot_type))
+        output$single_drc = renderPlotly(single_plot)
+        plotlyOutput("single_drc", width = input$height, height = input$height) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+      }
     })
     output$plots_grid_pages = renderUI({
+      if(values$grid_vs_single == "grid") {
       n_pages = 10
       div(class = "ui pagination menu", id = "drc_pages",
                   tags$a(class = "item", type = "firstItem", "«"),
@@ -279,6 +297,9 @@ shinyServer(function(input, output,session) {
                   tags$a(class = "item", type = "nextItem", "⟩"),
                   tags$a(class = "item", type = "lastItem", "»")
       )
+      } else {
+        div(class = "ui basic segment")
+      }
     })
     # if(input$drc2_plot_type == "interactive") {
     #   output$plot.ui <- renderUI({
@@ -1217,27 +1238,8 @@ shinyServer(function(input, output,session) {
          updateSelectizeInput(session, 'xgroupingVars', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[2])
       }
       ### update facets for main plot
-      updateSelectizeInput(session, 'drc2_facet', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[1])
+      updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), server = TRUE, selected=input$groupingVars[1])
       updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), server = TRUE, selected= "experiment")
-      
-      
-#       observeEvent(input$plot_gr50grid, {
-#         output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
-#           input="",
-#           xmin = min(log10(values$GR_table$concentration), na.rm = T),
-#           xmax = max(log10(values$GR_table$concentration), na.rm = T),
-# 	  factors=c(paste(isolate(input$xgroupingVars),collapse = ' '), isolate(input$choiceVar)),
-# 	  toggle=0,
-#           {
-#             input$plot_gr50grid
-#             isolate(extractGridData(input, output, values$parameter_table, isolate(input$choiceVar), isolate(input$xgroupingVars)))
-#           }
-#         )
-#         print('test')
-#         print(input$xgroupingVars)
-#         print(input$choiceVar)
-#         print(input$plot_gr50grid)
-#       })
     })
 
 #================================================

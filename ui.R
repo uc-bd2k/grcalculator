@@ -225,7 +225,8 @@ shinyUI(
               div(class = "eight wide column",
               selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE, width = "100%"),
          div(class = "ui buttons",
-              div(class = "ui bottom attached primary button action-button", id = "analyzeButton",
+              div(class = "ui bottom attached primary button action-button", 
+                  id = "analyzeButton",
                   "Analyze",
                   div(class="ui dimmer", id = "analyze_loader",
                     div(class="ui loader"), "Analyze")
@@ -275,37 +276,52 @@ shinyUI(
               div(class = "ui black top attached button action-button","Plot options",id="plot_options_button"),
               shinyjs::hidden(
               div( id = "plot_options",
-                div(class = "ui stackable five column grid",
-                  div(class = "three wide column",
-    selectizeInput("nplots", label = "Number of plots", choices = c(5, 10, 25, 50), selected = 10 )
-                  ),
-                  div(class = "three wide column",
-                      div(id='plotBoxL1',"Plot height"),
-                      textInput('height', NULL, value = 500),
-                      uiOutput("ui")
-                  ),
-                  div(class = "three wide column",
+                div(class = "ui stackable three column grid",
+                  div(class = "five wide column",
   selectizeInput("drc2_metric", label = "Metric", choices = list(GR ="GR", `Relative cell count` = "rel_cell")),
   selectizeInput("drc2_curves", label = "Curves", choices = c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none") ),
   selectizeInput("drc2_points", label = "Points", choices = c("average", "all", "none") )
 ),
-                  div(class = "three wide column",
+                  div(class = "five wide column",
                       selectizeInput("drc2_bars", label = "Error bars", choices = c("none", "sd", "se") ),
                       selectizeInput("drc2_xrug", label = "x-axis rug", choices = c("none") ),
                       selectizeInput("drc2_yrug", label = "y-axis rug", choices = c("none") )
                   ),
-                  div(class = "three wide column",
-                      selectizeInput("drc2_facet", label = "Facet variable", choices = "none",
-                                     multiple = T),
+                  div(class = "five wide column",
                       selectizeInput("drc2_color", label = "Color", choices = "none"),
                       selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("interactive", "static"))
                   )
                 )
                 )
+                )
                 ),
-                uiOutput("plots_grid", class = "ui doubling five column grid"),
+                div(class = "ui basic center aligned segment",
+                  div(class = "ui three column grid",
+                    div(class = "six wide column",
+                    selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T),
+                    selectizeInput("nplots", label = "Number of plots per page", choices = c(5, 10, 25, 50), selected = 10) ),
+                    div(class = "six wide column",
+                      div(class = "ui primary bottom attached button action-button",
+                          id = "single_button",
+                          "Single plot"
+                          ),
+                      shinyjs::hidden(
+                        div(class = "ui secondary bottom attached button action-button",
+                            id = "grid_button",
+                            "Grid plot"
+                        ),
+                        sliderInput('height', label = "Plot size (pixels)", min = 200, max = 1000, step = 50, value = 500)
+                      )
+                        ),
+                    div(class = "four wide column")
+                  )
+                ),
+                div(class = "ui basic center aligned segment",
+                uiOutput("plots_grid", class = "ui doubling five column grid",
+                         style = "min-height: 500px;"),
+                uiOutput("ui"),
                 uiOutput("plots_grid_pages"),
-                uiOutput("plot.ui"),
+                #uiOutput("plot.ui"),
                 tags$button(class = "ui button action-button", id = "download_plot_drc_button", 
                             "Download Image File")
             )
