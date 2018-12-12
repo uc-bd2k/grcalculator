@@ -11,6 +11,7 @@ library(stringr)
 library(DT)
 library(formattable)
 library(plyr)
+library(shinycssloaders)
 
 source('functions/drawPopup.R')
 #source('functions/drawDRC.R', local = T)
@@ -67,6 +68,13 @@ example.modal.js = "$('.ui.mini.modal')
 $('#example_modal').modal('show')
 ;"
 
+start.modal.js = "$('.ui.mini.modal')
+.modal({
+    blurring: true
+})
+$('#start_modal').modal('show')
+;"
+
 instructions.modal.js = "$('.ui.small.modal')
 .modal({
     blurring: true
@@ -99,20 +107,51 @@ shinyServer(function(input, output,session) {
                            cell_lines = NULL, div_rate_test = NULL, check_fail = NULL,
                            current_data = NULL, current_table_button = NULL,
                            tables = NULL)
-  #isolate(values$inData)
+  
+  
+  observeEvent(input$import_button, {
+    runjs(import.modal.js)
+  })
+  observeEvent(input$example_button, {
+    runjs(example.modal.js)
+  })
+  observeEvent(input$instructions_button, {
+    runjs(instructions.modal.js)
+  })
+  observeEvent(c(input$loadExample, input$loadExampleB), {
+    runjs("$('#example_modal').modal('hide')")
+  })
+  observeEvent(input$download_plot_drc.modal_button, {
+    runjs(download_plot_drc.modal.js)
+  })
+  observeEvent(input$about, {
+    runjs(about.modal.js)
+  })
+  observeEvent(input$start_button, {
+    runjs(start.modal.js)
+  })
+  observeEvent(input$contact, {
+    runjs(contact.modal.js)
+  })
+  
   ### initialize main data table and make sure it updates when hidden
   output$current_table = renderDataTable({ values$inData })
   outputOptions(output, "current_table", suspendWhenHidden = FALSE)
   ### initialize main plot and make sure it updates when hidden
   #output$drc2<- renderPlot(NULL)
   #outputOptions(output, "drc2", suspendWhenHidden = FALSE)
+  ### start loader on analyze button first
+  observeEvent(input$analyzeButton, {
+    shinyjs::addClass(id = "analyze_loader", "active")
+  }, ignoreInit = T, ignoreNULL = T, priority = 1000)
+  ### then start loaders on plots
   shinyjs::onclick("analyzeButton", {
-    print("analyze")
     shinyjs::click(id = "third_top")
+    shinyjs::removeClass(id = "analyze_loader", "active")
   })
   ### on click of data table tab, "click" current data table button to make sure it shows up
-  shinyjs::onclick("second_top", {
-    print("second_top")
+  shinyjs::onclick("output_tables_top", {
+    print("output_tables_top")
     print(values$current_table_button)
     shinyjs::click(values$current_table_button)
   })
@@ -128,6 +167,12 @@ shinyServer(function(input, output,session) {
   })
   ### set which table to show in data table tab
   shinyjs::click(id = "input_table_button")
+  
+  observeEvent(values$inData, {
+    shinyjs::click(id = "input_top")
+    output$input_table = renderDataTable({ values$inData })
+  }, ignoreInit = T, ignoreNULL = T)
+  
   observeEvent(input$input_table_button, {
     values$current_table_button = "input_table_button"
     values$current_data = values$inData
@@ -155,39 +200,17 @@ shinyServer(function(input, output,session) {
   observeEvent(values$current_data, {
     output$current_table = renderDataTable({ values$current_data })
   }, ignoreNULL = F)
-  
-  observeEvent(input$import_button, {
-    runjs(import.modal.js)
-  })
-  observeEvent(input$example_button, {
-    runjs(example.modal.js)
-  })
-  observeEvent(input$instructions_button, {
-    runjs(instructions.modal.js)
-  })
-  observeEvent(c(input$loadExample, input$loadExampleB), {
-    runjs("$('#example_modal').modal('hide')")
-  })
-  observeEvent(input$download_plot_drc.modal_button, {
-    runjs(download_plot_drc.modal.js)
-  })
-  
-  observeEvent(input$about, {
-    runjs(about.modal.js)
-  })
-  observeEvent(input$contact, {
-    runjs(contact.modal.js)
-  })
+
   
   observeEvent(c(input$nplots, values$tables), {
     output$plots_grid <- renderUI({
       print(input$drc2_color)
       print(input$drc2_facet)
-      plots = GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
+      plots = try(GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
                         points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                         facet = input$drc2_facet, bars = input$drc2_bars,
                         color = input$drc2_color, plot_type = input$drc2_plot_type,
-                        output_type = "separate")
+                        output_type = "separate"))
       for (i in 1:length(plots)) {
         local({
           n <- i # Make local variable
@@ -211,7 +234,7 @@ shinyServer(function(input, output,session) {
           cnter    <<- cnter + 1
           plotname <- paste("plot", cnter, sep="")
           div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px;") , 
-              plotlyOutput(plotname,width = col.width, height = col.width)
+              plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
               # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
               #tags$p(paste0("plot", i))
               )
@@ -892,17 +915,17 @@ shinyServer(function(input, output,session) {
       } else {values$showanalyses_multi<-0}
       
 
-      observeEvent(input$drc2_plot_type, {
-        if(input$drc2_plot_type == "interactive") {
-          output$plot.ui <- renderUI({
-            plotlyOutput("drc2_plotly", height = input$height, width = "800px")
-          })
-        } else if(input$drc2_plot_type == "static") {
-          output$plot.ui <- renderUI({
-            plotOutput("drc2", height = input$height, width = "800px")
-          })
-        }
-      })
+      # observeEvent(input$drc2_plot_type, {
+      #   if(input$drc2_plot_type == "interactive") {
+      #     output$plot.ui <- renderUI({
+      #       plotlyOutput("drc2_plotly", height = input$height, width = "800px")
+      #     })
+      #   } else if(input$drc2_plot_type == "static") {
+      #     output$plot.ui <- renderUI({
+      #       plotOutput("drc2", height = input$height, width = "800px")
+      #     })
+      #   }
+      # })
       
       
       output$plot.ui2 <- renderUI({

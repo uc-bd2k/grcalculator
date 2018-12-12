@@ -154,7 +154,7 @@ shinyUI(
       )
     ),
     div(class = "ui mini modal", id = 'example_modal', 
-        div(class = "ui basic segment",
+        div(class = "ui center aligned basic segment",
         #"Load Example", "examples",
         p("Case A: control values assigned to treated measurements"),
         p("Case B: control values stacked with treated measurements"),
@@ -165,6 +165,15 @@ shinyUI(
                 div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
         )
     )),
+    div(class = "ui mini modal", id = 'start_modal', 
+        div(class = "ui basic center aligned segment",
+            div(class = "ui buttons", "Load example:", style = "vertical-align: middle;",
+                div(class = "ui positive button action-button", id = 'example_button',
+                    'Load example data'),
+                div(class = "or"),
+                div(class = "ui button action-button", id = 'import_button', 'Import data')
+            )
+        )),
     div(class = "ui small modal", id = 'instructions_modal', 
         div(class = "ui basic segment",
             includeMarkdown("www/GettingStartedModal.md")
@@ -193,48 +202,50 @@ shinyUI(
         div(class = "ui main attached segment",
           div(class="ui top attached tabular menu", id = "tabs",
               a(class="active item", `data-tab`="first", "Getting Started"),
-              a(class="item", `data-tab`="second", "Data Tables", id = "second_top"),
+              a(class="item", `data-tab`="input", "Input data", id = "input_top"),
               a(class="item", `data-tab`="third", "Dose-Response by Condition", id = "third_top"),
-              a(class="item", `data-tab`="fourth", "GR Metric Comparison")
+              a(class="item", `data-tab`="fourth", "GR Metric Comparison"),
+              a(class="item", `data-tab`="output_tables", "Output Tables", id = "output_tables_top")
           ),
           div(class="ui active bottom center attached tab segment", `data-tab`="first",
-            div(class = "ui two column grid",
-              div(class = "three wide column",
-                tags$img(src = "images/GRcalculator-logo.jpg", width = "100%"),
-                div(class="ui primary button action-button", "Import data", id = "import_button"),
-                br(), br(),
-                div(class = "item action-button shiny-bound-input", id = "examples",
-                    h4(a(class = "action-button", id = "example_button", "Or load example", uiicon("lightning"), href = "#"))
-                    ),
-                br(),
-                shinyjs::hidden(
-                div(id = 'advanced_analysis',
-                    selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE, width = "200px"),
-                    div(class = "ui primary button action-button", id = "analyzeButton", "Analyze"),
-                    br(), br(),
-                    div(class = "ui button action-button", id = 'advanced', 'Advanced options'),
-                    conditionalPanel(
-                      condition = "input.advanced % 2 == 1",
-                      div(class = "ui checkbox", 
-                          tags$input(type = "checkbox", name = "public", 
-                                     id = 'cap', tags$label("Cap GR values below 1"))
-                      ),
-                      div(class = "ui checkbox", 
-                          tags$input(type = "checkbox", name = "public", 
-                                     id = 'force', tags$label("Force sigmoidal fit"))
-                      )
-                    )
-                ))
-              ),
-              div(class = "thirteen wide column",
                   div(class = "ui basic segment",
+                      tags$img(src = "images/GRcalculator-logo.jpg", width = "250px",
+                               style = "float: right;"),
                       includeMarkdown("www/GettingStarted.md"),
-                      tags$button(class = "ui green button action-button", id = "instructions_button", "Detailed instructions")
+                      div(class = "ui bottom attached buttons",
+      tags$button(class="ui teal button action-button", "Start", id = "start_button"),
+      tags$button(class = "ui grey button action-button", id = "instructions_button", "Detailed instructions")
+                      )
                   )
+              ),
+      div(class="ui bottom center attached tab segment", `data-tab`="input", id = "input_bottom",
+      div(class = "ui basic segment",
+          DT::dataTableOutput("input_table"),
+          tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
+              selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE, width = "100%"),
+              div(class = "ui bottom attached primary button action-button", id = "analyzeButton",
+                  "Analyze",
+                  div(class="ui dimmer", id = "analyze_loader",
+                    div(class="ui loader"), "Analyze")
+              )),
+      div(class = "ui basic segment", id = 'advanced_analysis',
+              br(), br(),
+          div(class = "ui button action-button", id = 'advanced', 'Advanced options'),
+              conditionalPanel(
+                condition = "input.advanced % 2 == 1",
+                div(class = "ui checkbox", 
+                    tags$input(type = "checkbox", name = "public", 
+                               id = 'cap', tags$label("Cap GR values below 1"))
+                ),
+                div(class = "ui checkbox", 
+                    tags$input(type = "checkbox", name = "public", 
+                               id = 'force', tags$label("Force sigmoidal fit"))
+                )
               )
-            )
-          ),
-          div(class="ui bottom center attached tab segment", `data-tab`="second", id = "second_bottom",
+          )
+      ),
+      
+          div(class="ui bottom center attached tab segment", `data-tab`="output_tables", id = "output_tables_bottom",
               div(class="ui three top attached buttons",
                   tags$button(class = "ui button action-button", id = "input_table_button", "Input data"),
                   div(class = "or"),
