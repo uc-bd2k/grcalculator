@@ -195,12 +195,12 @@ shinyUI(
               a(class="active item", `data-tab`="first", "Getting Started"),
               a(class="item", `data-tab`="second", "Data Tables", id = "second_top"),
               a(class="item", `data-tab`="third", "Dose-Response by Condition", id = "third_top"),
-              a(class="item", `data-tab`="fourth", "Dose-Response Grid"),
-              a(class="item", `data-tab`="fifth", "GR Metric Comparison")
+              a(class="item", `data-tab`="fourth", "GR Metric Comparison")
           ),
           div(class="ui active bottom center attached tab segment", `data-tab`="first",
             div(class = "ui two column grid",
               div(class = "three wide column",
+                tags$img(src = "images/GRcalculator-logo.jpg", width = "100%"),
                 div(class="ui primary button action-button", "Import data", id = "import_button"),
                 br(), br(),
                 div(class = "item action-button shiny-bound-input", id = "examples",
@@ -253,34 +253,40 @@ shinyUI(
               )
           ),
           div(class="ui bottom center attached tab segment", `data-tab`="third",
-            div(class = "ui basic segment",
+            div(class = "ui basic segment", id = "drc_tabs",
               div(class = "ui black top attached button action-button","Plot options",id="plot_options_button"),
               shinyjs::hidden(
               div( id = "plot_options",
-                div(class = "ui four column grid",
-                  div(class = "four wide column",
+                div(class = "ui stackable five column grid",
+                  div(class = "three wide column",
+    selectizeInput("nplots", label = "Number of plots", choices = c(5, 10, 25, 50), selected = 10 )
+                  ),
+                  div(class = "three wide column",
                       div(id='plotBoxL1',"Plot height"),
                       textInput('height', NULL, value = 500),
                       uiOutput("ui")
                   ),
-                  div(class = "four wide column",
+                  div(class = "three wide column",
   selectizeInput("drc2_metric", label = "Metric", choices = list(GR ="GR", `Relative cell count` = "rel_cell")),
   selectizeInput("drc2_curves", label = "Curves", choices = c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none") ),
   selectizeInput("drc2_points", label = "Points", choices = c("average", "all", "none") )
 ),
-                  div(class = "four wide column",
+                  div(class = "three wide column",
                       selectizeInput("drc2_bars", label = "Error bars", choices = c("none", "sd", "se") ),
                       selectizeInput("drc2_xrug", label = "x-axis rug", choices = c("none") ),
                       selectizeInput("drc2_yrug", label = "y-axis rug", choices = c("none") )
                   ),
-                  div(class = "four wide column",
-                      selectizeInput("drc2_facet", label = "Facet variable", choices = "none"),
+                  div(class = "three wide column",
+                      selectizeInput("drc2_facet", label = "Facet variable", choices = "none",
+                                     multiple = T),
                       selectizeInput("drc2_color", label = "Color", choices = "none"),
                       selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("interactive", "static"))
                   )
                 )
                 )
                 ),
+                uiOutput("plots_grid", class = "ui doubling five column grid"),
+                uiOutput("plots_grid_pages"),
                 uiOutput("plot.ui"),
                 tags$button(class = "ui button action-button", id = "download_plot_drc_button", 
                             "Download Image File")
@@ -289,10 +295,6 @@ shinyUI(
           div(class="ui bottom center attached tab segment", `data-tab`="fourth",
               #includeMarkdown("www/home.md")
               p("fourth")
-          ),
-          div(class="ui bottom center attached tab segment", `data-tab`="fifth",
-              #includeMarkdown("www/home.md")
-              p("fifth")
           )
         ),
         div(class = "ui bottom attached inverted footer segment", style = "margin: 0px;",

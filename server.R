@@ -82,8 +82,10 @@ $('#download_plot_drc_modal').modal('show')
 ;"
 
 tab.js = "$('.menu .item')
-.tab()
+  .tab()
 ;"
+
+
 
 shinyServer(function(input, output,session) {
   runjs(tab.js)
@@ -95,7 +97,8 @@ shinyServer(function(input, output,session) {
                            clearScatter = F, separator = NULL, div_rate = NULL,
                            init_count = logical(0), input_case = NULL,
                            cell_lines = NULL, div_rate_test = NULL, check_fail = NULL,
-                           current_data = NULL, current_table_button = NULL)
+                           current_data = NULL, current_table_button = NULL,
+                           tables = NULL)
   #isolate(values$inData)
   ### initialize main data table and make sure it updates when hidden
   output$current_table = renderDataTable({ values$inData })
@@ -176,14 +179,67 @@ shinyServer(function(input, output,session) {
     runjs(contact.modal.js)
   })
   
-  # Jump to results tab when "Submit" is clicked
-  observeEvent(input$analyzeButton, {
-    #showElement("tab2_top")
-    #removeClass(id = "tab1_top", class = "active")
-    #removeClass(id = "tab1_bottom", class = "active")
-    #addClass(id = "second", class = "active")
-    #addClass(id = "tab2_bottom", class = "active")
-  })
+  observeEvent(c(input$nplots, values$tables), {
+    output$plots_grid <- renderUI({
+      print(input$drc2_color)
+      print(input$drc2_facet)
+      plots = GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
+                        points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                        facet = input$drc2_facet, bars = input$drc2_bars,
+                        color = input$drc2_color, plot_type = input$drc2_plot_type,
+                        output_type = "separate")
+      for (i in 1:length(plots)) {
+        local({
+          n <- i # Make local variable
+          plotname <- paste("plot", n , sep="")
+          output[[plotname]] <- renderPlotly({
+            plots[[n]]
+          })
+        })
+      }
+      #col.width <- round(16/input$ncol) # Calculate bootstrap column width
+      col.width <- 300
+      #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
+      #n.row = input$nrow
+      #n.col = input$ncol
+      cnter <<- 0 # Counter variable
+      #n_pages =  ceiling(n_total_plots/input$nplots)
+      
+      # Create row with columns
+      #rows  <- lapply(1:n.row,function(row.num){
+        cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
+          cnter    <<- cnter + 1
+          plotname <- paste("plot", cnter, sep="")
+          div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px;") , 
+              plotlyOutput(plotname,width = col.width, height = col.width)
+              # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
+              #tags$p(paste0("plot", i))
+              )
+        })
+        do.call(tagList, cols)
+    })
+    output$plots_grid_pages = renderUI({
+      n_pages = 10
+      div(class = "ui pagination menu", id = "drc_pages",
+                  tags$a(class = "item", type = "firstItem", "«"),
+                  tags$a(class = "item", type = "prevItem", "⟨"),
+                  tags$a(class = "active item", 1, id = "drc_page1"),
+                  lapply(2:n_pages, function(x) tags$a(class = "item", x, 
+                                                       id = paste0("drc_page", x)) ),
+                  tags$a(class = "item", type = "nextItem", "⟩"),
+                  tags$a(class = "item", type = "lastItem", "»")
+      )
+    })
+    # if(input$drc2_plot_type == "interactive") {
+    #   output$plot.ui <- renderUI({
+    #     plotlyOutput("drc2_plotly", height = input$height, width = "800px")
+    #   })
+    # } else if(input$drc2_plot_type == "static") {
+    #   output$plot.ui <- renderUI({
+    #     plotOutput("drc2", height = input$height, width = "800px")
+    #   })
+    # }
+  }, ignoreInit = T, ignoreNULL = T)
   
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
   observeEvent(values$div_rate, {
@@ -761,12 +817,12 @@ shinyServer(function(input, output,session) {
     print(groupingColumns)
     print("groupingColumns")
     
-    tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$input_case))
-    if(class(tables)!="try-error") {
-      values$parameters_all = GRgetMetrics(tables)
+    values$tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$input_case))
+    if(class(values$tables)!="try-error") {
+      values$parameters_all = GRgetMetrics(values$tables)
       values$parameter_table = values$parameters_all$GR$sigmoid$normal
       values$parameter_table_show = values$parameter_table
-      values$GR_table = GRgetValues(tables)
+      values$GR_table = GRgetValues(values$tables)
       values$GR_table_show = values$GR_table
       
       # values$parameter_table <- GRgetMetrics(tables)
@@ -876,19 +932,21 @@ shinyServer(function(input, output,session) {
         #                  facet_row = input$drc2_facet_row, facet_col = input$drc2_facet_col)
         #drc2_plotly = ggplotly(drc2)
         #output$drc2<- renderPlot(drc2)
-        output$drc2<- renderPlot(
-          GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
-                    points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                    facet = input$drc2_facet, bars = input$drc2_bars,
-                    color = input$drc2_color, plot_type = input$drc2_plot_type)
-          )
-      
-        output$drc2_plotly<- renderPlotly(ggplotly(
-          GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
-                    points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                    facet = input$drc2_facet, bars = input$drc2_bars,
-                    color = input$drc2_color, plot_type = input$drc2_plot_type)
-          ))
+        # output$drc2<- renderPlot(
+        #   GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
+        #             points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+        #             facet = input$drc2_facet, bars = input$drc2_bars,
+        #             color = input$drc2_color, plot_type = input$drc2_plot_type,
+        #             output_type = "separate")
+        #   )
+        # 
+        # output$drc2_plotly<- renderPlotly(ggplotly(
+        #   GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
+        #             points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+        #             facet = input$drc2_facet, bars = input$drc2_bars,
+        #             color = input$drc2_color, plot_type = input$drc2_plot_type,
+        #             output_type = "separate")
+        #   ))
       # }, ignoreInit = T, ignoreNULL = T)
       
       
