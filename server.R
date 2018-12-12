@@ -170,7 +170,21 @@ shinyServer(function(input, output,session) {
   
   observeEvent(values$inData, {
     shinyjs::click(id = "input_top")
-    output$input_table = renderDataTable({ values$inData })
+    output$input_table = renderDataTable({ datatable(values$inData,  extensions = c('Buttons', 'FixedHeader'),
+                                         filter = 'top',
+                                         rownames = F, options = list(
+                                           dom = 'lBfrtip',
+                                           buttons = c('copy', 'csv', 'excel', 'colvis'),
+                                           initComplete = JS(
+                                             "function(settings, json) {",
+                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
+                                             "}"),
+                                           searchHighlight = TRUE,
+                                           fixedHeader = TRUE,
+                                           autoWidth = TRUE))
+                                         
+  }, server = FALSE)
+    outputOptions(output, "input_table", suspendWhenHidden = FALSE)
   }, ignoreInit = T, ignoreNULL = T)
   
   observeEvent(input$input_table_button, {
@@ -198,7 +212,20 @@ shinyServer(function(input, output,session) {
     shinyjs::addClass(id = "parameter_table_button", class = "green")
   })
   observeEvent(values$current_data, {
-    output$current_table = renderDataTable({ values$current_data })
+    output$current_table = renderDataTable({ datatable(values$current_data,  extensions = c('Buttons', 'FixedHeader'),
+                   filter = 'top',
+                   rownames = F, options = list(
+                     dom = 'lBfrtip',
+                     buttons = c('copy', 'csv', 'excel', 'colvis'),
+                     initComplete = JS(
+                       "function(settings, json) {",
+                       "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
+                       "}"),
+                     searchHighlight = TRUE,
+                     fixedHeader = TRUE,
+                     autoWidth = TRUE))
+    }, server = FALSE)
+    outputOptions(output, "current_table", suspendWhenHidden = FALSE)
   }, ignoreNULL = F)
 
   
@@ -397,8 +424,8 @@ shinyServer(function(input, output,session) {
     values$showanalyses=0
     values$showanalyses_multi=0
     #if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-    output$input_table <- DT::renderDataTable(datatable(values$inData, rownames = F))
-    print("load example a done")
+    # output$input_table <- DT::renderDataTable(datatable(values$inData, rownames = F))
+    # print("load example a done")
   })
   
   # Code for loading example data for input Case B
@@ -413,7 +440,7 @@ shinyServer(function(input, output,session) {
     values$showanalyses=0
     values$showanalyses_multi=0
     if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+    # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
   # Code for loading data from file
@@ -439,7 +466,7 @@ shinyServer(function(input, output,session) {
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     }
-    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+    # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
   # Code for loading data from URL
@@ -482,7 +509,7 @@ shinyServer(function(input, output,session) {
         # Get rid of blank rows at the end of a file
         values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
       }
-      output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+      # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
     }
   })
   
@@ -502,7 +529,7 @@ shinyServer(function(input, output,session) {
     values$inData$division_time = as.numeric(mapvalues(values$inData$cell_line, values$cell_lines, div_rates))
     values$inData$treatment_duration = as.numeric(input$treatment_duration)
     print(head(values$inData))
-    output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+    # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
   # Code for showing/hiding advanced analysis options
@@ -638,20 +665,20 @@ shinyServer(function(input, output,session) {
   })
   
   # Define the table showing the input data
-  output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+  # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   
   # Change table shown from input to GR values to GR metrics based on radio buttons
-  observeEvent(input$pick_data, {
-    if(input$pick_data == 1) {
-      output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
-      }
-    if(input$pick_data == 2) {
-      output$input_table <- renderDataTable(datatable(values$GR_table_show, rownames = F))
-    }
-    if(input$pick_data == 3) {
-      output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))
-      }
-  })
+  # observeEvent(input$pick_data, {
+  #   if(input$pick_data == 1) {
+  #     output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+  #     }
+  #   if(input$pick_data == 2) {
+  #     output$input_table <- renderDataTable(datatable(values$GR_table_show, rownames = F))
+  #   }
+  #   if(input$pick_data == 3) {
+  #     output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))
+  #     }
+  # })
     
 #========== Download button data tables =======
   output$downloadBind <- downloadHandler(

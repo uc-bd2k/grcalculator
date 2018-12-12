@@ -219,30 +219,37 @@ shinyUI(
                   )
               ),
       div(class="ui bottom center attached tab segment", `data-tab`="input", id = "input_bottom",
-      div(class = "ui basic segment",
-          DT::dataTableOutput("input_table"),
-          tags$head(tags$style("#input_table  {white-space: nowrap;  }")),
+      div(class = "ui basic center aligned segment",
+          div(class = "ui three column grid",
+              div(class = "four wide column"),
+              div(class = "eight wide column",
               selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE, width = "100%"),
+         div(class = "ui buttons",
               div(class = "ui bottom attached primary button action-button", id = "analyzeButton",
                   "Analyze",
                   div(class="ui dimmer", id = "analyze_loader",
                     div(class="ui loader"), "Analyze")
-              )),
-      div(class = "ui basic segment", id = 'advanced_analysis',
-              br(), br(),
-          div(class = "ui button action-button", id = 'advanced', 'Advanced options'),
-              conditionalPanel(
-                condition = "input.advanced % 2 == 1",
-                div(class = "ui checkbox", 
-                    tags$input(type = "checkbox", name = "public", 
-                               id = 'cap', tags$label("Cap GR values below 1"))
-                ),
-                div(class = "ui checkbox", 
-                    tags$input(type = "checkbox", name = "public", 
-                               id = 'force', tags$label("Force sigmoidal fit"))
-                )
-              )
-          )
+              ),
+             div(class = "ui bottom attached button action-button", id = 'advanced', 'Advanced options')
+         ), br(), br(),
+             conditionalPanel(
+               condition = "input.advanced % 2 == 1",
+               div(class = "ui checkbox", 
+                   tags$input(type = "checkbox", name = "public", 
+                              id = 'cap', tags$label("Cap GR values below 1"))
+               ),
+               div(class = "ui checkbox", 
+                   tags$input(type = "checkbox", name = "public", 
+                              id = 'force', tags$label("Force sigmoidal fit"))
+               )
+             )
+         ),
+         div(class = "four wide column")
+         )),
+      div(class = "ui basic segment",
+          tags$style(type='text/css', "#input_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}"),
+          DT::dataTableOutput("input_table") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+      )
       ),
       
           div(class="ui bottom center attached tab segment", `data-tab`="output_tables", id = "output_tables_bottom",
@@ -256,8 +263,8 @@ shinyUI(
               textOutput(outputId = 'input_error'),
               tags$head(tags$style("#input_error{color: red; font-size: 20px; }")),
               div(class = "ui basic segment",
-                DT::dataTableOutput("current_table", width = "500px", height = "500px"),
-                tags$head(tags$style("#current_table  {white-space: nowrap;  }"))
+                DT::dataTableOutput("current_table"),
+                tags$style(type='text/css', "#current_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}")
                 # div(class = "ui primary button action-button",
                 #     downloadLink("download_button", "Download Data File", style = "color: white;")
                 #     )
