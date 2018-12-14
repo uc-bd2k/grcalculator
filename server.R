@@ -140,6 +140,7 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   ### then jump to plots tab
   shinyjs::onclick("analyzeButton", {
+    shinyjs::click(id = "single_button")
     shinyjs::click(id = "third_top")
     shinyjs::removeClass(id = "analyze_loader", "active")
   })
@@ -163,6 +164,7 @@ shinyServer(function(input, output,session) {
   observeEvent(c(input$grid_button, input$single_button), {
     shinyjs::toggleElement("grid_button")
     shinyjs::toggleElement("single_button")
+    shinyjs::toggleElement("plots_grid_legend")
     shinyjs::toggleElement("height")
     shinyjs::toggleElement("drc2_facet")
     shinyjs::toggleElement("nplots")
@@ -242,17 +244,22 @@ shinyServer(function(input, output,session) {
       print("values$grid_vs_single")
       print(values$grid_vs_single)
       if(values$grid_vs_single == "grid") {
-        plots = try(GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
+        plots = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
                               points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                               facet = input$drc2_facet, bars = input$drc2_bars,
-                              color = input$drc2_color, plot_type = input$drc2_plot_type,
+                              color = input$drc2_color, plot_type = "static",
                               output_type = "separate"))
+      if(class(plots) != "try-error") {
+        legend = plots$legend
+        plots = plots$plot
+        output$plots_grid_legend = renderPlot(legend)
+      }
         for (i in 1:length(plots)) {
           local({
             n <- i # Make local variable
             plotname <- paste("plot", n , sep="")
             output[[plotname]] <- renderPlotly({
-              plots[[n]]
+              ggplotly(plots[[n]])
             })
           })
         }
@@ -277,12 +284,14 @@ shinyServer(function(input, output,session) {
         })
         do.call(tagList, cols)
       } else {
-        single_plot = try(GRdrawDRC(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
+        single_plot = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
                               points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                               facet = "none", bars = input$drc2_bars,
                               color = input$drc2_color, plot_type = input$drc2_plot_type))
-        output$single_drc = renderPlotly(single_plot)
-        plotlyOutput("single_drc", width = input$height, height = input$height) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+        if(class(single_plot) != "try-error") {
+          output$single_drc = renderPlotly(single_plot$plot)
+          plotlyOutput("single_drc", width = "800px", height = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+        }
       }
     })
     output$plots_grid_pages = renderUI({

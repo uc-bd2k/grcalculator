@@ -214,7 +214,7 @@ shinyUI(
                       includeMarkdown("www/GettingStarted.md"),
                       div(class = "ui bottom attached buttons",
       tags$button(class="ui teal button action-button", "Start", id = "start_button"),
-      tags$button(class = "ui grey button action-button", id = "instructions_button", "Detailed instructions")
+      tags$button(class = "ui grey button action-button", id = "instructions_button", "Instructions")
                       )
                   )
               ),
@@ -298,8 +298,9 @@ shinyUI(
                 div(class = "ui basic center aligned segment",
                   div(class = "ui three column grid",
                     div(class = "six wide column",
-                    selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T),
-                    selectizeInput("nplots", label = "Number of plots per page", choices = c(5, 10, 25, 50), selected = 10) ),
+                    selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T)#,
+                    #selectizeInput("nplots", label = "Number of plots per page", choices = c(5, 10, 25, 50), selected = 10) 
+                    ),
                     div(class = "six wide column",
                       div(class = "ui primary bottom attached button action-button",
                           id = "single_button",
@@ -309,21 +310,28 @@ shinyUI(
                         div(class = "ui secondary bottom attached button action-button",
                             id = "grid_button",
                             "Grid plot"
-                        ),
-                        sliderInput('height', label = "Plot size (pixels)", min = 200, max = 1000, step = 50, value = 500)
+                        )#,
+                        #sliderInput('height', label = "Plot size (pixels)", min = 200, max = 1000, step = 50, value = 500)
                       )
                         ),
                     div(class = "four wide column")
                   )
                 ),
                 div(class = "ui basic center aligned segment",
-                uiOutput("plots_grid", class = "ui doubling five column grid",
+                  div(class = "ui two column grid",
+                    div(class = "fourteen wide column",
+                uiOutput("plots_grid", class = "ui doubling four column grid",
                          style = "min-height: 500px;"),
-                uiOutput("ui"),
+                #uiOutput("ui"),
                 uiOutput("plots_grid_pages"),
                 #uiOutput("plot.ui"),
                 tags$button(class = "ui button action-button", id = "download_plot_drc_button", 
                             "Download Image File")
+                    ),
+                  div(class = "two wide column", id = "plots_grid_legend",
+                      plotOutput("plots_grid_legend", height = "500px")
+                      )
+                  )
             )
           ),
           div(class="ui bottom center attached tab segment", `data-tab`="fourth",
