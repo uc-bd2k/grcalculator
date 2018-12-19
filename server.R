@@ -42,6 +42,7 @@ zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
   }
 }
 
+####### javascript code for modals ##########
 about.modal.js = "$('.ui.small.modal')
 .modal({
     blurring: true
@@ -92,7 +93,7 @@ $('#download_plot_drc_modal').modal('show')
 tab.js = "$('.menu .item')
   .tab()
 ;"
-
+###############################
 
 
 shinyServer(function(input, output,session) {
@@ -108,7 +109,7 @@ shinyServer(function(input, output,session) {
                            current_data = NULL, current_table_button = NULL,
                            tables = NULL, grid_vs_single = "grid")
   
-  ### initialize modals
+  ############ initialize modals ################
   observeEvent(input$import_button, {
     runjs(import.modal.js)
   })
@@ -118,9 +119,7 @@ shinyServer(function(input, output,session) {
   observeEvent(input$instructions_button, {
     runjs(instructions.modal.js)
   })
-  observeEvent(c(input$loadExample, input$loadExampleB), {
-    runjs("$('#example_modal').modal('hide')")
-  })
+
   observeEvent(input$download_plot_drc.modal_button, {
     runjs(download_plot_drc.modal.js)
   })
@@ -133,7 +132,13 @@ shinyServer(function(input, output,session) {
   observeEvent(input$contact, {
     runjs(contact.modal.js)
   })
+  ##############################
   
+  ##### show and hide parts of UI #########
+  ### hide example modal when example is picked
+  observeEvent(c(input$loadExample, input$loadExampleB), {
+    runjs("$('#example_modal').modal('hide')")
+  })
   ### start loader on analyze button first
   observeEvent(input$analyzeButton, {
     shinyjs::addClass(id = "analyze_loader", "active")
@@ -152,7 +157,9 @@ shinyServer(function(input, output,session) {
   shinyjs::onclick("third_top", {
     # shinyjs::show("ui")
     # shinyjs::show("plot.ui")
-    shinyjs::show("plots_grid")
+    if(values$grid_vs_single == "grid") shinyjs::show("plots_grid")
+    if(values$grid_vs_single == "single") shinyjs::show("single_drc")
+    
   })
   shinyjs::onclick("plot_options_button", {
     shinyjs::toggle(id = "plot_options", animType = "slide")
@@ -164,36 +171,73 @@ shinyServer(function(input, output,session) {
   observeEvent(c(input$grid_button, input$single_button), {
     shinyjs::toggleElement("grid_button")
     shinyjs::toggleElement("single_button")
-    shinyjs::toggleElement("plots_grid_legend")
+    #shinyjs::toggleElement("plots_grid")
+    #shinyjs::toggleElement("plots_grid_legend")
+    shinyjs::toggleElement("grid_segment")
     shinyjs::toggleElement("height")
     shinyjs::toggleElement("drc2_facet")
     shinyjs::toggleElement("nplots")
+    shinyjs::toggleElement("single_segment")
+    
     
     values$grid_vs_single = ifelse(values$grid_vs_single == "grid", "single", "grid")
   }, ignoreInit = T, ignoreNULL = F, priority = 1000)
   
+  observeEvent(c(input$scatter_button, input$boxplot_button), {
+    shinyjs::toggleElement("scatter_button")
+    shinyjs::toggleElement("boxplot_button")
+
+    shinyjs::toggleElement("scatter_options")
+    shinyjs::toggleElement("boxplot_options")
+    
+    shinyjs::toggleElement("boxplot")
+    shinyjs::toggleElement("scatterplot")
+  }, ignoreInit = T, ignoreNULL = F, priority = 1000)
+  
+  ### show/hide parameter table button
+  # shinyjs::onclick("parameter_table_button", {
+  #   shinyjs::show("parameter_table_select")
+  # })
+  shinyjs::onclick("gr_table_button", {
+    shinyjs::hide("parameter_table_select")
+  })
+  shinyjs::onclick("input_table_button", {
+    shinyjs::hide("parameter_table_select")
+  })
+  
+#######################
+  
+  
+  ##### observe input data ##########
   observeEvent(values$inData, {
     shinyjs::click(id = "input_top")
     output$input_table = renderDataTable({ datatable(values$inData,  
             extensions = c('Buttons'
             #, 'FixedHeader'
                   ),
-                                         filter = 'top',
-                                         rownames = F, options = list(
-                                           dom = 'lBfrtip',
-                                           buttons = c('copy', 'csv', 'excel', 'colvis'),
-                                           initComplete = JS(
-                                             "function(settings, json) {",
-                                             "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
-                                             "}"),
-                                           searchHighlight = TRUE,
-                                           fixedHeader = TRUE,
-                                           autoWidth = TRUE))
-                                         
+       filter = 'top',
+       rownames = F, options = list(
+         dom = 'lBfrtip',
+         buttons = c('copy', 'csv', 'excel', 'colvis'),
+         initComplete = JS(
+           "function(settings, json) {",
+           "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
+           "}"),
+         searchHighlight = TRUE,
+         fixedHeader = TRUE,
+         autoWidth = TRUE))
   }, server = FALSE)
     outputOptions(output, "input_table", suspendWhenHidden = FALSE)
   }, ignoreInit = T, ignoreNULL = T)
   
+  # Code for showing/hiding advanced analysis options
+  observeEvent(values$inData, {
+    showElement(id = "advanced_analysis", anim = T, animType = "fade")
+  })
+  ####################
+  
+  
+  ######### show correct output data table on button click #############
   observeEvent(input$input_table_button, {
     values$current_table_button = "input_table_button"
     values$current_data = values$inData
@@ -218,109 +262,247 @@ shinyServer(function(input, output,session) {
     shinyjs::removeClass(id = "gr_table_button", class = "green")
     shinyjs::addClass(id = "parameter_table_button", class = "green")
   })
+  ### define current output (parameter) data table
+  observeEvent(c(input$parameter_table_select, input$parameter_table_button), {
+    print("parameter table button clicked")
+    shinyjs::show("parameter_table_select")
+    pp = input$parameter_table_select
+    print(pp)
+    if(pp == "GR sigmoid normal") values$parameter_table = values$parameters_all$GR$sigmoid$normal
+    if(pp == "GR sigmoid low") values$parameter_table = values$parameters_all$GR$sigmoid$low
+    if(pp == "GR sigmoid high") values$parameter_table = values$parameters_all$GR$sigmoid$high
+    if(pp == "GR biphasic") values$parameter_table = values$parameters_all$GR$biphasic$normal
+    if(pp == "Traditional sigmoid normal") values$parameter_table = values$parameters_all$rel_cell$sigmoid$normal
+    if(pp == "Traditional sigmoid low") values$parameter_table = values$parameters_all$rel_cell$sigmoid$low
+    if(pp == "Traditional sigmoid high") values$parameter_table = values$parameters_all$rel_cell$sigmoid$high
+    if(pp == "Traditional biphasic") values$parameter_table = values$parameters_all$rel_cell$biphasic$normal
+    values$parameter_table_show = values$parameter_table
+    values$current_data = values$parameter_table_show
+  }, ignoreInit = T, ignoreNULL = T)
+  #### render current data table
   observeEvent(values$current_data, {
     output$current_table = renderDataTable({ datatable(values$current_data,  extensions = c('Buttons'#, 'FixedHeader'
                   ),
-                   filter = 'top',
-                   rownames = F, options = list(
-                     dom = 'lBfrtip',
-                     buttons = c('copy', 'csv', 'excel', 'colvis'),
-                     initComplete = JS(
-                       "function(settings, json) {",
-                       "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
-                       "}"),
-                     searchHighlight = TRUE,
-                     fixedHeader = TRUE,
-                     autoWidth = TRUE))
+     filter = 'top',
+     rownames = F, options = list(
+       dom = 'lBfrtip',
+       buttons = c('copy', 'csv', 'excel', 'colvis'),
+       initComplete = JS(
+         "function(settings, json) {",
+         "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
+         "}"),
+       searchHighlight = TRUE,
+       fixedHeader = TRUE,
+       autoWidth = TRUE))
     }, server = FALSE)
     outputOptions(output, "current_table", suspendWhenHidden = FALSE)
   }, ignoreNULL = F)
-
+########################
   
-  observeEvent(c(input$nplots, values$tables, values$grid_vs_single), {
-    output$plots_grid <- renderUI({
-      print(input$drc2_color)
-      print(input$drc2_facet)
-      print("values$grid_vs_single")
-      print(values$grid_vs_single)
-      if(values$grid_vs_single == "grid") {
-        plots = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
-                              points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                              facet = input$drc2_facet, bars = input$drc2_bars,
-                              color = input$drc2_color, plot_type = "static",
-                              output_type = "separate"))
-      if(class(plots) != "try-error") {
-        legend = plots$legend
-        plots = plots$plot
-        output$plots_grid_legend = renderPlot(legend)
-      }
-        for (i in 1:length(plots)) {
-          local({
-            n <- i # Make local variable
-            plotname <- paste("plot", n , sep="")
-            output[[plotname]] <- renderPlotly({
-              ggplotly(plots[[n]])
-            })
-          })
+  ###### render main dose-response curve plot(s) ########
+  observeEvent(c(input$nplots, values$tables, values$grid_vs_single,
+                 input$drc2_color, input$drc2_facet, input$drc2_metric, input$drc2_curves,
+                 input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
+                 ), {
+                   
+    if(values$grid_vs_single == "grid") {
+      #### render grid of plots
+      output$plots_grid <- renderUI({
+        #if(values$grid_vs_single == "grid") {
+          plots = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, 
+                                     curves = input$drc2_curves,
+                                points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                facet = input$drc2_facet, bars = input$drc2_bars,
+                                color = input$drc2_color, plot_type = "static",
+                                output_type = "separate"))
+        if(class(plots) != "try-error") {
+          legend = plots$legend
+          plots = plots$plot
+          output$plots_grid_legend = renderPlot(legend)
         }
-        #col.width <- round(16/input$ncol) # Calculate bootstrap column width
-        col.width <- 300
-        #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
-        #n.row = input$nrow
-        #n.col = input$ncol
-        cnter <<- 0 # Counter variable
-        #n_pages =  ceiling(n_total_plots/input$nplots)
-        
-        # Create row with columns
-        #rows  <- lapply(1:n.row,function(row.num){
-        cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
-          cnter    <<- cnter + 1
-          plotname <- paste("plot", cnter, sep="")
-          div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px;") , 
-              plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
-              # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
-              #tags$p(paste0("plot", i))
+          for (i in 1:length(plots)) {
+            local({
+              n <- i # Make local variable
+              plotname <- paste("plot", n , sep="")
+              output[[plotname]] <- renderPlotly({
+                ggplotly(plots[[n]])
+              })
+            })
+          }
+          #col.width <- round(16/input$ncol) # Calculate bootstrap column width
+          col.width <- 300
+          #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
+          #n.row = input$nrow
+          #n.col = input$ncol
+          cnter <<- 0 # Counter variable
+          #n_pages =  ceiling(n_total_plots/input$nplots)
+          
+          # Create row with columns
+          #rows  <- lapply(1:n.row,function(row.num){
+          cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
+            cnter    <<- cnter + 1
+            plotname <- paste("plot", cnter, sep="")
+            div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px;") , 
+                plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+                # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
+                #tags$p(paste0("plot", i))
+            )
+          })
+          do.call(tagList, cols)
+        #} else {
+        #  div(class = "ui basic segment")
+        #}
+      })
+      #### render page buttons
+      output$plots_grid_pages = renderUI({
+          n_pages = 10
+          div(class = "ui pagination menu", id = "drc_pages",
+              tags$a(class = "item", type = "firstItem", "«"),
+              tags$a(class = "item", type = "prevItem", "⟨"),
+              tags$a(class = "active item", 1, id = "drc_page1"),
+              lapply(2:n_pages, function(x) tags$a(class = "item", x, 
+                                                   id = paste0("drc_page", x)) ),
+              tags$a(class = "item", type = "nextItem", "⟩"),
+              tags$a(class = "item", type = "lastItem", "»")
           )
-        })
-        do.call(tagList, cols)
-      } else {
-        single_plot = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, curves = input$drc2_curves,
+        #} #else {
+          #div(class = "ui basic segment")
+        #}
+      })
+    }         
+    
+    ####### render single plot output
+    if(values$grid_vs_single == "single") {
+        single_plot = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, 
+                                         curves = input$drc2_curves,
                               points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                               facet = "none", bars = input$drc2_bars,
                               color = input$drc2_color, plot_type = input$drc2_plot_type))
         if(class(single_plot) != "try-error") {
           output$single_drc = renderPlotly(single_plot$plot)
-          plotlyOutput("single_drc", width = "800px", height = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+          outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
         }
-      }
+    }
+  }, ignoreInit = T, ignoreNULL = T)
+  ###############
+  
+  #### update plot options for dose-response curve ##########
+  observeEvent(input$drc2_metric, {
+    if(input$drc2_metric == "GR") {
+      updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
+      updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
+    }
+    if(input$drc2_metric == "rel_cell") {
+      updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
+      updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
+    }
+  })
+  ###############
+  
+  ####### render box and scatter plots ##############
+  #### update curve fit choice for box/scatterplots
+  curve_choices = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+                    "Traditional sigmoid normal", "Traditional sigmoid low", 
+                    "Traditional sigmoid high", "Traditional biphasic")
+  observeEvent(input$box_scatter_fit, {
+    if(input$box_scatter_fit %in% 1:4) values$box_scatter_metric = "GR"
+    if(input$box_scatter_fit %in% 5:8) values$box_scatter_metric = "rel_cell"
+    if(input$box_scatter_fit %in% c(1, 5)) values$box_scatter_fit = "sigmoid"
+    if(input$box_scatter_fit %in% c(2, 6)) values$box_scatter_fit = "sigmoid_low"
+    if(input$box_scatter_fit %in% c(3, 7)) values$box_scatter_fit = "sigmoid_high"
+    if(input$box_scatter_fit %in% c(4, 8)) values$box_scatter_fit = "biphasic"
+  }, ignoreInit = F, ignoreNULL = T, priority = 1000)
+  ### render boxplot
+  observeEvent(c(values$tables, input$pick_box_x, input$pick_box_y, input$pick_box_point_color, 
+                 input$pick_box_factors, input$factorA, input$factorB, input$wilcox_method), {
+                   output$boxplot <- renderPlotly({
+                     plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric, fit = values$box_scatter_fit,
+                                      parameter = input$pick_box_y, groupVariable = input$pick_box_x,
+                                      pointColor = input$pick_box_point_color, 
+                                      factors = input$pick_box_factors, wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
+                     if(class(plot) != "try-error") return(plot)
+                   })
+                   outputOptions(output, "boxplot", suspendWhenHidden = FALSE)
+                 }, ignoreInit = T, ignoreNULL = T)
+  
+  #### render scatterplot
+  observeEvent(c(values$tables, input$pick_parameter, input$x_scatter, input$y_scatter), {
+    output$scatterplot <- renderPlotly({
+      plot = try(GRscatter(fitData = values$tables, metric = input$pick_parameter, xaxis = input$x_scatter,
+                           yaxis = input$y_scatter, # curves = "sigmoid",
+                           plotly = TRUE))
+      if(class(plot) != "try-error") return(plot)
     })
-    output$plots_grid_pages = renderUI({
-      if(values$grid_vs_single == "grid") {
-      n_pages = 10
-      div(class = "ui pagination menu", id = "drc_pages",
-                  tags$a(class = "item", type = "firstItem", "«"),
-                  tags$a(class = "item", type = "prevItem", "⟨"),
-                  tags$a(class = "active item", 1, id = "drc_page1"),
-                  lapply(2:n_pages, function(x) tags$a(class = "item", x, 
-                                                       id = paste0("drc_page", x)) ),
-                  tags$a(class = "item", type = "nextItem", "⟩"),
-                  tags$a(class = "item", type = "lastItem", "»")
-      )
-      } else {
-        div(class = "ui basic segment")
-      }
-    })
-    # if(input$drc2_plot_type == "interactive") {
-    #   output$plot.ui <- renderUI({
-    #     plotlyOutput("drc2_plotly", height = input$height, width = "800px")
-    #   })
-    # } else if(input$drc2_plot_type == "static") {
-    #   output$plot.ui <- renderUI({
-    #     plotOutput("drc2", height = input$height, width = "800px")
-    #   })
-    # }
+    outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
   }, ignoreInit = T, ignoreNULL = T)
   
+  ################
+  
+  #### update plot options for box/scatter plots ##########
+  observeEvent(input$analyzeButton, {
+    ### scatter plot
+    updateSelectInput(session, 'pick_var', 'Select variable', choices = input$groupingVars)
+    ### box plot
+    updateSelectInput(session, 'pick_box_x', 'Select grouping variable', choices = input$groupingVars)
+    updateSelectInput(session, 'pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars)
+
+  }, ignoreInit = T, ignoreNULL = T)
+  #### x and y axis options for scatterplot
+  observeEvent(input$pick_var, {
+    scatter_choices = unique(values$inData[[input$pick_var]])
+    updateSelectInput(session, 'x_scatter', 'Select x-axis value', choices = scatter_choices)
+    updateSelectizeInput(session, 'y_scatter', 'Select y-axis value', choices = scatter_choices)
+  }, ignoreInit = T, ignoreNULL = T)
+  
+  observeEvent(input$pick_box_x, {
+    box_choices = unique(values$inData[[input$pick_box_x]])
+    updateSelectizeInput(session, 'pick_box_factors', 'Show/hide data', choices = box_choices,
+                         selected = box_choices[1:min(10, length(box_choices)) ])
+  }, ignoreInit = T, ignoreNULL = T)
+  
+  observeEvent(c(input$factorA,input$pick_box_factors), {
+    picks = sort(input$pick_box_factors)
+    picks1 = setdiff(picks, input$factorA)
+    updateSelectizeInput(session, 'factorB', choices = picks1, selected = input$factorB)
+  }, ignoreInit = T,  ignoreNULL = F)
+  
+  observeEvent(c(input$factorB,input$pick_box_factors), {
+    picks = sort(input$pick_box_factors)
+    picks1 = setdiff(picks, input$factorB)
+    updateSelectizeInput(session, 'factorA', choices = picks1, selected = input$factorA)
+  }, ignoreInit = T,  ignoreNULL = F)
+  
+  ##################
+  
+  ####### p-values for boxplots ###########
+  observeEvent(c(input$factorA, input$factorB, input$pick_box_y, input$wilcox_method), {
+    wil_data = values$parameter_table
+    if(!is.null(input$factorA) & !is.null(input$factorB)) {
+      rowsA = wil_data[[input$pick_box_x]] %in% input$factorA
+      rowsB = wil_data[[input$pick_box_x]] %in% input$factorB
+      wil_dataA = wil_data[rowsA,input$pick_box_y]
+      wil_dataB = wil_data[rowsB,input$pick_box_y]
+      print(head(wil_dataA))
+      print(head(wil_dataB))
+      wil_less = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
+      wil_greater = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "greater")
+      wil_two_sided = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "two.sided")$p.value
+      wil_one_sided = min(wil_less$p.value,wil_greater$p.value)
+      wil_pval = ifelse(input$wilcox_method == "One-sided", wil_one_sided, wil_two_sided)
+      values$wilcox = prettyNum(wil_pval, digits = 2)
+      output$wilcox = renderText({
+        paste("P-value:", prettyNum(wil_pval, digits = 2))
+      })
+    } else {
+      output$wilcox = renderText({
+        paste("P-value: ")
+      })
+      values$wilcox = NULL
+    }
+  })
+  ###############
+  
+  ########### code for input modals ################
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
   observeEvent(values$div_rate, {
     if(values$div_rate) {
@@ -440,7 +622,9 @@ shinyServer(function(input, output,session) {
       toggleModal(session, 'import_fail', toggle = "open")
     }
   }, ignoreInit = T)
-
+####################
+  
+############ code for loading data ##############
   # Code for loading example data for input Case A
   observeEvent(input$loadExample, {
     print("load example a")
@@ -561,29 +745,10 @@ shinyServer(function(input, output,session) {
     print(head(values$inData))
     # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
+  ##############################
   
-  # Code for showing/hiding advanced analysis options
-  observeEvent(values$inData, {
-    showElement(id = "advanced_analysis", anim = T, animType = "fade")
-  })
-
-  # Code for showing/hiding tabs
-  observe({
-    toggle(condition = values$showdata, selector = "#tabs li a[data-value=tab-data]")
-    toggle(condition = values$showanalyses, selector = "#tabs li a[data-value=tab-drc]")
-    toggle(condition = values$showanalyses_multi, selector = "#tabs li a[data-value=tab-drc-grid]")
-    toggle(condition = values$showanalyses_multi, selector = "#tabs li a[data-value=tab-gr-metric]")
-  })
   
-  observe({
-    if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-  })
-  
-  observeEvent(values$inData, {
-    values$showdata = 1
-  })
-  
-  # Code for checking input and providing feedback to user
+  ############ Code for checking input and providing feedback to user ###############
   observeEvent(c(input$uploadData,input$fetchURLData), {
     # Check input table column names for slight misspellings
     caseA_cols = c("cell_line","treatment", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
@@ -663,12 +828,6 @@ shinyServer(function(input, output,session) {
     }
   }, ignoreInit = T)
   
-  # Code to show/hide elements after data is uploaded
-  # observeEvent(values$inData, {
-  #   output$fileUploaded <- reactive(T)
-  #   outputOptions(output, "fileUploaded", suspendWhenHidden = FALSE)
-  # })
-  
   # Code for updating grouping variable selection boxes
   observeEvent(values$inData, {
     caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
@@ -693,93 +852,36 @@ shinyServer(function(input, output,session) {
       )
     }
   })
+  ################################
   
-  # Define the table showing the input data
-  # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
+  ############## old download button code ##########
   
-  # Change table shown from input to GR values to GR metrics based on radio buttons
-  # observeEvent(input$pick_data, {
-  #   if(input$pick_data == 1) {
-  #     output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
-  #     }
-  #   if(input$pick_data == 2) {
-  #     output$input_table <- renderDataTable(datatable(values$GR_table_show, rownames = F))
-  #   }
-  #   if(input$pick_data == 3) {
-  #     output$input_table <- renderDataTable(datatable(values$parameter_table_show, rownames = F))
-  #     }
-  # })
-    
-#========== Download button data tables =======
-  output$downloadBind <- downloadHandler(
-    filename = function() {
-      return(paste0("GRdata_", format(Sys.time(), "%Y%m%d_%I%M%S"), 
-                    ".zip", sep = ""))
-    },
-    content = function(filename) {
-      files_all = list(values$inData,
-                       values$GR_table_show,
-                       values$parameter_table_show)
-      # take only tables that exist
-      drugs = NULL
-      if(values$num_selected > 0) {
-        files = files_all[1:values$num_selected]
-        for(i in 1:3) {
-          drugs = c(drugs, values[[paste0("selection.drug", i)]])
-        }
-      } else {
-        files = NULL
-        drugs = NULL
-      }
-      zipped_csv(files, filename, paste0("BindingData_", drugs), format(Sys.time(), "%Y%m%d_%I%M%S") )
-    }, contentType = "application/zip"
-  )
-  # output$downloadData <- downloadHandler(
+#========== Download button data tables
+  # output$downloadBind <- downloadHandler(
   #   filename = function() {
-  #     if(values$data_dl == 'input') {
-  #       if(input$pick_data == 1) {
-  #         return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), ".", input$download_type, sep=''))
-  #       } else if(input$pick_data == 2) {
-  #         return(paste(sub("^(.*)[.].*", "\\1", input$uploadData), '_GRvalues', ".", input$download_type, sep=''))
-  #       } else {
-  #         return(paste(sub("^(.*)[.].*", "\\1", input$uploadData),'_FittedParameters', ".", input$download_type, sep = ''))
-  #       }
-  #     } else if(values$data_dl == 'example') {
-  #       if(input$pick_data == 1) {
-  #         return(paste("example.", input$download_type, sep = ""))
-  #       } else if(input$pick_data == 2) {
-  #         return(paste("example_GRvalues.", input$download_type, sep = ""))
-  #       } else {
-  #         return(paste("example_FittedParameters.", input$download_type, sep = ""))
-  #       }
-  #     }
+  #     return(paste0("GRdata_", format(Sys.time(), "%Y%m%d_%I%M%S"), 
+  #                   ".zip", sep = ""))
   #   },
   #   content = function(filename) {
-  #     if(input$pick_data == 1) {
-  #       data_output = values$inData
-  #     } else if(input$pick_data == 2) {
-  #       data_output = values$GR_table_show
+  #     files_all = list(values$inData,
+  #                      values$GR_table_show,
+  #                      values$parameter_table_show)
+  #     # take only tables that exist
+  #     drugs = NULL
+  #     if(values$num_selected > 0) {
+  #       files = files_all[1:values$num_selected]
+  #       for(i in 1:3) {
+  #         drugs = c(drugs, values[[paste0("selection.drug", i)]])
+  #       }
   #     } else {
-  #       data_output = values$parameter_table_show
+  #       files = NULL
+  #       drugs = NULL
   #     }
-  #     if(input$download_type == "tsv") {
-  #       if(input$euro_out == T) {
-  #         write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T, dec = ',')
-  #       } else {
-  #         write.table(data_output, file = filename, quote = F, sep = '\t', row.names = F, col.names = T)
-  #       }
-  #     } else if(input$download_type == "csv") {
-  #       if(input$euro_out == T) {
-  #         write.table(data_output, file = filename, quote = F, sep = ';', row.names = F, col.names = T, dec = ',')
-  #       } else {
-  #         write.table(data_output, file = filename, quote = F, sep = ',', row.names = F, col.names = T)
-  #       }
-  #     }
-  #     
-  #   }
+  #     zipped_csv(files, filename, paste0("BindingData_", drugs), format(Sys.time(), "%Y%m%d_%I%M%S") )
+  #   }, contentType = "application/zip"
   # )
 
-#========== Download buttons for DRC plots =======
+#========== Download buttons for DRC plots
   output$downloadDRC = downloadHandler(
       filename = function() {
         if(input$drcImageType == '.pdf') {
@@ -806,7 +908,7 @@ shinyServer(function(input, output,session) {
   )
 
  
-#========== Download button for scatterplot images =======
+#========== Download button for scatterplot images
   output$downloadScatter = downloadHandler(
     filename = function() {
       if(input$scatterImageType == '.pdf') {
@@ -847,16 +949,8 @@ shinyServer(function(input, output,session) {
       }
     }
   )
+######################
 
-#============ Plotly popups =====================
-  observeEvent(input$'dose-response-grid-main', {
-    if (input$'dose-response-grid-main' != '' && str_count(input$'dose-response-grid-main', '=') == 1) {
-      q = parseLabel(input, values)
-      output$graphPopupPlot <- renderPlotly(q)
-      toggleModal(session,"graphPopup")
-    }
-  })
-  
 #=========== Scatterplot drawing/clearing code ===========
   observeEvent(input$plot_scatter, {
     print('clearScatter = F')
@@ -886,25 +980,20 @@ shinyServer(function(input, output,session) {
     df_full <<- NULL
     values$clearScatter = T
   })
+  ##################
     
-#================= analyzeButton ================================
-  observeEvent(input$analyzeButton,{
-    df_full <<- NULL
-    all_inputs <- names(input)
-    print(all_inputs)
-    groupingColumns <<- input$groupingVars
-    print("groupingColumns")
-    print(groupingColumns)
-    print("groupingColumns")
-    
-    values$tables <- try(GRfit(values$inData, groupingColumns, force = input$force, cap = input$cap, case = values$input_case))
+######## Run GRfit when analyze button is clicked ########
+  observeEvent(input$analyzeButton, {
+    #df_full <<- NULL
+    #all_inputs <- names(input)
+    values$tables <- try(GRfit(values$inData, input$groupingVars, force = input$force, cap = input$cap, case = values$input_case))
     if(class(values$tables)!="try-error") {
       values$parameters_all = GRgetMetrics(values$tables)
       values$parameter_table = values$parameters_all$GR$sigmoid$normal
       values$parameter_table_show = values$parameter_table
       values$GR_table = GRgetValues(values$tables)
       values$GR_table_show = values$GR_table
-      
+      ######### edit parameter tables ##########
       # values$parameter_table <- GRgetMetrics(tables)
       # values$GR_table <- GRgetValues(tables)
       # parameters_show <- GRgetMetrics(tables)
@@ -959,288 +1048,79 @@ shinyServer(function(input, output,session) {
       # #=========================
       # test_ref_show <<- values$parameter_table_show
       # print("finishedParams")
+      ###############
     } else {
       # When the GRfit function fails for some reason
-      err = attributes(tables)$condition
+      err = attributes(values$tables)$condition
       output$input_error = renderText(paste("There was an error in the GR value calculation. Please check that your data is in the correct form.", "\n", err))
     }
-    
-    #=========== data loaded (start) ================
-    if (length(values$inData)>0) {
-      values$showanalyses<-1
-      if (length(input$groupingVars)>0) {values$showanalyses_multi<-1
-      } else {values$showanalyses_multi<-0}
-      
+  }, ignoreInit = T, ignoreNULL = T)
+  ###############
 
-      # observeEvent(input$drc2_plot_type, {
-      #   if(input$drc2_plot_type == "interactive") {
-      #     output$plot.ui <- renderUI({
-      #       plotlyOutput("drc2_plotly", height = input$height, width = "800px")
+  
+##########################
+  
+      # box_scatter_choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')
+      # 
+      # output$scatter <- renderUI({
+      #   if(input$box_scatter == "Scatter plot") {
+      #     fluidRow(
+      #       selectInput('pick_parameter', 'Select parameter', choices = box_scatter_choices),
+      #       selectInput('pick_var', 'Select variable', choices = input$groupingVars),
+      #       selectInput('x_scatter', 'Select x-axis value', choices = unique(values$inData[[input$pick_box_x]])),
+      #       selectizeInput('y_scatter', 'Select y-axis value', choices = unique(values$inData[[input$pick_box_x]])),
+      #       bsButton('plot_scatter', 'Add', size = 'small'),
+      #       bsButton('clear', 'Clear', size = 'small')
+      #     )
+      #   } else {
+      #     fluidRow(
+      #       selectInput('pick_box_y', 'Select parameter', choices = box_scatter_choices),
+      #       selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
+      #       selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
+      #       selectizeInput('pick_box_factors', 'Show/hide data', choices = c(), multiple = T),
+      #       actionLink('wilcox_panel', 'Compare boxplots'),
+      #       conditionalPanel(condition = "input.wilcox_panel%2==1",
+      #                       selectizeInput('factorA', 'Wilcoxon rank-sum test', choices = c(), multiple = T),
+      #                       selectizeInput('factorB', '', choices = c(), multiple = T),
+      #                       radioButtons('wilcox_method', label = "",choices = c("One-sided", "Two-sided"), selected = "Two-sided", inline = F),
+      #       # selectizeInput('factorA', 'Choose factors with which to perform a one-sided Wilcoxon rank-sum test', choices = c(), multiple = T),
+      #       # selectizeInput('factorB', '', choices = c(), multiple = T),
+      #       textOutput("wilcox")
+      #       )
+      #     )
+      #   }
+      # })
+      # 
+      # observeEvent(c(input$factorA, input$factorB, input$pick_box_y, input$wilcox_method), {
+      #   wil_data = values$parameter_table
+      #   if(!is.null(input$factorA) & !is.null(input$factorB)) {
+      #     rowsA = wil_data[[input$pick_box_x]] %in% input$factorA
+      #     rowsB = wil_data[[input$pick_box_x]] %in% input$factorB
+      #     wil_dataA = wil_data[rowsA,input$pick_box_y]
+      #     wil_dataB = wil_data[rowsB,input$pick_box_y]
+      #     print(head(wil_dataA))
+      #     print(head(wil_dataB))
+      #     wil_less = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
+      #     wil_greater = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "greater")
+      #     wil_two_sided = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "two.sided")$p.value
+      #     wil_one_sided = min(wil_less$p.value,wil_greater$p.value)
+      #     wil_pval = ifelse(input$wilcox_method == "One-sided", wil_one_sided, wil_two_sided)
+      #     values$wilcox = prettyNum(wil_pval, digits = 2)
+      #     output$wilcox = renderText({
+      #       paste("P-value:", prettyNum(wil_pval, digits = 2))
       #     })
-      #   } else if(input$drc2_plot_type == "static") {
-      #     output$plot.ui <- renderUI({
-      #       plotOutput("drc2", height = input$height, width = "800px")
+      #   } else {
+      #     output$wilcox = renderText({
+      #       paste("P-value: ")
       #     })
+      #     values$wilcox = NULL
       #   }
       # })
       
-      
-      output$plot.ui2 <- renderUI({
-        if(input$box_scatter == "Box plot") {
-          plotlyOutput('boxplot', height = input$scatter_height)
-        } else {
-          plotlyOutput("plotlyScatter1", height = input$scatter_height)
-        }
-      })
-      
-      observeEvent(input$scatter_height, {
-        output$plot.ui2 <- renderUI({
-          if(input$box_scatter == "Box plot") {
-            plotlyOutput('boxplot', height = input$scatter_height)
-          } else {
-            plotlyOutput("plotlyScatter1", height = input$scatter_height)
-          }
-        })
-      })
 
-      #output$drc2<-drawDRC(input, values)
-      # observeEvent(c(input$drc2_metric, input$drc2_curves, input$drc2_points, input$drc2_bars,
-      #                input$drc2_facet_row, input$drc2_facet_col, input$drc2_plot_type, input$drc2_xrug,
-      #                input$drc2_yrug), {
-        # values$drc2 = GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
-        #                  points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-        #                  facet_row = input$drc2_facet_row, facet_col = input$drc2_facet_col)
-        #drc2_plotly = ggplotly(drc2)
-        #output$drc2<- renderPlot(drc2)
-        # output$drc2<- renderPlot(
-        #   GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
-        #             points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-        #             facet = input$drc2_facet, bars = input$drc2_bars,
-        #             color = input$drc2_color, plot_type = input$drc2_plot_type,
-        #             output_type = "separate")
-        #   )
-        # 
-        # output$drc2_plotly<- renderPlotly(ggplotly(
-        #   GRdrawDRC(fitData = tables, metric = input$drc2_metric, curves = input$drc2_curves,
-        #             points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-        #             facet = input$drc2_facet, bars = input$drc2_bars,
-        #             color = input$drc2_color, plot_type = input$drc2_plot_type,
-        #             output_type = "separate")
-        #   ))
-      # }, ignoreInit = T, ignoreNULL = T)
-      
-      
-      output$ui <- renderUI({
-        n <- length(input$groupingVars)
-        if (n>0) {
-          code_output_list <- lapply(1:n, function(i) {
-            # name the input choice based on the grouping variable names, prefix with "param_" to aviod conflict
-            codeOutput <- paste("param_", input$groupingVars[i], sep="")
-            verbatimTextOutput(codeOutput)
-            drc_choices = sort(unique(values$GR_table[[ input$groupingVars[i] ]]))
-            selectizeInput(codeOutput, input$groupingVars[i], choices = drc_choices, 
-                           multiple = TRUE, selected = drc_choices[1])
-          })
-        } else code_output_list <- list()
-        # Convert the list to a tagList - this is necessary for the list of items
-        # to display properly.
-        do.call(tagList, code_output_list)
-      })
-      
-      observeEvent(groupingColumns, {
-          updateSelectInput(
-            session, 'pick_var',
-            choices = input$groupingVars
-          )
-      })
-      
-      observeEvent(input$pick_var, {
-        scatter_choices = unique(values$GR_table[[input$pick_var]])
-        updateSelectInput(
-          session, 'x_scatter',
-          choices = scatter_choices,
-          selected = NULL
-        )
-        updateSelectizeInput(
-          session, 'y_scatter',
-          choices = scatter_choices,
-          selected = NULL
-        )
-      })
-
-      output$boxplot <- renderPlotly({
-        box = drawBox(input, values)
-        if(!is.null(box)) {
-          box
-        } else {stop()}
-      })
-    }
-    #=============== data loaded (end) ===================
-  })
-#======= analyzeButton (end) ===========
-  
-  observeEvent(input$analyzeButton, {
-      outVar <- reactive({
-        vars <- all.vars(parse(text=as.character(input$pick_box_x)), functions = FALSE, unique = TRUE)
-        return(vars)
-      })
-      
-      observeEvent(input$factorA, ignoreNULL = FALSE, {
-        picks = sort(input$pick_box_factors)
-        picks1 = setdiff(picks, input$factorA)
-        updateSelectizeInput(
-          session, 'factorB',
-          choices = picks1,
-          selected = input$factorB
-        )
-      })
-      
-      observeEvent(input$factorB, ignoreNULL = FALSE, {
-        picks = sort(input$pick_box_factors)
-        picks2 = setdiff(picks, input$factorB)
-        updateSelectizeInput(
-          session, 'factorA',
-          choices = picks2,
-          selected = input$factorA
-        )
-      })
-      
-      observeEvent(input$pick_box_x, {
-        picks = unique(values$GR_table[[outVar()]])
-        updateSelectizeInput(
-          session, 'pick_box_factors',
-          choices = picks,
-          selected = picks[1:min(10, length(picks))]
-        )
-      })
-      
-      observeEvent(input$box_scatter, {
-        if(!is.null(input$pick_box_x)) {
-          picks = unique(values$GR_table[[outVar()]])
-          updateSelectizeInput(
-            session, 'pick_box_factors',
-            choices = picks,
-            selected = picks[1:min(10, length(picks))]
-          )
-        }
-      })
-      
-      observeEvent(c(input$box_scatter, input$pick_box_x, input$pick_box_factors), {
-        if(!is.null(input$pick_box_x)) {
-          picks = sort(input$pick_box_factors)
-          updateSelectizeInput(
-            session, 'factorA',
-            choices = picks,
-            selected = NULL
-          )
-          updateSelectizeInput(
-            session, 'factorB',
-            choices = picks,
-            selected = NULL
-          )
-        }
-      })
-      
-      observeEvent(input$box_scatter, {
-        observeEvent(input$pick_var, {
-          updateSelectInput(
-            session, 'x_scatter',
-            choices = unique(values$inData[[input$pick_var]]),
-            selected = NULL
-          )
-          updateSelectizeInput(
-            session, 'y_scatter',
-            choices = unique(values$inData[[input$pick_var]]),
-            selected = NULL
-          )
-        })
-      })
-  })
-  
-  observeEvent(c(input$curve_type_grid, input$choiceVar, input$xgroupingVars), {
-    output$'dose-response-grid-main' <- renderLiDoseResponseGrid(
-      input="",
-      xmin = min(log10(values$GR_table$concentration), na.rm = T),
-      xmax = max(log10(values$GR_table$concentration), na.rm = T),
-      factors=c(paste(isolate(input$xgroupingVars),collapse = ' '), isolate(input$choiceVar)),
-      toggle=0,
-      {
-        #input$plot_gr50grid
-        isolate(extractGridData(input, output, values$parameter_table, isolate(input$choiceVar), isolate(input$xgroupingVars)))
-      }
-      )
-  })
-  
-      box_scatter_choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')
-
-      output$scatter <- renderUI({
-        if(input$box_scatter == "Scatter plot") {
-          fluidRow(
-            selectInput('pick_parameter', 'Select parameter', choices = box_scatter_choices),
-            selectInput('pick_var', 'Select variable', choices = input$groupingVars),
-            selectInput('x_scatter', 'Select x-axis value', choices = unique(values$inData[[input$pick_box_x]])),
-            selectizeInput('y_scatter', 'Select y-axis value', choices = unique(values$inData[[input$pick_box_x]])),
-            bsButton('plot_scatter', 'Add', size = 'small'),
-            bsButton('clear', 'Clear', size = 'small')
-          )
-        } else {
-          fluidRow(
-            selectInput('pick_box_y', 'Select parameter', choices = box_scatter_choices),
-            selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
-            selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
-            selectizeInput('pick_box_factors', 'Show/hide data', choices = c(), multiple = T),
-            actionLink('wilcox_panel', 'Compare boxplots'),
-            conditionalPanel(condition = "input.wilcox_panel%2==1",
-                            selectizeInput('factorA', 'Wilcoxon rank-sum test', choices = c(), multiple = T),
-                            selectizeInput('factorB', '', choices = c(), multiple = T),
-                            radioButtons('wilcox_method', label = "",choices = c("One-sided", "Two-sided"), selected = "Two-sided", inline = F),
-            # selectizeInput('factorA', 'Choose factors with which to perform a one-sided Wilcoxon rank-sum test', choices = c(), multiple = T),
-            # selectizeInput('factorB', '', choices = c(), multiple = T),
-            textOutput("wilcox")
-            )
-          )
-        }
-      })
-      
-      observeEvent(c(input$factorA, input$factorB, input$pick_box_y, input$wilcox_method), {
-        wil_data = values$parameter_table
-        if(!is.null(input$factorA) & !is.null(input$factorB)) {
-          rowsA = wil_data[[input$pick_box_x]] %in% input$factorA
-          rowsB = wil_data[[input$pick_box_x]] %in% input$factorB
-          wil_dataA = wil_data[rowsA,input$pick_box_y]
-          wil_dataB = wil_data[rowsB,input$pick_box_y]
-          print(head(wil_dataA))
-          print(head(wil_dataB))
-          wil_less = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
-          wil_greater = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "greater")
-          wil_two_sided = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "two.sided")$p.value
-          wil_one_sided = min(wil_less$p.value,wil_greater$p.value)
-          wil_pval = ifelse(input$wilcox_method == "One-sided", wil_one_sided, wil_two_sided)
-          values$wilcox = prettyNum(wil_pval, digits = 2)
-          output$wilcox = renderText({
-            paste("P-value:", prettyNum(wil_pval, digits = 2))
-          })
-        } else {
-          output$wilcox = renderText({
-            paste("P-value: ")
-          })
-          values$wilcox = NULL
-        }
-      })
-      
-      
-      observeEvent(input$drc2_metric, {
-        if(input$drc2_metric == "GR") {
-          updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
-          updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
-        }
-        if(input$drc2_metric == "rel_cell") {
-          updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
-          updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
-        }
-      })
     observeEvent(input$analyzeButton, {
-      updateSelectizeInput(session, 'choiceVar', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
+      updateSelectizeInput(session, 'choiceVar', choices = input$groupingVars, server = TRUE, 
+                           selected=input$groupingVars[1])
       if (length(input$groupingVars)==1) {
          updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
       } else {

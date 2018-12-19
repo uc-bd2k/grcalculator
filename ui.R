@@ -6,6 +6,8 @@ library(ggplot2)
 library(shinyLi)
 library(formattable)
 library(shiny.semantic)
+library(shinycssloaders)
+
 #library(dplyr)
 #library(readr)
 library(DT)
@@ -15,6 +17,11 @@ library(DT)
 #library(clipr)
 #library(rclipboard)
 #library(aws.s3)
+curve_choices = 1:8
+names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+                  "Traditional sigmoid normal", "Traditional sigmoid low", 
+                  "Traditional sigmoid high", "Traditional biphasic")
+
 
 shinyUI(
   semanticPage(
@@ -261,9 +268,13 @@ shinyUI(
                   div(class = "or"),
                   tags$button(class = "ui button action-button", id = "parameter_table_button", "Parameter values")
                   ),
-              textOutput(outputId = 'input_error'),
-              tags$head(tags$style("#input_error{color: red; font-size: 20px; }")),
-              div(class = "ui basic segment",
+              tags$style(type = "text/css", "#parameter_table_select { display: inline-block; text-align: center; }"),
+              shinyjs::hidden(selectInput(inputId = "parameter_table_select", "Curve",
+                                          choices = curve_choices,
+                                          selected = 1
+              )
+              ),
+              div(class = "ui basic center aligned segment",
                 DT::dataTableOutput("current_table"),
                 tags$style(type='text/css', "#current_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}")
                 # div(class = "ui primary button action-button",
@@ -296,28 +307,33 @@ shinyUI(
                 )
                 ),
                 div(class = "ui basic center aligned segment",
-                  div(class = "ui three column grid",
-                    div(class = "six wide column",
+                  div(class = "ui three column center aligned grid",
+                    div(class = "six wide column", style = "padding: 0px;",
+                    # tags$head(tags$style(type="text/css", "label.control-label, .selectize-control.single{ display: inline-block!important; }")),
+                   # tags$style(type='text/css', 
+                               #".selectize-control.single { vertical-align: middle; display: inline-block;}",
+                    #           ".form-group { vertical-align: middle; display: inline-block;}"),
+                    #p("Grid variables", style = "vertical-align: middle; display: inline-block;"),
                     selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T)#,
-                    #selectizeInput("nplots", label = "Number of plots per page", choices = c(5, 10, 25, 50), selected = 10) 
+                    #selectizeInput("nplots", label = "Number of plots per page", choices = c(5, 10, 25, 50), selected = 10)
                     ),
-                    div(class = "six wide column",
+                    div(class = "four wide column",
                       div(class = "ui primary bottom attached button action-button",
-                          id = "single_button",
+                          id = "single_button", style = "width: 100%; display: inline-block;",
                           "Single plot"
                           ),
                       shinyjs::hidden(
                         div(class = "ui secondary bottom attached button action-button",
-                            id = "grid_button",
+                            id = "grid_button", style = "width: 100%; display: inline-block;",
                             "Grid plot"
                         )#,
                         #sliderInput('height', label = "Plot size (pixels)", min = 200, max = 1000, step = 50, value = 500)
                       )
                         ),
-                    div(class = "four wide column")
+                    div(class = "six wide column")
                   )
                 ),
-                div(class = "ui basic center aligned segment",
+                div(class = "ui basic center aligned segment", id = "grid_segment",
                   div(class = "ui two column grid",
                     div(class = "fourteen wide column",
                 uiOutput("plots_grid", class = "ui doubling four column grid",
@@ -332,11 +348,64 @@ shinyUI(
                       plotOutput("plots_grid_legend", height = "500px")
                       )
                   )
-            )
+                ),
+                shinyjs::hidden(
+                div(class = "ui basic center aligned segment", id = "single_segment",
+                    tags$style(type='text/css', "#single_drc { display: inline-block }"),                    plotlyOutput("single_drc", width = "800px", height = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+                    )
+               )
           ),
           div(class="ui bottom center attached tab segment", `data-tab`="fourth",
-              #includeMarkdown("www/home.md")
-              p("fourth")
+              div(class = "ui basic center aligned segment",
+                  div(class = "ui primary bottom attached button action-button",
+                      id = "scatter_button", style = "width: 50%; display: inline-block;",
+                      "Scatterplot"
+                  ),
+                  shinyjs::hidden(
+                    div(class = "ui secondary bottom attached button action-button",
+                        id = "boxplot_button", style = "width: 50%; display: inline-block;",
+                        "Boxplot"
+                    )
+                  ),
+                  selectInput(inputId = "box_scatter_fit", "Select fit type",
+                              choices = curve_choices,
+                              selected = 1
+                  )
+              ),
+              div(class = "ui two column center aligned grid",
+                div(class = "four wide column",
+          shinyjs::hidden(
+                  div(id = "scatter_options",
+        selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')),
+        selectInput('pick_var', 'Select variable', choices = ""),
+        selectInput('x_scatter', 'Select x-axis value', choices = ""),
+        selectizeInput('y_scatter', 'Select y-axis value', choices = ""),
+        bsButton('plot_scatter', 'Add', size = 'small'),
+        bsButton('clear', 'Clear', size = 'small')
+                  )
+        ),
+            div(id = "boxplot_options",
+        selectInput('pick_box_y', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')),
+        selectInput('pick_box_x', 'Select grouping variable', choices = ""),
+        selectInput('pick_box_point_color', 'Select additional point coloring', choices = ""),
+        selectizeInput('pick_box_factors', 'Show/hide data', choices = c(), multiple = T),
+        actionLink('wilcox_panel', 'Compare boxplots'),
+        conditionalPanel(condition = "input.wilcox_panel%2==1",
+                         selectizeInput('factorA', 'Wilcoxon rank-sum test', choices = c(), multiple = T),
+                         selectizeInput('factorB', '', choices = c(), multiple = T),
+                         radioButtons('wilcox_method', label = "",choices = c("One-sided", "Two-sided"), selected = "Two-sided", inline = F),
+                         textOutput("wilcox")
+        )
+          )
+        ),
+                div(class = "twelve wide column",
+                      ### box/scatter plot
+                  div(class = "ui basic center aligned segment",
+  plotlyOutput('boxplot', height = "500px", width = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"),
+  shinyjs::hidden(plotlyOutput("scatterplot", height = "500px", width = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"))
+                  )
+                )
+              )
           )
         ),
         div(class = "ui bottom attached inverted footer segment", style = "margin: 0px;",
