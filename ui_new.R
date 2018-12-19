@@ -393,7 +393,7 @@ shinyUI(
         conditionalPanel(condition = "input.wilcox_panel%2==1",
                          selectizeInput('factorA', 'Wilcoxon rank-sum test', choices = c(), multiple = T),
                          selectizeInput('factorB', '', choices = c(), multiple = T),
-                         radioButtons('wilcox_method', label = "",choices = c("One-sided", "Two-sided"), selected = "Two-sided", inline = F),
+                         #radioButtons('wilcox_method', label = "",choices = c("One-sided", "Two-sided"), selected = "Two-sided", inline = F),
                          textOutput("wilcox")
         )
           )

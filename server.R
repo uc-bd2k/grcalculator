@@ -13,14 +13,15 @@ library(formattable)
 library(plyr)
 library(shinycssloaders)
 
-source('functions/drawPopup.R')
+#source('functions/drawPopup.R')
 #source('functions/drawDRC.R', local = T)
-source('functions/extractGridData.R')
-source('functions/drawScatter.R', local = T)
-source('functions/drawBox.R')
-source('functions/parseLabel.R')
+#source('functions/extractGridData.R')
+#source('functions/drawScatter.R', local = T)
+#source('functions/drawBox.R')
+#source('functions/parseLabel.R')
 source('functions/check_col_names.R')
 
+######## code for zipping output data into one file ##########
 zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
   dir = tempdir()
   mkdir = paste0("mkdir ", dir, "/", stamp)
@@ -41,6 +42,7 @@ zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
     unlink( paste0("temp",i) )
   }
 }
+######################
 
 ####### javascript code for modals ##########
 about.modal.js = "$('.ui.small.modal')
@@ -135,6 +137,10 @@ shinyServer(function(input, output,session) {
   ##############################
   
   ##### show and hide parts of UI #########
+  ## hide boxplot/scatterplot buttons for now
+  shinyjs::hideElement("scatter_button")
+  shinyjs::hideElement("boxplot_button")
+  
   ### hide example modal when example is picked
   observeEvent(c(input$loadExample, input$loadExampleB), {
     runjs("$('#example_modal').modal('hide')")
@@ -184,8 +190,8 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = F, priority = 1000)
   
   observeEvent(c(input$scatter_button, input$boxplot_button), {
-    shinyjs::toggleElement("scatter_button")
-    shinyjs::toggleElement("boxplot_button")
+    #shinyjs::toggleElement("scatter_button")
+    #shinyjs::toggleElement("boxplot_button")
 
     shinyjs::toggleElement("scatter_options")
     shinyjs::toggleElement("boxplot_options")
@@ -397,6 +403,13 @@ shinyServer(function(input, output,session) {
       updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
     }
   })
+  ### update facets for main plot
+  observeEvent(input$analyzeButton, {
+    updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
+                       server = TRUE, selected=input$groupingVars[1])
+    updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
+                       server = TRUE, selected= "experiment")
+  })
   ###############
   
   ####### render box and scatter plots ##############
@@ -447,19 +460,19 @@ shinyServer(function(input, output,session) {
     updateSelectInput(session, 'pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars)
 
   }, ignoreInit = T, ignoreNULL = T)
-  #### x and y axis options for scatterplot
+  #### Update x and y axis options for scatterplot
   observeEvent(input$pick_var, {
     scatter_choices = unique(values$inData[[input$pick_var]])
     updateSelectInput(session, 'x_scatter', 'Select x-axis value', choices = scatter_choices)
     updateSelectizeInput(session, 'y_scatter', 'Select y-axis value', choices = scatter_choices)
   }, ignoreInit = T, ignoreNULL = T)
-  
+  #### Update x-axis choices for boxplot
   observeEvent(input$pick_box_x, {
     box_choices = unique(values$inData[[input$pick_box_x]])
     updateSelectizeInput(session, 'pick_box_factors', 'Show/hide data', choices = box_choices,
                          selected = box_choices[1:min(10, length(box_choices)) ])
   }, ignoreInit = T, ignoreNULL = T)
-  
+  #### Update boxplot selections for p-value comparison
   observeEvent(c(input$factorA,input$pick_box_factors), {
     picks = sort(input$pick_box_factors)
     picks1 = setdiff(picks, input$factorA)
@@ -482,13 +495,11 @@ shinyServer(function(input, output,session) {
       rowsB = wil_data[[input$pick_box_x]] %in% input$factorB
       wil_dataA = wil_data[rowsA,input$pick_box_y]
       wil_dataB = wil_data[rowsB,input$pick_box_y]
-      print(head(wil_dataA))
-      print(head(wil_dataB))
-      wil_less = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
-      wil_greater = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "greater")
+      #wil_less = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
+      #wil_greater = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "greater")
       wil_two_sided = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "two.sided")$p.value
-      wil_one_sided = min(wil_less$p.value,wil_greater$p.value)
-      wil_pval = ifelse(input$wilcox_method == "One-sided", wil_one_sided, wil_two_sided)
+      #wil_one_sided = min(wil_less$p.value,wil_greater$p.value)
+      wil_pval = wil_two_sided
       values$wilcox = prettyNum(wil_pval, digits = 2)
       output$wilcox = renderText({
         paste("P-value:", prettyNum(wil_pval, digits = 2))
@@ -1057,83 +1068,9 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T)
   ###############
 
-  
-##########################
-  
-      # box_scatter_choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')
-      # 
-      # output$scatter <- renderUI({
-      #   if(input$box_scatter == "Scatter plot") {
-      #     fluidRow(
-      #       selectInput('pick_parameter', 'Select parameter', choices = box_scatter_choices),
-      #       selectInput('pick_var', 'Select variable', choices = input$groupingVars),
-      #       selectInput('x_scatter', 'Select x-axis value', choices = unique(values$inData[[input$pick_box_x]])),
-      #       selectizeInput('y_scatter', 'Select y-axis value', choices = unique(values$inData[[input$pick_box_x]])),
-      #       bsButton('plot_scatter', 'Add', size = 'small'),
-      #       bsButton('clear', 'Clear', size = 'small')
-      #     )
-      #   } else {
-      #     fluidRow(
-      #       selectInput('pick_box_y', 'Select parameter', choices = box_scatter_choices),
-      #       selectInput('pick_box_x', 'Select grouping variable', choices = input$groupingVars),
-      #       selectInput('pick_box_point_color', 'Select additional point coloring', choices = input$groupingVars),
-      #       selectizeInput('pick_box_factors', 'Show/hide data', choices = c(), multiple = T),
-      #       actionLink('wilcox_panel', 'Compare boxplots'),
-      #       conditionalPanel(condition = "input.wilcox_panel%2==1",
-      #                       selectizeInput('factorA', 'Wilcoxon rank-sum test', choices = c(), multiple = T),
-      #                       selectizeInput('factorB', '', choices = c(), multiple = T),
-      #                       radioButtons('wilcox_method', label = "",choices = c("One-sided", "Two-sided"), selected = "Two-sided", inline = F),
-      #       # selectizeInput('factorA', 'Choose factors with which to perform a one-sided Wilcoxon rank-sum test', choices = c(), multiple = T),
-      #       # selectizeInput('factorB', '', choices = c(), multiple = T),
-      #       textOutput("wilcox")
-      #       )
-      #     )
-      #   }
-      # })
-      # 
-      # observeEvent(c(input$factorA, input$factorB, input$pick_box_y, input$wilcox_method), {
-      #   wil_data = values$parameter_table
-      #   if(!is.null(input$factorA) & !is.null(input$factorB)) {
-      #     rowsA = wil_data[[input$pick_box_x]] %in% input$factorA
-      #     rowsB = wil_data[[input$pick_box_x]] %in% input$factorB
-      #     wil_dataA = wil_data[rowsA,input$pick_box_y]
-      #     wil_dataB = wil_data[rowsB,input$pick_box_y]
-      #     print(head(wil_dataA))
-      #     print(head(wil_dataB))
-      #     wil_less = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "less")
-      #     wil_greater = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "greater")
-      #     wil_two_sided = wilcox.test(x = wil_dataA, y = wil_dataB, alternative = "two.sided")$p.value
-      #     wil_one_sided = min(wil_less$p.value,wil_greater$p.value)
-      #     wil_pval = ifelse(input$wilcox_method == "One-sided", wil_one_sided, wil_two_sided)
-      #     values$wilcox = prettyNum(wil_pval, digits = 2)
-      #     output$wilcox = renderText({
-      #       paste("P-value:", prettyNum(wil_pval, digits = 2))
-      #     })
-      #   } else {
-      #     output$wilcox = renderText({
-      #       paste("P-value: ")
-      #     })
-      #     values$wilcox = NULL
-      #   }
-      # })
-      
-
-    observeEvent(input$analyzeButton, {
-      updateSelectizeInput(session, 'choiceVar', choices = input$groupingVars, server = TRUE, 
-                           selected=input$groupingVars[1])
-      if (length(input$groupingVars)==1) {
-         updateSelectizeInput(session, 'xgroupingVars', choices = input$groupingVars, server = TRUE, selected=input$groupingVars[1])
-      } else {
-         updateSelectizeInput(session, 'xgroupingVars', choices = c("none", input$groupingVars), server = TRUE, selected=input$groupingVars[2])
-      }
-      ### update facets for main plot
-      updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), server = TRUE, selected=input$groupingVars[1])
-      updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), server = TRUE, selected= "experiment")
-    })
-
-#================================================
   cancel.onSessionEnded <- session$onSessionEnded(function() {
     graphics.off()
     print('devices off')
   })
+  
 })
