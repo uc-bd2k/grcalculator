@@ -12,6 +12,7 @@ library(DT)
 library(formattable)
 library(plyr)
 library(shinycssloaders)
+library(dplyr)
 
 #source('functions/drawPopup.R')
 #source('functions/drawDRC.R', local = T)
@@ -19,6 +20,7 @@ library(shinycssloaders)
 #source('functions/drawScatter.R', local = T)
 #source('functions/drawBox.R')
 #source('functions/parseLabel.R')
+source('functions/.GRdrawDRC.app.R')
 source('functions/check_col_names.R')
 
 ######## code for zipping output data into one file ##########
@@ -97,7 +99,6 @@ tab.js = "$('.menu .item')
 ;"
 ###############################
 
-
 shinyServer(function(input, output,session) {
   runjs(tab.js)
   # initialize variables for saving various user inputs, parameters, etc.
@@ -108,8 +109,8 @@ shinyServer(function(input, output,session) {
                            clearScatter = F, separator = NULL, div_rate = NULL,
                            init_count = logical(0), input_case = NULL,
                            cell_lines = NULL, div_rate_test = NULL, check_fail = NULL,
-                           current_data = NULL, current_table_button = NULL,
-                           tables = NULL, grid_vs_single = "grid")
+                           current_data = NULL, current_table_button = "gr_table_button",
+                           tables = NULL, grid_vs_single = "grid", filters_loaded = F)
   
   ############ initialize modals ################
   observeEvent(input$import_button, {
@@ -140,27 +141,38 @@ shinyServer(function(input, output,session) {
   ## hide boxplot/scatterplot buttons for now
   shinyjs::hideElement("scatter_button")
   shinyjs::hideElement("boxplot_button")
+  shinyjs::click(id = "single_button")
+  
   
   ### hide example modal when example is picked
   observeEvent(c(input$loadExample, input$loadExampleB), {
     runjs("$('#example_modal').modal('hide')")
   })
+  observeEvent(input$uploadData, {
+    runjs("$('#import_modal').modal('hide')")
+  })
+  
   ### start loader on analyze button first
   observeEvent(input$analyzeButton, {
     shinyjs::addClass(id = "analyze_loader", "active")
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   ### then jump to plots tab
   shinyjs::onclick("analyzeButton", {
-    shinyjs::click(id = "single_button")
-    shinyjs::click(id = "third_top")
+    #shinyjs::click(id = "single_button")
+    shinyjs::show(id = "drc_top")
+    shinyjs::show(id = "comparison_top")
+    shinyjs::show(id = "output_top")
+    shinyjs::click(id = "drc_top")
     shinyjs::removeClass(id = "analyze_loader", "active")
   })
   ### on click of data table tab, "click" current data table button to make sure it shows up
-  shinyjs::onclick("output_tables_top", {
+  shinyjs::onclick("output_top", {
+    print("output tables top")
+    print(values$current_table_button)
     shinyjs::click(values$current_table_button)
   })
   ### on click of drc plot tab, "click" plot button to make sure it shows up
-  shinyjs::onclick("third_top", {
+  shinyjs::onclick("drc_top", {
     # shinyjs::show("ui")
     # shinyjs::show("plot.ui")
     if(values$grid_vs_single == "grid") shinyjs::show("plots_grid")
@@ -216,6 +228,13 @@ shinyServer(function(input, output,session) {
   
   ##### observe input data ##########
   observeEvent(values$inData, {
+    ### reset initial state just in case 
+    shinyjs::hide(id = "output_top")
+    shinyjs::hide(id = "comparison_top")
+    shinyjs::hide(id = "drc_top")
+    values$filters_loaded = F
+    
+    shinyjs::show(id = "input_top")
     shinyjs::click(id = "input_top")
     output$input_table = renderDataTable({ datatable(values$inData,  
             extensions = c('Buttons'
@@ -244,27 +263,31 @@ shinyServer(function(input, output,session) {
   
   
   ######### show correct output data table on button click #############
-  observeEvent(input$input_table_button, {
-    values$current_table_button = "input_table_button"
-    values$current_data = values$inData
-    ## emphasize the selected data table button
-    shinyjs::addClass(id = "input_table_button", class = "green")
-    shinyjs::removeClass(id = "gr_table_button", class = "green")
-    shinyjs::removeClass(id = "parameter_table_button", class = "green")
-  })
+  # observeEvent(input$input_table_button, {
+  #   values$current_table_button = "input_table_button"
+  #   values$current_data = values$inData
+  #   ## emphasize the selected data table button
+  #   shinyjs::addClass(id = "input_table_button", class = "green")
+  #   shinyjs::removeClass(id = "gr_table_button", class = "green")
+  #   shinyjs::removeClass(id = "parameter_table_button", class = "green")
+  # })
   observeEvent(input$gr_table_button, {
     values$current_table_button = "gr_table_button"
-    values$current_data = values$GR_table_show
+    #values$current_data = values$GR_table_show
     ## emphasize the selected data table button
-    shinyjs::removeClass(id = "input_table_button", class = "green")
+    #shinyjs::removeClass(id = "input_table_button", class = "green")
+    shinyjs::hide(id = "parameter_table")
+    shinyjs::show(id = "gr_table")
     shinyjs::addClass(id = "gr_table_button", class = "green")
     shinyjs::removeClass(id = "parameter_table_button", class = "green")
   })
   observeEvent(input$parameter_table_button, {
     values$current_table_button = "parameter_table_button"
-    values$current_data = values$parameter_table_show
+    shinyjs::hide(id = "gr_table")
+    shinyjs::show(id = "parameter_table")
+    #values$current_data = values$parameter_table_show
     ## emphasize the selected data table button
-    shinyjs::removeClass(id = "input_table_button", class = "green")
+    #shinyjs::removeClass(id = "input_table_button", class = "green")
     shinyjs::removeClass(id = "gr_table_button", class = "green")
     shinyjs::addClass(id = "parameter_table_button", class = "green")
   })
@@ -274,48 +297,148 @@ shinyServer(function(input, output,session) {
     shinyjs::show("parameter_table_select")
     pp = input$parameter_table_select
     print(pp)
-    if(pp == "GR sigmoid normal") values$parameter_table = values$parameters_all$GR$sigmoid$normal
-    if(pp == "GR sigmoid low") values$parameter_table = values$parameters_all$GR$sigmoid$low
-    if(pp == "GR sigmoid high") values$parameter_table = values$parameters_all$GR$sigmoid$high
-    if(pp == "GR biphasic") values$parameter_table = values$parameters_all$GR$biphasic$normal
-    if(pp == "Traditional sigmoid normal") values$parameter_table = values$parameters_all$rel_cell$sigmoid$normal
-    if(pp == "Traditional sigmoid low") values$parameter_table = values$parameters_all$rel_cell$sigmoid$low
-    if(pp == "Traditional sigmoid high") values$parameter_table = values$parameters_all$rel_cell$sigmoid$high
-    if(pp == "Traditional biphasic") values$parameter_table = values$parameters_all$rel_cell$biphasic$normal
+    # curve_choices = 1:8
+    # names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+    #                          "Traditional sigmoid normal", "Traditional sigmoid low", 
+    #                          "Traditional sigmoid high", "Traditional biphasic")
+    if(pp == 1) values$parameter_table = values$parameters_all$GR$sigmoid$normal
+    if(pp == 2) values$parameter_table = values$parameters_all$GR$sigmoid$low
+    if(pp == 3) values$parameter_table = values$parameters_all$GR$sigmoid$high
+    if(pp == 4) values$parameter_table = values$parameters_all$GR$biphasic$normal
+    if(pp == 5) values$parameter_table = values$parameters_all$rel_cell$sigmoid$normal
+    if(pp == 6) values$parameter_table = values$parameters_all$rel_cell$sigmoid$low
+    if(pp == 7) values$parameter_table = values$parameters_all$rel_cell$sigmoid$high
+    if(pp == 8) values$parameter_table = values$parameters_all$rel_cell$biphasic$normal
     values$parameter_table_show = values$parameter_table
     values$current_data = values$parameter_table_show
   }, ignoreInit = T, ignoreNULL = T)
   #### render current data table
-  observeEvent(values$current_data, {
-    output$current_table = renderDataTable({ datatable(values$current_data,  extensions = c('Buttons'#, 'FixedHeader'
-                  ),
-     filter = 'top',
-     rownames = F, options = list(
-       dom = 'lBfrtip',
-       buttons = c('copy', 'csv', 'excel', 'colvis'),
-       initComplete = JS(
-         "function(settings, json) {",
-         "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
-         "}"),
-       searchHighlight = TRUE,
-       fixedHeader = TRUE,
-       autoWidth = TRUE))
-    }, server = FALSE)
-    outputOptions(output, "current_table", suspendWhenHidden = FALSE)
-  }, ignoreNULL = F)
+  # observeEvent(values$current_data, {
+  #   output$current_table = renderDataTable({ datatable(values$current_data,  extensions = c('Buttons'#, 'FixedHeader'
+  #                 ),
+  #    filter = 'top',
+  #    rownames = F, options = list(
+  #      dom = 'lBfrtip',
+  #      buttons = c('copy', 'csv', 'excel', 'colvis'),
+  #      initComplete = JS(
+  #        "function(settings, json) {",
+  #        "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
+  #        "}"),
+  #      searchHighlight = TRUE,
+  #      fixedHeader = TRUE,
+  #      autoWidth = TRUE))
+  #   }, server = FALSE)
+  #   outputOptions(output, "current_table", suspendWhenHidden = FALSE)
+  # }, ignoreNULL = F)
+  
+  output$gr_table = renderDataTable({ datatable(values$GR_table_show,  extensions = c('Buttons'#, 'FixedHeader'
+  ),
+  filter = 'top',
+  rownames = F, options = list(
+    dom = 'lBfrtip',
+    buttons = c('copy', 'csv', 'excel', 'colvis'),
+    initComplete = JS(
+      "function(settings, json) {",
+      "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
+      "}"),
+    searchHighlight = TRUE,
+    fixedHeader = TRUE,
+    autoWidth = TRUE))
+  }, server = FALSE)
+  outputOptions(output, "gr_table", suspendWhenHidden = FALSE)
+  
+  output$parameter_table = renderDataTable({ datatable(values$parameter_table_show,  extensions = c('Buttons'#, 'FixedHeader'
+  ),
+  filter = 'top',
+  rownames = F, options = list(
+    dom = 'lBfrtip',
+    buttons = c('copy', 'csv', 'excel', 'colvis'),
+    initComplete = JS(
+      "function(settings, json) {",
+      "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
+      "}"),
+    searchHighlight = TRUE,
+    fixedHeader = TRUE,
+    autoWidth = TRUE))
+  }, server = FALSE)
+  outputOptions(output, "parameter_table", suspendWhenHidden = FALSE)
+  
 ########################
   
+  ### initialize listener for filter boxes
+  toListen_drc <- reactive({
+    if(length(input$groupingVars) > 0) {
+      lapply(1:length(input$groupingVars), function(i) input[[ paste("param_", input$groupingVars[i], sep="") ]] )
+    } else { list() }
+    })
   ###### render main dose-response curve plot(s) ########
-  observeEvent(c(input$nplots, values$tables, values$grid_vs_single,
+  observeEvent(c(input$nplots, values$tables, input$analyzeButton, input$update_button, values$grid_vs_single,
                  input$drc2_color, input$drc2_facet, input$drc2_metric, input$drc2_curves,
                  input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
                  ), {
-                   
+    #### subset the data
+   # all_inputs <- names(input)
+   # print(all_inputs)
+   # exp_list = NULL
+   # n <- length(input$groupingVars)
+   # if (n>0) {
+   #   for(i in 1:n) {
+   #     df_colname = input$groupingVars[i]
+   #     col_name = paste0("param_", input$groupingVars[i])
+   #     if (length(input[[col_name]])>0) {
+   #       sel_values_list <- input[[col_name]]
+   #       #df_colname <- sym(gsub("^param_(.*)","\\1",col_name))
+   #       print(df_colname)
+   #       print(sel_values_list)
+   #       exp_tmp <- values$parameter_table %>% dplyr::filter(!!df_colname %in% sel_values_list) %>% 
+   #         extract2("experiment") %>% as.character() %>% unique()
+   #       exp_list = c(exp_list, exp_tmp)
+   #     }
+   #   }
+   # }
+   # print("exp_list")
+   # exp_list = unique(exp_list)
+   # print(exp_list)
+   all_inputs <- names(input)
+  #if(sum(grepl("param_", all_inputs)) > 0 ) {
+   if(values$filters_loaded && !is.null(values$tables) ) {
+   parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
+   gr_table = GRmetrics::GRgetValues(values$tables)
+   if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
+   if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
+   if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
+   if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
+   if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
+   if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
+   if(length(input$groupingVars) > 0) {
+   for(i in 1:length(input$groupingVars)) {
+     df_colname = sym(input$groupingVars[i])
+     col_name = paste0("param_", input$groupingVars[i])
+     print(col_name)
+     sel_values_list <- input[[col_name]]
+     print(sel_values_list)
+     if(length(sel_values_list) > 0) {
+       parameterTable %<>% dplyr::filter(!!df_colname %in% sel_values_list)
+       gr_table %<>% dplyr::filter(!!df_colname %in% sel_values_list)
+     }
+   }
+   }
+   filtered_drc = values$tables
+   if(input$drc2_curves == "sigmoid") { parameterTable -> parameter_list$sigmoid$normal }
+   if(input$drc2_curves == "sigmoid_high") { parameterTable -> parameter_list$sigmoid$high }
+   if(input$drc2_curves == "sigmoid_low") { parameterTable ->  parameter_list$sigmoid$low }
+   if(input$drc2_curves == "biphasic") { parameterTable ->  parameter_list$biphasic$normal }
+   if(input$drc2_curves == "line") { parameterTable -> parameter_list$sigmoid$normal }
+   if(input$drc2_curves == "none") { parameterTable ->  parameter_list$sigmoid$normal }
+   filtered_drc$assays[[input$drc2_metric]] = parameter_list
+   filtered_drc$metadata$gr_table = gr_table
+   test <<-filtered_drc
+   
     if(values$grid_vs_single == "grid") {
       #### render grid of plots
       output$plots_grid <- renderUI({
         #if(values$grid_vs_single == "grid") {
-          plots = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, 
+          plots = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
                                      curves = input$drc2_curves,
                                 points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                                 facet = input$drc2_facet, bars = input$drc2_bars,
@@ -379,17 +502,40 @@ shinyServer(function(input, output,session) {
     
     ####### render single plot output
     if(values$grid_vs_single == "single") {
-        single_plot = try(.GRdrawDRC.app(fitData = values$tables, metric = input$drc2_metric, 
+        single_plot = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
                                          curves = input$drc2_curves,
                               points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                               facet = "none", bars = input$drc2_bars,
-                              color = input$drc2_color, plot_type = input$drc2_plot_type))
+                              color = input$drc2_color, plot_type = "interactive"))
         if(class(single_plot) != "try-error") {
           output$single_drc = renderPlotly(single_plot$plot)
           outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
         }
     }
+  }
   }, ignoreInit = T, ignoreNULL = T)
+  
+  #### render curve filter options
+  observeEvent(input$analyzeButton, {
+    output$drc_filter <- renderUI({
+      n <- length(input$groupingVars)
+      if (n>0) {
+        code_output_list <- lapply(1:n, function(i) {
+          # name the input choice based on the grouping variable names, prefix with "param_" to aviod conflict
+          codeOutput <- paste("param_", input$groupingVars[i], sep="")
+          verbatimTextOutput(codeOutput)
+          drc_choices = sort(unique(values$GR_table[[ input$groupingVars[i] ]]))
+          selectizeInput(codeOutput, input$groupingVars[i], choices = drc_choices, 
+                         multiple = TRUE, selected = drc_choices[1])
+        })
+      } else code_output_list <- list()
+      # Convert the list to a tagList - this is necessary for the list of items
+      # to display properly.
+      do.call(tagList, code_output_list)
+    })
+    values$filters_loaded = T
+  }, ignoreInit = T, ignoreNULL = T, priority = 1000)
+  
   ###############
   
   #### update plot options for dose-response curve ##########
@@ -646,10 +792,6 @@ shinyServer(function(input, output,session) {
     values$inData <- read_tsv('resources/toy_example_input1_edited.tsv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
-    values$showanalyses=0
-    values$showanalyses_multi=0
-    #if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-    # output$input_table <- DT::renderDataTable(datatable(values$inData, rownames = F))
     # print("load example a done")
   })
   
@@ -662,10 +804,6 @@ shinyServer(function(input, output,session) {
     values$inData <- read_tsv('resources/toy_example_input4_edited.tsv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
-    values$showanalyses=0
-    values$showanalyses_multi=0
-    if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
-    # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
   
   # Code for loading data from file
@@ -673,9 +811,6 @@ shinyServer(function(input, output,session) {
     values$check_fail = NULL
     print('data upload')
     values$data_dl = 'input'
-    values$showanalyses=0
-    values$showanalyses_multi=0
-    if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
     inFile <- input$uploadData
@@ -700,9 +835,6 @@ shinyServer(function(input, output,session) {
     # Somehow add test to make sure that input$url is a proper url/text file
     if(input$url != "") {
       values$data_dl = 'input'
-      values$showanalyses=0
-      values$showanalyses_multi=0
-      if(values$showdata) updateTabsetPanel(session,"tabs",selected="tab-data")
       values$GR_table_show = NULL
       values$parameter_table_show = NULL
       inFile <- input$url
@@ -1065,7 +1197,7 @@ shinyServer(function(input, output,session) {
       err = attributes(values$tables)$condition
       output$input_error = renderText(paste("There was an error in the GR value calculation. Please check that your data is in the correct form.", "\n", err))
     }
-  }, ignoreInit = T, ignoreNULL = T)
+  }, ignoreInit = T, ignoreNULL = T, priority = 100)
   ###############
 
   cancel.onSessionEnded <- session$onSessionEnded(function() {

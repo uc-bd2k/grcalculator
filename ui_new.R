@@ -192,7 +192,7 @@ shinyUI(
         radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff'), inline = F)
         )
     ),
-    div(class = "ui container",
+    #div(class = "ui container",
         div(class = "ui top attached inverted seven item stackable menu",
             div(class = "ui center aligned container",
                 a(class = "item", img(class = "logo", src = "dcic.png"),
@@ -206,15 +206,17 @@ shinyUI(
                   href = "http://sorger.med.harvard.edu" )
             )
         ),
-        div(class = "ui main attached segment",
-          div(class="ui top attached tabular menu", id = "tabs",
+        div(class = "ui main basic segment",
+          div(class="ui top basic secondary pointing menu", id = "tabs",
               a(class="active item", `data-tab`="first", "Getting Started"),
+              shinyjs::hidden(
               a(class="item", `data-tab`="input", "Input data", id = "input_top"),
-              a(class="item", `data-tab`="third", "Dose-Response by Condition", id = "third_top"),
-              a(class="item", `data-tab`="fourth", "GR Metric Comparison"),
-              a(class="item", `data-tab`="output_tables", "Output Tables", id = "output_tables_top")
+              a(class="item", `data-tab`="third", "Dose-Response by Condition", id = "drc_top"),
+              a(class="item", `data-tab`="fourth", "GR Metric Comparison", id = "comparison_top"),
+              a(class="item", `data-tab`="output_tables", "Output Tables", id = "output_top")
+              )
           ),
-          div(class="ui active bottom center attached tab segment", `data-tab`="first",
+          div(class="ui active bottom center basic tab segment", `data-tab`="first",
                   div(class = "ui basic segment",
                       tags$img(src = "images/GRcalculator-logo.jpg", width = "250px",
                                style = "float: right;"),
@@ -225,7 +227,7 @@ shinyUI(
                       )
                   )
               ),
-      div(class="ui bottom center attached tab segment", `data-tab`="input", id = "input_bottom",
+      div(class="ui bottom center basic tab segment", `data-tab`="input", id = "input_bottom",
       div(class = "ui basic center aligned segment",
           div(class = "ui three column grid",
               div(class = "four wide column"),
@@ -260,11 +262,11 @@ shinyUI(
       )
       ),
       
-          div(class="ui bottom center attached tab segment", `data-tab`="output_tables", id = "output_tables_bottom",
-              div(class="ui three top attached buttons",
-                  tags$button(class = "ui button action-button", id = "input_table_button", "Input data"),
-                  div(class = "or"),
-                  tags$button(class = "ui button action-button", id = "gr_table_button", "GR values"),
+          div(class="ui bottom center basic tab segment", `data-tab`="output_tables", id = "output_tables_bottom",
+              div(class="ui two top attached buttons",
+                  # tags$button(class = "ui button action-button", id = "input_table_button", "Input data"),
+                  # div(class = "or"),
+                  tags$button(class = "ui active green button action-button", id = "gr_table_button", "GR values"),
                   div(class = "or"),
                   tags$button(class = "ui button action-button", id = "parameter_table_button", "Parameter values")
                   ),
@@ -274,15 +276,17 @@ shinyUI(
                                           selected = 1
               )
               ),
-              div(class = "ui basic center aligned segment",
-                DT::dataTableOutput("current_table"),
-                tags$style(type='text/css', "#current_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}")
+              div(class = "ui basic center aligned segment", style = "min-height: 500px;",
+                DT::dataTableOutput("gr_table") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"),
+                shinyjs::hidden(DT::dataTableOutput("parameter_table")) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"),
+                tags$style(type='text/css', "#gr_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}"),
+                tags$style(type='text/css', "#parameter_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}")
                 # div(class = "ui primary button action-button",
                 #     downloadLink("download_button", "Download Data File", style = "color: white;")
                 #     )
               )
           ),
-          div(class="ui bottom center attached tab segment", `data-tab`="third",
+          div(class="ui bottom center basic tab segment", `data-tab`="third",
             div(class = "ui basic segment", id = "drc_tabs",
               div(class = "ui black top attached button action-button","Plot options",id="plot_options_button"),
               shinyjs::hidden(
@@ -299,8 +303,8 @@ shinyUI(
                       selectizeInput("drc2_yrug", label = "y-axis rug", choices = c("none") )
                   ),
                   div(class = "five wide column",
-                      selectizeInput("drc2_color", label = "Color", choices = "none"),
-                      selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("interactive", "static"))
+                      selectizeInput("drc2_color", label = "Color", choices = "none")#,
+                      #selectizeInput("drc2_plot_type", label = "Static or interactive plot", choices = c("interactive", "static"))
                   )
                 )
                 )
@@ -333,29 +337,40 @@ shinyUI(
                     div(class = "six wide column")
                   )
                 ),
-                div(class = "ui basic center aligned segment", id = "grid_segment",
                   div(class = "ui two column grid",
-                    div(class = "fourteen wide column",
-                uiOutput("plots_grid", class = "ui doubling four column grid",
-                         style = "min-height: 500px;"),
-                #uiOutput("ui"),
-                uiOutput("plots_grid_pages"),
-                #uiOutput("plot.ui"),
-                tags$button(class = "ui button action-button", id = "download_plot_drc_button", 
-                            "Download Image File")
-                    ),
-                  div(class = "two wide column", id = "plots_grid_legend",
-                      plotOutput("plots_grid_legend", height = "500px")
-                      )
-                  )
-                ),
-                shinyjs::hidden(
-                div(class = "ui basic center aligned segment", id = "single_segment",
-                    tags$style(type='text/css', "#single_drc { display: inline-block }"),                    plotlyOutput("single_drc", width = "800px", height = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
-                    )
-               )
-          ),
-          div(class="ui bottom center attached tab segment", `data-tab`="fourth",
+                    div(class = "three wide column",
+                      div(class = "ui medium header", "Show/hide curves"),
+                      uiOutput("drc_filter"),
+                      tags$button(class = "ui secondary bottom attached button action-button", id = "update_button", "Update Plot")
+                        ),
+                    div(class = "thirteen wide column",
+                        div(class = "ui basic center aligned segment", id = "grid_segment",
+                          div(class = "ui two column grid",
+                            div(class = "twelve wide column",
+                                uiOutput("plots_grid", class = "ui doubling four column grid",
+                                         style = "min-height: 500px;")#,
+                                #uiOutput("plots_grid_pages"),
+                                #tags$button(class = "ui button action-button", id = "download_plot_drc_button", 
+                                #            "Download Image File")
+                            ),
+                            div(class = "four wide column", id = "plots_grid_legend",
+                                plotOutput("plots_grid_legend", height = "500px")
+                            )
+                        )
+                        ),
+                        shinyjs::hidden(
+                          div(class = "ui basic center aligned segment", id = "single_segment",
+                              tags$style(type='text/css', "#single_drc { display: inline-block }"),
+                              div(class = "twelve wide column",
+                                  plotlyOutput("single_drc", width = "800px", height = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+                              )
+                          )
+                        )
+                        )
+                
+          )
+),
+          div(class="ui bottom center basic tab segment", `data-tab`="fourth",
               div(class = "ui basic center aligned segment",
                   div(class = "ui primary bottom attached button action-button",
                       id = "scatter_button", style = "width: 50%; display: inline-block;",
@@ -418,5 +433,5 @@ shinyUI(
             )
         )
     )
-    )
+    #)
   )
