@@ -3,7 +3,6 @@ library(shinyjs)
 library(shinyBS)
 library(plotly)
 library(ggplot2)
-library(shinyLi)
 library(formattable)
 library(shiny.semantic)
 library(shinycssloaders)
@@ -65,24 +64,40 @@ shinyUI(
     ),
     div(class = "ui small modal", id = "import_modal",
         div(class = "ui basic segment",
-        div(class = "twelve wide column",
-            p("Step 1: Choose GR calculation method"),
+          div(class = "twelve wide column",
+            h3("Do you have live and dead cell counts?"),
+              div(class = "ui buttons",
+                  div(class = "ui toggle button action-button", id = 'no_dead', "No"),
+                  div(class = "or"),
+                  div(class = "ui toggle button action-button", id = 'yes_dead', "Yes")
+              )
+          ),
+          br(),
+          shinyjs::hidden(
+          div(class = "twelve wide column", id = "static_vs_toxic_req",
+                  includeMarkdown("www/static_vs_toxic_req.md")
+          ) ),
+          
+          shinyjs::hidden(
+        div(class = "twelve wide column", `data-toggle` = "buttons", id = "calc_method_buttons",
+              h3("Do you have initial (time 0) cell counts?"),
             div(class = "ui buttons",
-                div(class = "ui positive button action-button", id = 'initialCellCount', "Initial cell counts (default)"),
+                div(class = "ui positive button action-button", id = 'initialCellCount', "Yes, I do"),
                 div(class = "or"),
-                div(class = "ui button action-button", id = 'divisionRate', "Cell division times")
+                div(class = "ui button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
+            )
             )
         ),
         br(),
-        div(class = "twelve wide column",
-            shinyjs::hidden(
-              p("Use cell line division times (instead of initial cell count) to calculate GR values.", id = "div_rate_desc"),
-              p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.", id = "init_count_desc")
-            )
-        ),br(),
+        # shinyjs::hidden(
+        # div(class = "twelve wide column", id = "calc_method_desc",
+        #       p("Use cell line division times (instead of initial cell count) to calculate GR values.", id = "div_rate_desc"),
+        #       p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.", id = "init_count_desc")
+        #     )
+        # ),
         shinyjs::hidden( 
         div(class = "twelve wide column", `data-toggle` = "buttons", id = "case_buttons",
-            p("Step 2: Choose input file format"),
+            h3("Choose input file format"),
             div(class = "ui buttons",
             div(class = "ui positive button action-button", id = "caseA", "Case A (multiple cell counts per row)", value = "caseA"),
             div(class = "or"),
@@ -91,7 +106,7 @@ shinyUI(
             )
         )
       ),
-        div(class = "twelve wide column",
+      shinyjs::hidden(  div(class = "twelve wide column", id = "case_desc",
          shinyjs::hidden(
            div(id = "caseA_div_desc",
                includeMarkdown("www/caseA_div.md")
@@ -106,10 +121,11 @@ shinyUI(
                includeMarkdown("www/caseB_div.md")
            )
           )
+         )
          ),br(),
         shinyjs::hidden(
         div(class = "twelve wide column", `data-toggle` = "buttons", id = "comma_tab_buttons",
-            p("Step 3: Select file type"),
+            h3("Select file type"),
             div(class = "ui buttons",
                 div(class = "ui positive button action-button", id = "comma_input",
                     "comma-separated (.csv)", value = "comma"),
@@ -120,7 +136,7 @@ shinyUI(
           )
         ), br(),
       shinyjs::hidden(
-        div(id = 'upload_button', p("Step 4: Upload data file"),
+        div(id = 'upload_button', p("Upload data file"),
       div(class = "ui two column grid",
       div(class = "row",
         div(class = "six wide column",
@@ -192,7 +208,7 @@ shinyUI(
         radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff'), inline = F)
         )
     ),
-    #div(class = "ui container",
+    div(class = "ui container",
         div(class = "ui top attached inverted seven item stackable menu",
             div(class = "ui center aligned container",
                 a(class = "item", img(class = "logo", src = "dcic.png"),
@@ -217,16 +233,23 @@ shinyUI(
               )
           ),
           div(class="ui active bottom center basic tab segment", `data-tab`="first",
+              div(class = "ui two column grid",
+                div(class = "ten wide column",
                   div(class = "ui basic segment",
-                      tags$img(src = "images/GRcalculator-logo.jpg", width = "250px",
-                               style = "float: right;"),
-                      includeMarkdown("www/GettingStarted.md"),
-                      div(class = "ui bottom attached buttons",
-      tags$button(class="ui teal button action-button", "Start", id = "start_button"),
-      tags$button(class = "ui grey button action-button", id = "instructions_button", "Instructions")
+                      includeMarkdown("www/GettingStarted.md")
+                  )
+                ),
+              div(class = "six wide column",
+                  div(class = "ui basic center aligned segment",
+                      tags$img(src = "images/GRcalculator-logo.jpg", width = "250px", style = "float: center;"),
+                      div(class = "ui attached buttons",
+                      tags$button(class = "ui grey button action-button", id = "instructions_button", "Instructions"),
+                          tags$button(class="ui teal labeled icon button action-button", tags$i(class="right arrow icon"), "Start", id = "start_button")
                       )
                   )
-              ),
+                )
+              )
+          ),
       div(class="ui bottom center basic tab segment", `data-tab`="input", id = "input_bottom",
       div(class = "ui basic center aligned segment",
           div(class = "ui three column grid",
@@ -288,7 +311,13 @@ shinyUI(
           ),
           div(class="ui bottom center basic tab segment", `data-tab`="third",
             div(class = "ui basic segment", id = "drc_tabs",
-              div(class = "ui black top attached button action-button","Plot options",id="plot_options_button"),
+                h4(class="ui horizontal divider header",
+                   div(class = "item action-button shiny-bound-input", id = "plot_options_button",
+                       a(class = "action-button", 
+                         hidden(uiicon("caret down", id = "caret_down")),
+                         uiicon(type = "caret right", id = "caret_right"),
+                         "Plot options", uiicon(type = "info_circle")), href = "#")
+                   ),
               shinyjs::hidden(
               div( id = "plot_options",
                 div(class = "ui stackable three column grid",
@@ -433,5 +462,5 @@ shinyUI(
             )
         )
     )
-    #)
+    )
   )

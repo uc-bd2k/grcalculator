@@ -110,7 +110,9 @@ shinyServer(function(input, output,session) {
                            init_count = logical(0), input_case = NULL,
                            cell_lines = NULL, div_rate_test = NULL, check_fail = NULL,
                            current_data = NULL, current_table_button = "gr_table_button",
-                           tables = NULL, grid_vs_single = "grid", filters_loaded = F)
+                           no_dead = NULL, yes_dead = NULL,
+                           tables = NULL, grid_vs_single = "grid", filters_loaded = F,
+                           group_vars = NULL)
   
   ############ initialize modals ################
   observeEvent(input$import_button, {
@@ -142,7 +144,6 @@ shinyServer(function(input, output,session) {
   shinyjs::hideElement("scatter_button")
   shinyjs::hideElement("boxplot_button")
   shinyjs::click(id = "single_button")
-  
   
   ### hide example modal when example is picked
   observeEvent(c(input$loadExample, input$loadExampleB), {
@@ -181,6 +182,8 @@ shinyServer(function(input, output,session) {
   })
   shinyjs::onclick("plot_options_button", {
     shinyjs::toggle(id = "plot_options", animType = "slide")
+    toggleElement(id = "caret_down")
+    toggleElement(id = "caret_right")
   })
   ### set which table to show in data table tab
   shinyjs::click(id = "input_table_button")
@@ -237,9 +240,9 @@ shinyServer(function(input, output,session) {
     shinyjs::show(id = "input_top")
     shinyjs::click(id = "input_top")
     output$input_table = renderDataTable({ datatable(values$inData,  
-            extensions = c('Buttons'
-            #, 'FixedHeader'
-                  ),
+       extensions = c('Buttons'
+                      #, 'FixedHeader'
+       ),
        filter = 'top',
        rownames = F, options = list(
          dom = 'lBfrtip',
@@ -251,7 +254,8 @@ shinyServer(function(input, output,session) {
          searchHighlight = TRUE,
          fixedHeader = TRUE,
          autoWidth = TRUE))
-  }, server = FALSE)
+    }, server = FALSE)
+    
     outputOptions(output, "input_table", suspendWhenHidden = FALSE)
   }, ignoreInit = T, ignoreNULL = T)
   
@@ -371,84 +375,59 @@ shinyServer(function(input, output,session) {
       lapply(1:length(input$groupingVars), function(i) input[[ paste("param_", input$groupingVars[i], sep="") ]] )
     } else { list() }
     })
-  ###### render main dose-response curve plot(s) ########
-  observeEvent(c(input$nplots, values$tables, input$analyzeButton, input$update_button, values$grid_vs_single,
+  ###### begin render main dose-response curve plot(s) ########
+  observeEvent(c(input$nplots, values$tables, input$analyzeButton, input$update_button, 
+                 values$grid_vs_single,
                  input$drc2_color, input$drc2_facet, input$drc2_metric, input$drc2_curves,
                  input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
                  ), {
-    #### subset the data
-   # all_inputs <- names(input)
-   # print(all_inputs)
-   # exp_list = NULL
-   # n <- length(input$groupingVars)
-   # if (n>0) {
-   #   for(i in 1:n) {
-   #     df_colname = input$groupingVars[i]
-   #     col_name = paste0("param_", input$groupingVars[i])
-   #     if (length(input[[col_name]])>0) {
-   #       sel_values_list <- input[[col_name]]
-   #       #df_colname <- sym(gsub("^param_(.*)","\\1",col_name))
-   #       print(df_colname)
-   #       print(sel_values_list)
-   #       exp_tmp <- values$parameter_table %>% dplyr::filter(!!df_colname %in% sel_values_list) %>% 
-   #         extract2("experiment") %>% as.character() %>% unique()
-   #       exp_list = c(exp_list, exp_tmp)
-   #     }
-   #   }
-   # }
-   # print("exp_list")
-   # exp_list = unique(exp_list)
-   # print(exp_list)
-   all_inputs <- names(input)
-  #if(sum(grepl("param_", all_inputs)) > 0 ) {
-   if(values$filters_loaded && !is.null(values$tables) ) {
-   parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
-   gr_table = GRmetrics::GRgetValues(values$tables)
-   if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
-   if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
-   if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
-   if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
-   if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
-   if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
-   if(length(input$groupingVars) > 0) {
-   for(i in 1:length(input$groupingVars)) {
-     df_colname = sym(input$groupingVars[i])
-     col_name = paste0("param_", input$groupingVars[i])
-     print(col_name)
-     sel_values_list <- input[[col_name]]
-     print(sel_values_list)
-     if(length(sel_values_list) > 0) {
-       parameterTable %<>% dplyr::filter(!!df_colname %in% sel_values_list)
-       gr_table %<>% dplyr::filter(!!df_colname %in% sel_values_list)
-     }
-   }
-   }
-   filtered_drc = values$tables
-   if(input$drc2_curves == "sigmoid") { parameterTable -> parameter_list$sigmoid$normal }
-   if(input$drc2_curves == "sigmoid_high") { parameterTable -> parameter_list$sigmoid$high }
-   if(input$drc2_curves == "sigmoid_low") { parameterTable ->  parameter_list$sigmoid$low }
-   if(input$drc2_curves == "biphasic") { parameterTable ->  parameter_list$biphasic$normal }
-   if(input$drc2_curves == "line") { parameterTable -> parameter_list$sigmoid$normal }
-   if(input$drc2_curves == "none") { parameterTable ->  parameter_list$sigmoid$normal }
-   filtered_drc$assays[[input$drc2_metric]] = parameter_list
-   filtered_drc$metadata$gr_table = gr_table
-   test <<-filtered_drc
-   
-    if(values$grid_vs_single == "grid") {
-      #### render grid of plots
-      output$plots_grid <- renderUI({
-        #if(values$grid_vs_single == "grid") {
-          plots = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
-                                     curves = input$drc2_curves,
-                                points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                                facet = input$drc2_facet, bars = input$drc2_bars,
-                                color = input$drc2_color, plot_type = "static",
-                                output_type = "separate"))
-        if(class(plots) != "try-error") {
-          legend = plots$legend
-          plots = plots$plot
-          output$plots_grid_legend = renderPlot(legend)
+    if(identical(values$input_case,"static_vs_toxic")) {
+      filtered_drc = values$tables
+      n <- length(input$groupingVars)
+      if (n>0) {
+        filter_vars = paste0("param_", input$groupingVars)
+        filter_list = lapply(filter_vars, function(x) input[[x]] )
+        names(filter_list) = input$groupingVars
+        print(filter_list)
+        for(i in 1:length(filter_list)) {
+          vals = filter_list[[i]]
+          df_colname = sym(names(filter_list)[i])
+          print(head(filtered_drc$metadata$gr_table))
+          if(length(vals) > 0) {
+            if(vals %in% filtered_drc$metadata$gr_table[[df_colname]]) {
+              filtered_drc$assays$GR$static %<>% 
+                dplyr::filter(!!df_colname %in% vals)
+              filtered_drc$assays$GR$toxic %<>% 
+                dplyr::filter(!!df_colname %in% vals)
+              filtered_drc$metadata$gr_table %<>%
+                dplyr::filter(!!df_colname %in% vals)
+            }
+          }
         }
+      }
+      print(dim(filtered_drc$assays$GR$toxic))
+      ######### begin render plots for static vs toxic case ##########
+      if(identical(values$grid_vs_single, "single")) {
+        shinyjs::click(id = "grid_button")
+      }
+      if(identical(values$grid_vs_single, "grid")) {
+        #### render grid of plots
+        output$plots_grid <- renderUI({
+          plots = try(GRdrawDRCV2(fitData = filtered_drc, 
+                                  #metric = input$drc2_metric, 
+                                  curves = input$drc2_curves,
+                                  points = input$drc2_points, 
+                                  #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                  #facet = input$drc2_facet, 
+                                  #bars = input$drc2_bars,
+                                  #color = input$drc2_color, 
+                                  plot_type = "static",
+                                  output_type = "separate"))
+          if(class(plots) != "try-error") {
+            legend = plots$legend
+            plots = plots$plot
+            output$plots_grid_legend = renderPlot(legend)
+          }
           for (i in 1:length(plots)) {
             local({
               n <- i # Make local variable
@@ -478,12 +457,12 @@ shinyServer(function(input, output,session) {
             )
           })
           do.call(tagList, cols)
-        #} else {
-        #  div(class = "ui basic segment")
-        #}
-      })
-      #### render page buttons
-      output$plots_grid_pages = renderUI({
+          #} else {
+          #  div(class = "ui basic segment")
+          #}
+        })
+        #### render page buttons
+        output$plots_grid_pages = renderUI({
           n_pages = 10
           div(class = "ui pagination menu", id = "drc_pages",
               tags$a(class = "item", type = "firstItem", "«"),
@@ -494,29 +473,168 @@ shinyServer(function(input, output,session) {
               tags$a(class = "item", type = "nextItem", "⟩"),
               tags$a(class = "item", type = "lastItem", "»")
           )
-        #} #else {
+          #} #else {
           #div(class = "ui basic segment")
-        #}
-      })
-    }         
-    
-    ####### render single plot output
-    if(values$grid_vs_single == "single") {
-        single_plot = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
-                                         curves = input$drc2_curves,
-                              points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                              facet = "none", bars = input$drc2_bars,
-                              color = input$drc2_color, plot_type = "interactive"))
-        if(class(single_plot) != "try-error") {
-          output$single_drc = renderPlotly(single_plot$plot)
-          outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
+          #}
+        })
+      }
+      ######## end render plots for static vs toxic case #######
+    } else if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      ######### begin render plots for case A and case B ##########
+      # all_inputs <- names(input)
+      # print(all_inputs)
+      # exp_list = NULL
+      # n <- length(input$groupingVars)
+      # if (n>0) {
+      #   for(i in 1:n) {
+      #     df_colname = input$groupingVars[i]
+      #     col_name = paste0("param_", input$groupingVars[i])
+      #     if (length(input[[col_name]])>0) {
+      #       sel_values_list <- input[[col_name]]
+      #       #df_colname <- sym(gsub("^param_(.*)","\\1",col_name))
+      #       print(df_colname)
+      #       print(sel_values_list)
+      #       exp_tmp <- values$parameter_table %>% dplyr::filter(!!df_colname %in% sel_values_list) %>%
+      #         extract2("experiment") %>% as.character() %>% unique()
+      #       exp_list = c(exp_list, exp_tmp)
+      #     }
+      #   }
+      # }
+      # print("exp_list")
+      # exp_list = unique(exp_list)
+      # print(exp_list)
+      #if(sum(grepl("param_", all_inputs)) > 0 ) {
+      if(values$filters_loaded && !is.null(values$tables) ) {
+        parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
+        gr_table = GRmetrics::GRgetValues(values$tables)
+        if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
+        if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
+        if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
+        if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
+        if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
+        if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
+        if(length(input$groupingVars) > 0) {
+          for(i in 1:length(input$groupingVars)) {
+            df_colname = sym(input$groupingVars[i])
+            col_name = paste0("param_", input$groupingVars[i])
+            print(col_name)
+            sel_values_list <- input[[col_name]]
+            print(sel_values_list)
+            if(length(sel_values_list) > 0) {
+              parameterTable %<>% dplyr::filter(!!df_colname %in% sel_values_list)
+              gr_table %<>% dplyr::filter(!!df_colname %in% sel_values_list)
+            }
+          }
         }
+        filtered_drc = values$tables
+        if(input$drc2_curves == "sigmoid") { parameterTable -> parameter_list$sigmoid$normal }
+        if(input$drc2_curves == "sigmoid_high") { parameterTable -> parameter_list$sigmoid$high }
+        if(input$drc2_curves == "sigmoid_low") { parameterTable ->  parameter_list$sigmoid$low }
+        if(input$drc2_curves == "biphasic") { parameterTable ->  parameter_list$biphasic$normal }
+        if(input$drc2_curves == "line") { parameterTable -> parameter_list$sigmoid$normal }
+        if(input$drc2_curves == "none") { parameterTable ->  parameter_list$sigmoid$normal }
+        filtered_drc$assays[[input$drc2_metric]] = parameter_list
+        filtered_drc$metadata$gr_table = gr_table
+        test <<-filtered_drc
+        
+        if(values$grid_vs_single == "grid") {
+          #### render grid of plots
+          output$plots_grid <- renderUI({
+            #if(values$grid_vs_single == "grid") {
+            plots = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
+                                       curves = input$drc2_curves,
+                                       points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                       facet = input$drc2_facet, bars = input$drc2_bars,
+                                       color = input$drc2_color, plot_type = "static",
+                                       output_type = "separate"))
+            if(class(plots) != "try-error") {
+              legend = plots$legend
+              plots = plots$plot
+              output$plots_grid_legend = renderPlot(legend)
+            }
+            for (i in 1:length(plots)) {
+              local({
+                n <- i # Make local variable
+                plotname <- paste("plot", n , sep="")
+                output[[plotname]] <- renderPlotly({
+                  ggplotly(plots[[n]])
+                })
+              })
+            }
+            #col.width <- round(16/input$ncol) # Calculate bootstrap column width
+            col.width <- 300
+            #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
+            #n.row = input$nrow
+            #n.col = input$ncol
+            cnter <<- 0 # Counter variable
+            #n_pages =  ceiling(n_total_plots/input$nplots)
+            
+            # Create row with columns
+            #rows  <- lapply(1:n.row,function(row.num){
+            cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
+              cnter    <<- cnter + 1
+              plotname <- paste("plot", cnter, sep="")
+              div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px;") , 
+                  plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+                  # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
+                  #tags$p(paste0("plot", i))
+              )
+            })
+            do.call(tagList, cols)
+            #} else {
+            #  div(class = "ui basic segment")
+            #}
+          })
+          #### render page buttons
+          output$plots_grid_pages = renderUI({
+            n_pages = 10
+            div(class = "ui pagination menu", id = "drc_pages",
+                tags$a(class = "item", type = "firstItem", "«"),
+                tags$a(class = "item", type = "prevItem", "⟨"),
+                tags$a(class = "active item", 1, id = "drc_page1"),
+                lapply(2:n_pages, function(x) tags$a(class = "item", x, 
+                                                     id = paste0("drc_page", x)) ),
+                tags$a(class = "item", type = "nextItem", "⟩"),
+                tags$a(class = "item", type = "lastItem", "»")
+            )
+            #} #else {
+            #div(class = "ui basic segment")
+            #}
+          })
+        }
+        
+        ####### render single plot output
+        if(values$grid_vs_single == "single") {
+          single_plot = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
+                                           curves = input$drc2_curves,
+                                           points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                           facet = "none", bars = input$drc2_bars,
+                                           color = input$drc2_color, plot_type = "interactive"))
+          if(class(single_plot) != "try-error") {
+            output$single_drc = renderPlotly(single_plot$plot)
+            outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
+          }
+        }
+      }
     }
-  }
   }, ignoreInit = T, ignoreNULL = T)
-  
+  ######### end render main dose-response curve plot(s) ########
+  #### make a list of the variables to filter over
+  filter_params = reactiveValues()
+  observeEvent(reactiveValuesToList(input), {
+    if(length(values$group_vars) > 0) {
+      for(x in values$group_vars) {
+        print(x)
+        filter_params[[x]] = input[[paste0("param_", x)]]
+      }
+    }
+  })
+  observeEvent(reactiveValuesToList(filter_params), {
+    print("filteringgggg")
+  })
   #### render curve filter options
   observeEvent(input$analyzeButton, {
+    values$group_vars = input$groupingVars
     output$drc_filter <- renderUI({
       n <- length(input$groupingVars)
       if (n>0) {
@@ -533,6 +651,7 @@ shinyServer(function(input, output,session) {
       # to display properly.
       do.call(tagList, code_output_list)
     })
+    
     values$filters_loaded = T
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   
@@ -572,25 +691,36 @@ shinyServer(function(input, output,session) {
     if(input$box_scatter_fit %in% c(4, 8)) values$box_scatter_fit = "biphasic"
   }, ignoreInit = F, ignoreNULL = T, priority = 1000)
   ### render boxplot
-  observeEvent(c(values$tables, input$pick_box_x, input$pick_box_y, input$pick_box_point_color, 
-                 input$pick_box_factors, input$factorA, input$factorB, input$wilcox_method), {
-                   output$boxplot <- renderPlotly({
-                     plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric, fit = values$box_scatter_fit,
-                                      parameter = input$pick_box_y, groupVariable = input$pick_box_x,
-                                      pointColor = input$pick_box_point_color, 
-                                      factors = input$pick_box_factors, wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
-                     if(class(plot) != "try-error") return(plot)
-                   })
+  observeEvent(c(values$tables, input$pick_box_x, input$pick_box_y,
+                 input$pick_box_point_color, input$pick_box_factors, 
+                 input$factorA, input$factorB, input$wilcox_method), {
+   output$boxplot <- renderPlotly({
+     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric, 
+                  fit = values$box_scatter_fit,
+                  parameter = input$pick_box_y, groupVariable = input$pick_box_x,
+                  pointColor = input$pick_box_point_color, 
+                  factors = input$pick_box_factors, 
+                  wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
+     if(class(plot) != "try-error") return(plot)
+     } else {
+       return(ggplot())
+     }
+   })
                    outputOptions(output, "boxplot", suspendWhenHidden = FALSE)
                  }, ignoreInit = T, ignoreNULL = T)
   
   #### render scatterplot
   observeEvent(c(values$tables, input$pick_parameter, input$x_scatter, input$y_scatter), {
     output$scatterplot <- renderPlotly({
-      plot = try(GRscatter(fitData = values$tables, metric = input$pick_parameter, xaxis = input$x_scatter,
-                           yaxis = input$y_scatter, # curves = "sigmoid",
-                           plotly = TRUE))
-      if(class(plot) != "try-error") return(plot)
+      if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+        plot = try(GRscatter(fitData = values$tables, metric = input$pick_parameter, xaxis = input$x_scatter,
+                             yaxis = input$y_scatter, # curves = "sigmoid",
+                             plotly = TRUE))
+        if(class(plot) != "try-error") return(plot)
+      } else {
+        return(ggplot())
+      }
     })
     outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
   }, ignoreInit = T, ignoreNULL = T)
@@ -706,9 +836,28 @@ shinyServer(function(input, output,session) {
   #   do.call(what = "showElement", args = args)
   # }, ignoreInit = T, priority = -1)
   
+  # Code to show division rate vs. initial cell count choice buttons
+  observeEvent(input$no_dead, {
+    hideElement(id = "static_vs_toxic_req", anim = F)
+    hideElement(id = "comma_tab_buttons", anim = F)
+    hideElement(id = "case_desc", anim = F)
+    hideElement(id = "case_buttons", anim = F)
+    showElement(id = "calc_method_buttons", anim = F)
+    showElement(id = "calc_method_desc", anim = F)
+  }, ignoreInit = T)
+  # Code to show GR static vs. toxic columns needed
+  observeEvent(input$yes_dead, {
+    hideElement(id = "calc_method_buttons", anim = F)
+    hideElement(id = "case_buttons", anim = F)
+    hideElement(id = "calc_method_desc", anim = F)
+    hideElement(id = "case_desc", anim = F)
+    showElement(id = "static_vs_toxic_req", anim = F)
+    showElement(id = "comma_tab_buttons", anim = F)
+  }, ignoreInit = T)
   # Code to show caseA/caseB choice buttons
   observeEvent(c(input$divisionRate, input$initialCellCount), {
     showElement(id = "case_buttons", anim = T, animType = "fade")
+    showElement(id = "case_desc", anim = F)
   }, ignoreInit = T)
   # Code to show csv/tsv choice buttons
   observeEvent(c(input$caseA, input$caseB), {
@@ -729,6 +878,20 @@ shinyServer(function(input, output,session) {
     values$separator = "\t"
     showElement(id = "upload_button", anim = T, animType = "fade")
     showElement(id = "advanced_input", anim = T, animType = "fade")
+  }, ignoreInit = T)
+  # Code to make import live/dead cell buttons work like radiobuttons
+  observeEvent(input$no_dead, {
+    addClass(id = "no_dead", class = "active")
+    removeClass(id = "yes_dead", class = "active")
+    values$yes_dead = F
+    values$no_dead = T
+  }, ignoreInit = T)
+  observeEvent(input$yes_dead, {
+    addClass(id = "yes_dead", class = "active")
+    removeClass(id = "no_dead", class = "active")
+    values$yes_dead = T
+    values$no_dead = F
+    values$input_case = "static_vs_toxic"
   }, ignoreInit = T)
   # Code to make import dialog initial cell count/division rate buttons work like radiobuttons
   observeEvent(input$initialCellCount, {
@@ -893,91 +1056,97 @@ shinyServer(function(input, output,session) {
   
   ############ Code for checking input and providing feedback to user ###############
   observeEvent(c(input$uploadData,input$fetchURLData), {
-    # Check input table column names for slight misspellings
-    caseA_cols = c("cell_line","treatment", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
-    caseB_cols = c("cell_line","treatment", "concentration", "cell_count", "time")
-    if(values$input_case == "A" & !values$div_rate) {cols = caseA_cols}
-    if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:5]}
-    if(values$input_case == "B") {cols = caseB_cols}
     
-    print(cols)
-    incols = colnames(values$inData)
-    print(incols)
-    # run check_col_names function to search for slightly misnamed columns
-    # if all of the necessary column names are not in the input data and
-    # there are extra columns
-    if(length(intersect(cols, incols)) != length(cols) & length(incols) >= length(cols)) {
-      sug = check_col_names(incols, cols)
-      print(sug)
-      print(dim(sug))
-      if(dim(sug)[1] > 0) {
-        message = NULL
-        for(i in 1:dim(sug)[1]) {
-          message = paste(message, 'Column ', '<font color="navy"><b>', sug[i,1], '</b><font color="black">', ' is missing.', ' It may be misnamed as ', '<b><font color="maroon">', sug[i,2], '</b><font color="black">', '.', '<br>','<br>', sep = '')
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      # Check input table column names for slight misspellings
+      caseA_cols = c("cell_line","treatment", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
+      caseB_cols = c("cell_line","treatment", "concentration", "cell_count", "time")
+      if(values$input_case == "A" & !values$div_rate) {cols = caseA_cols}
+      if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:5]}
+      if(values$input_case == "B") {cols = caseB_cols}
+      
+      print(cols)
+      incols = colnames(values$inData)
+      print(incols)
+      # run check_col_names function to search for slightly misnamed columns
+      # if all of the necessary column names are not in the input data and
+      # there are extra columns
+      if(length(intersect(cols, incols)) != length(cols) & length(incols) >= length(cols)) {
+        sug = check_col_names(incols, cols)
+        print(sug)
+        print(dim(sug))
+        if(dim(sug)[1] > 0) {
+          message = NULL
+          for(i in 1:dim(sug)[1]) {
+            message = paste(message, 'Column ', '<font color="navy"><b>', sug[i,1], '</b><font color="black">', ' is missing.', ' It may be misnamed as ', '<b><font color="maroon">', sug[i,2], '</b><font color="black">', '.', '<br>','<br>', sep = '')
+          }
+          output$col_suggest = renderText(message)
         }
-        output$col_suggest = renderText(message)
       }
-    }
-    
-    # Check that necessary columns of input table exist, check other table properties
-    # Display output table showing pass/fail for these properties
-    df = data.frame(matrix(nrow = length(cols), ncol = 2), check.names = F)
-    colnames(df) = c("Necessary column", "pass/fail")
-    for(i in 1:length(cols)) {
-      df[i,1]= cols[i]
-      df[i,2] = ifelse(cols[i] %in% colnames(values$inData), T, F)
-    }
-    print('df')
-    print(df)
-    formats = list(`pass/fail` = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
-                                           x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No"))))
-    
-    df2 = data.frame(matrix(nrow = 1, ncol = 2), check.names = F)
-    colnames(df2) = c("check", "pass/fail")
-    if(values$input_case == "A") {
-      df2[1,1] = "Concentration values are all greater than 0"
-      df2[1,2] = ifelse (sum(values$inData$concentration <= 0) == 0, T, F)
-    } else {
-      df2[1,1] = "Concentration values are all non-negative"
-      df2[1,2] = ifelse (sum(values$inData$concentration < 0) == 0, T, F)
-      df2[2,1] = "Rows with concentration equal to zero (control cell counts)"
-      df2[2,2] = ifelse (sum(values$inData$concentration == 0) > 0, T, F)
-      df2[2,1] = "Rows with time equal to zero (initial cell counts)"
-      df2[2,2] = ifelse (sum(values$inData$time == 0) > 0, T, F)
-    }
-    check1_fail = F
-    check2_fail = F
-    if(sum(!df[,2]) > 0) {
-      check1_fail = T
-    } else {
+      
+      # Check that necessary columns of input table exist, check other table properties
+      # Display output table showing pass/fail for these properties
+      df = data.frame(matrix(nrow = length(cols), ncol = 2), check.names = F)
+      colnames(df) = c("Necessary column", "pass/fail")
+      for(i in 1:length(cols)) {
+        df[i,1]= cols[i]
+        df[i,2] = ifelse(cols[i] %in% colnames(values$inData), T, F)
+      }
+      print('df')
+      print(df)
+      formats = list(`pass/fail` = formatter("span", style = x ~ style(color = ifelse(x, "green", "red")),
+                                             x ~ icontext(ifelse(x, "ok", "remove"), ifelse(x, "Yes", "No"))))
+      
+      df2 = data.frame(matrix(nrow = 1, ncol = 2), check.names = F)
+      colnames(df2) = c("check", "pass/fail")
+      if(values$input_case == "A") {
+        df2[1,1] = "Concentration values are all greater than 0"
+        df2[1,2] = ifelse (sum(values$inData$concentration <= 0) == 0, T, F)
+      } else {
+        df2[1,1] = "Concentration values are all non-negative"
+        df2[1,2] = ifelse (sum(values$inData$concentration < 0) == 0, T, F)
+        df2[2,1] = "Rows with concentration equal to zero (control cell counts)"
+        df2[2,2] = ifelse (sum(values$inData$concentration == 0) > 0, T, F)
+        df2[2,1] = "Rows with time equal to zero (initial cell counts)"
+        df2[2,2] = ifelse (sum(values$inData$time == 0) > 0, T, F)
+      }
       check1_fail = F
-    }
-    output$input_check = renderFormattable({
-      formattable(df, formats, align = "l")
-    })
-    if(sum(!df2[,2]) > 0) {
-      check2_fail = T
-    } else {
       check2_fail = F
-    }
-    output$input_check2 = renderFormattable({
-      formattable(df2, formats, align = "l")
-    })
-    # If either checks fail, take note
-    if(sum(check1_fail, check2_fail) > 0) {
-      values$check_fail = T
-    } else {
-      values$check_fail = F
+      if(sum(!df[,2]) > 0) {
+        check1_fail = T
+      } else {
+        check1_fail = F
+      }
+      output$input_check = renderFormattable({
+        formattable(df, formats, align = "l")
+      })
+      if(sum(!df2[,2]) > 0) {
+        check2_fail = T
+      } else {
+        check2_fail = F
+      }
+      output$input_check2 = renderFormattable({
+        formattable(df2, formats, align = "l")
+      })
+      # If either checks fail, take note
+      if(sum(check1_fail, check2_fail) > 0) {
+        values$check_fail = T
+      } else {
+        values$check_fail = F
+      }
     }
   }, ignoreInit = T)
   
   # Code for updating grouping variable selection boxes
   observeEvent(values$inData, {
+    static_vs_toxic_params = c("concentration", "cell_count", "cell_count__ctrl", 
+                               "cell_count__time0", "dead_count", "dead_count__ctrl",
+                               "dead_count__time0", "time")
     caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
     caseB_params = c('concentration', 'cell_count', 'time')
     time0_param = 'cell_count__time0'
     div_params = c('treatment_duration', 'division_time')
-    if(values$input_case == "A") {
+    if(identical(values$input_case, "A")) {
         delete_cols = which(colnames(values$inData) %in% c(caseA_params, time0_param, div_params))
         updateSelectizeInput(
           session, 'groupingVars',
@@ -985,8 +1154,18 @@ shinyServer(function(input, output,session) {
           selected = colnames(values$inData)[-delete_cols],
           options = c()
         )
-    } else {
+    }
+    if(identical(values$input_case, "B")) {
       delete_cols = which(colnames(values$inData) %in% c(caseB_params, div_params))
+      updateSelectizeInput(
+        session, 'groupingVars',
+        choices = colnames(values$inData)[-delete_cols],
+        selected = colnames(values$inData)[-delete_cols],
+        options = c()
+      )
+    }
+    if(identical(values$input_case, "static_vs_toxic")) {
+      delete_cols = which(colnames(values$inData) %in% static_vs_toxic_params)
       updateSelectizeInput(
         session, 'groupingVars',
         choices = colnames(values$inData)[-delete_cols],
@@ -1200,6 +1379,8 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T, priority = 100)
   ###############
 
+  #### allow large files to be uploaded
+  options(shiny.maxRequestSize=100*1024^2)
   cancel.onSessionEnded <- session$onSessionEnded(function() {
     graphics.off()
     print('devices off')

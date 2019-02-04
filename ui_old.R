@@ -3,7 +3,7 @@ library(shinyjs)
 library(shinyBS)
 library(plotly)
 library(ggplot2)
-library(shinyLi)
+#library(shinyLi)
 library(formattable)
 
 
