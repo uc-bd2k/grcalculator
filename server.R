@@ -97,6 +97,12 @@ $('#download_plot_drc_modal').modal('show')
 tab.js = "$('.menu .item')
   .tab()
 ;"
+
+### code for file upload button
+upload.js = "$('#divUpload').on('click', function() {
+  $('#uploadData').click();
+});"
+
 ###############################
 
 shinyServer(function(input, output,session) {
@@ -114,6 +120,8 @@ shinyServer(function(input, output,session) {
                            tables = NULL, grid_vs_single = "grid", filters_loaded = F,
                            group_vars = NULL)
   
+  ### file upload button
+  runjs(upload.js)
   ############ initialize modals ################
   observeEvent(input$import_button, {
     runjs(import.modal.js)
@@ -838,86 +846,85 @@ shinyServer(function(input, output,session) {
   
   # Code to show division rate vs. initial cell count choice buttons
   observeEvent(input$no_dead, {
+    hideElement(id = "upload_button", anim = F)
+    hideElement(id = "advanced_input", anim = F)
     hideElement(id = "static_vs_toxic_req", anim = F)
     hideElement(id = "comma_tab_buttons", anim = F)
     hideElement(id = "case_desc", anim = F)
     hideElement(id = "case_buttons", anim = F)
     showElement(id = "calc_method_buttons", anim = F)
     showElement(id = "calc_method_desc", anim = F)
+    addClass(id = "no_dead", class = "active")
+    removeClass(id = "yes_dead", class = "active")
+    values$yes_dead = F
+    values$no_dead = T
   }, ignoreInit = T)
   # Code to show GR static vs. toxic columns needed
   observeEvent(input$yes_dead, {
+    hideElement(id = "upload_button", anim = F)
+    hideElement(id = "advanced_input", anim = F)
     hideElement(id = "calc_method_buttons", anim = F)
     hideElement(id = "case_buttons", anim = F)
     hideElement(id = "calc_method_desc", anim = F)
     hideElement(id = "case_desc", anim = F)
     showElement(id = "static_vs_toxic_req", anim = F)
     showElement(id = "comma_tab_buttons", anim = F)
-  }, ignoreInit = T)
-  # Code to show caseA/caseB choice buttons
-  observeEvent(c(input$divisionRate, input$initialCellCount), {
-    showElement(id = "case_buttons", anim = T, animType = "fade")
-    showElement(id = "case_desc", anim = F)
-  }, ignoreInit = T)
-  # Code to show csv/tsv choice buttons
-  observeEvent(c(input$caseA, input$caseB), {
-    showElement(id = "comma_tab_buttons", anim = T, animType = "fade")
-  }, ignoreInit = T)
-
-  # Code to make import dialog csv/tsv buttons work like radiobuttons
-  observeEvent(input$comma_input, {
-    addClass(id = "comma_input", class = "active")
-    removeClass(id = "tab_input", class = "active")
-    values$separator = ","
-    showElement(id = "upload_button", anim = T, animType = "fade")
-    showElement(id = "advanced_input", anim = T, animType = "fade")
-  }, ignoreInit = T)
-  observeEvent(input$tab_input, {
-    addClass(id = "tab_input", class = "active")
-    removeClass(id = "comma_input", class = "active")
-    values$separator = "\t"
-    showElement(id = "upload_button", anim = T, animType = "fade")
-    showElement(id = "advanced_input", anim = T, animType = "fade")
-  }, ignoreInit = T)
-  # Code to make import live/dead cell buttons work like radiobuttons
-  observeEvent(input$no_dead, {
-    addClass(id = "no_dead", class = "active")
-    removeClass(id = "yes_dead", class = "active")
-    values$yes_dead = F
-    values$no_dead = T
-  }, ignoreInit = T)
-  observeEvent(input$yes_dead, {
     addClass(id = "yes_dead", class = "active")
     removeClass(id = "no_dead", class = "active")
     values$yes_dead = T
     values$no_dead = F
-    values$input_case = "static_vs_toxic"
   }, ignoreInit = T)
-  # Code to make import dialog initial cell count/division rate buttons work like radiobuttons
+  # Code to show caseA/caseB choice buttons
   observeEvent(input$initialCellCount, {
-    addClass(id = "initialCellCount", class = "active")
     removeClass(id = "divisionRate", class = "active")
+    addClass(id = "initialCellCount", class = "active")
+    hideElement(id = "static_vs_toxic_req", anim = F)
+    hideElement(id = "comma_tab_buttons", anim = F)
+    showElement(id = "case_buttons", anim = F)
+    showElement(id = "case_desc", anim = F)
     values$div_rate = F
     values$init_count = T
   }, ignoreInit = T)
   observeEvent(input$divisionRate, {
-    addClass(id = "divisionRate", class = "active")
     removeClass(id = "initialCellCount", class = "active")
+    addClass(id = "divisionRate", class = "active")
+    hideElement(id = "static_vs_toxic_req", anim = F)
+    hideElement(id = "comma_tab_buttons", anim = F)
+    showElement(id = "case_buttons", anim = F)
+    showElement(id = "case_desc", anim = F)
     values$div_rate = T
     values$init_count = F
   }, ignoreInit = T)
-  # Code to make import dialog caseA/caseB buttons work like radiobuttons
+  # Code to show csv/tsv choice buttons
   observeEvent(input$caseA, {
-    addClass(id = "caseA", class = "active")
     removeClass(id = "caseB", class = "active")
+    addClass(id = "caseA", class = "active")
+    showElement(id = "comma_tab_buttons", anim = F)
     values$input_case = "A"
   }, ignoreInit = T)
   observeEvent(input$caseB, {
-    addClass(id = "caseB", class = "active")
-    removeClass(id = "caseA", class = "active")
+    removeClass(id = "caseB", class = "active")
+    addClass(id = "caseA", class = "active")
+    showElement(id = "comma_tab_buttons", anim = F)
     values$input_case = "B"
   }, ignoreInit = T)
 
+  # Code to make import dialog csv/tsv buttons work like radiobuttons
+  observeEvent(input$comma_input, {
+    removeClass(id = "tab_input", class = "active")
+    addClass(id = "comma_input", class = "active")
+    values$separator = ","
+    showElement(id = "upload_button", anim = F)
+    #showElement(id = "advanced_input", anim = F)
+  }, ignoreInit = T)
+  observeEvent(input$tab_input, {
+    removeClass(id = "comma_input", class = "active")
+    addClass(id = "tab_input", class = "active")
+    values$separator = "\t"
+    showElement(id = "upload_button", anim = F)
+    #showElement(id = "advanced_input", anim = F)
+  }, ignoreInit = T)
+  
   # Code for closing input dialog when data is uploaded
 # observeEvent(c(input$uploadData,input$fetchURLData), {
 #   #observeEvent(values$check_fail, {

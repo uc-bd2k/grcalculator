@@ -6,11 +6,13 @@ For offline computation, analysis, and visualization, see the Bioconductor R pac
 
 ### References
 
-Hafner M*, Niepel M*, Chung M, Sorger PK. (2016) Growth rate inhibition metrics correct for confounders in measuring sensitivity to cancer drugs. <em>Nat Methods</em>, vol. 13, 521–7. doi: <a href="http://dx.doi.org/10.1038/nmeth.3853">10.1038/nmeth.3853</a>.
+[1] Hafner M\*, Niepel M\*, Chung M, Sorger PK. (2016) Growth rate inhibition metrics correct for confounders in measuring sensitivity to cancer drugs. <em>Nat Methods</em>, vol. 13, 521–7. doi: <a href="http://dx.doi.org/10.1038/nmeth.3853">10.1038/nmeth.3853</a>.
 
-Hafner M, Niepel M, Sorger PK. (2017) Alternative drug sensitivity metrics improve preclinical cancer pharmacogenomics. <em>Nat Biotech</em>,  vol. 35(6), 500-2. doi: <a href="http://dx.doi.org/10.1038/nbt.3882">10.1038/nbt.3882</a>.
+[2] Hafner M, Niepel M, Sorger PK. (2017) Alternative drug sensitivity metrics improve preclinical cancer pharmacogenomics. <em>Nat Biotech</em>,  vol. 35(6), 500-2. doi: <a href="http://dx.doi.org/10.1038/nbt.3882">10.1038/nbt.3882</a>.
 
-Clark N*, Hafner M*, Kouril M, Williams EH, Muhlich J, Pilarczyk M, Niepel M, Sorger PK, Medvedovic M. (2017) GRcalculator: an online tool for calculating and mining dose-response data. <em>BMC Cancer</em><a href="https://doi.org/10.1186/s12885-017-3689-3">10.1186/s12885-017-3689-3</a>
+[3] Clark N\*, Hafner M\*, Kouril M, Williams EH, Muhlich J, Pilarczyk M, Niepel M, Sorger PK, Medvedovic M. (2017) GRcalculator: an online tool for calculating and mining dose-response data. <em>BMC Cancer</em>. doi: <a href="https://doi.org/10.1186/s12885-017-3689-3">10.1186/s12885-017-3689-3</a>
+
+*These authors contributed equally to this work.
 
 ### Website design and online tool development
 
@@ -18,8 +20,6 @@ Nick Clark<sup>1</sup>, Marc Hafner<sup>2</sup>, Michal Kouril<sup>1</sup>, Mari
 
 <sup>1</sup> LINCS-BD2K Data Coordination and Integration Center;
 <sup>2</sup> HMS LINCS Center, Harvard Medical School
-
-*These authors contributed equally to this work.
 
 ## Related web-tools
 

@@ -82,9 +82,9 @@ shinyUI(
         div(class = "twelve wide column", `data-toggle` = "buttons", id = "calc_method_buttons",
               h3("Do you have initial (time 0) cell counts?"),
             div(class = "ui buttons",
-                div(class = "ui positive button action-button", id = 'initialCellCount', "Yes, I do"),
+                div(class = "ui toggle button action-button", id = 'initialCellCount', "Yes, I do"),
                 div(class = "or"),
-                div(class = "ui button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
+                div(class = "ui toggle button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
             )
             )
         ),
@@ -99,10 +99,9 @@ shinyUI(
         div(class = "twelve wide column", `data-toggle` = "buttons", id = "case_buttons",
             h3("Choose input file format"),
             div(class = "ui buttons",
-            div(class = "ui positive button action-button", id = "caseA", "Case A (multiple cell counts per row)", value = "caseA"),
+            div(class = "ui toggle button action-button", id = "caseA", "Case A (multiple cell counts per row)"),
             div(class = "or"),
-            div(class = "ui button action-button", id = "caseB", "Case B (one cell count per row)", 
-                value = "caseB")
+            div(class = "ui toggle button action-button", id = "caseB", "Case B (one cell count per row)")
             )
         )
       ),
@@ -127,22 +126,25 @@ shinyUI(
         div(class = "twelve wide column", `data-toggle` = "buttons", id = "comma_tab_buttons",
             h3("Select file type"),
             div(class = "ui buttons",
-                div(class = "ui positive button action-button", id = "comma_input",
+                div(class = "ui toggle button action-button", id = "comma_input",
                     "comma-separated (.csv)", value = "comma"),
                 div(class = "or"),
-                div(class = "ui button action-button", id = "tab_input", 
+                div(class = "ui toggle button action-button", id = "tab_input", 
                     "tab-separated (.tsv)", value = "tab")
             )
           )
         ), br(),
       shinyjs::hidden(
-        div(id = 'upload_button', p("Upload data file"),
+        div(id = 'upload_button', h3("Upload data file"),
       div(class = "ui two column grid",
       div(class = "row",
         div(class = "six wide column",
           tags$b('From your computer:'),
-          br(), br(),
-          tags$input(type="file", id = "uploadData"),
+          br(),
+          div(class="ui icon button", id="divUpload",
+            tags$i(class="cloud icon"), "Choose file..."
+          ),
+          tags$input(type="file", id = "uploadData", style="display: none"),
           #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
           # The following tag allows for the same file path to be used twice in a row for upload
           tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });')
@@ -188,13 +190,13 @@ shinyUI(
                 div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
         )
     )),
-    div(class = "ui mini modal", id = 'start_modal', 
+    div(class = "ui small modal", id = 'start_modal', 
         div(class = "ui basic center aligned segment",
             div(class = "ui buttons", "Load example:", style = "vertical-align: middle;",
                 div(class = "ui positive button action-button", id = 'example_button',
                     'Load example data'),
                 div(class = "or"),
-                div(class = "ui button action-button", id = 'import_button', 'Import data')
+                div(class = "ui button action-button", id = 'import_button', 'Import your own data')
             )
         )),
     div(class = "ui small modal", id = 'instructions_modal', 
@@ -233,22 +235,15 @@ shinyUI(
               )
           ),
           div(class="ui active bottom center basic tab segment", `data-tab`="first",
-              div(class = "ui two column grid",
-                div(class = "ten wide column",
                   div(class = "ui basic segment",
-                      includeMarkdown("www/GettingStarted.md")
-                  )
-                ),
-              div(class = "six wide column",
-                  div(class = "ui basic center aligned segment",
-                      tags$img(src = "images/GRcalculator-logo.jpg", width = "250px", style = "float: center;"),
-                      div(class = "ui attached buttons",
-                      tags$button(class = "ui grey button action-button", id = "instructions_button", "Instructions"),
+                      tags$img(src = "images/GRcalculator-logo_v2.png", width = "250px", style = "float: left;"),
+                      includeMarkdown("www/GettingStarted.md"),
+                      div(class = "ui bottom attached buttons",
+                          tags$button(class = "ui grey button action-button", id = "instructions_button", "Instructions"),
                           tags$button(class="ui teal labeled icon button action-button", tags$i(class="right arrow icon"), "Start", id = "start_button")
                       )
-                  )
                 )
-              )
+              
           ),
       div(class="ui bottom center basic tab segment", `data-tab`="input", id = "input_bottom",
       div(class = "ui basic center aligned segment",
