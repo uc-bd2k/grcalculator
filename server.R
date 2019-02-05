@@ -49,47 +49,47 @@ zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
 ####### javascript code for modals ##########
 about.modal.js = "$('.ui.small.modal')
 .modal({
-    blurring: true
+    blurring: false
 })
 $('#about_modal').modal('show')
 ;"
 contact.modal.js = "$('.ui.mini.modal')
 .modal({
-    blurring: true
+    blurring: false
 })
 $('#contact_modal').modal('show')
 ;"
 import.modal.js = "$('.ui.small.modal')
 .modal({
-    blurring: true
+    blurring: false
 })
 $('#import_modal').modal('show')
 ;"
 
 example.modal.js = "$('.ui.mini.modal')
 .modal({
-    blurring: true
+    blurring: false
 })
 $('#example_modal').modal('show')
 ;"
 
 start.modal.js = "$('.ui.mini.modal')
 .modal({
-    blurring: true
+    blurring: false
 })
 $('#start_modal').modal('show')
 ;"
 
 instructions.modal.js = "$('.ui.small.modal')
 .modal({
-    blurring: true
+    blurring: false
 })
 $('#instructions_modal').modal('show')
 ;"
 
 download_plot_drc.modal.js = "$('.ui.small.modal')
 .modal({
-    blurring: true
+    blurring: false
 })
 $('#download_plot_drc_modal').modal('show')
 ;"
@@ -103,10 +103,17 @@ upload.js = "$('#divUpload').on('click', function() {
   $('#uploadData').click();
 });"
 
+# ### code for accordion
+
+accordion.js = "$('.ui.accordion')
+.accordion()
+;"
+
 ###############################
 
 shinyServer(function(input, output,session) {
   runjs(tab.js)
+  runjs(accordion.js)
   # initialize variables for saving various user inputs, parameters, etc.
   values <- reactiveValues(inData=NULL, GR_table = NULL, GR_table_show = NULL, 
                            parameter_table = NULL, parameter_table_show = NULL, 
@@ -122,13 +129,228 @@ shinyServer(function(input, output,session) {
   
   ### file upload button
   runjs(upload.js)
-  ############ initialize modals ################
+  
+  ########### code for input breadcrumbs ################
   observeEvent(input$import_button, {
-    runjs(import.modal.js)
+    #runjs(import.modal.js)
+    hideElement(id = "bc1_content")
+    hideElement(id = "bc1_text")
+    showElement(id = "bc1_link")
+    showElement(id = "bc2_upload")
+    showElement(id = "bc2_upload_text")
+    removeClass(id = "bc1", class = "active")
+    addClass(id = "bc2_upload", class = "active")
+    showElement(id = "bc2_upload_content")
   })
   observeEvent(input$example_button, {
-    runjs(example.modal.js)
+    #runjs(example.modal.js)
+    hideElement(id = "bc1_content")
+    hideElement(id = "bc1_text")
+    showElement(id = "bc1_link")
+    showElement(id = "bc2_ex")
+    showElement(id = "bc2_ex")
+    removeClass(id = "bc1", class = "active")
+    addClass(id = "bc2_ex", class = "active")
+    showElement(id = "bc2_ex_content")
   })
+  observeEvent(input$bc1_link, {
+    #runjs(import.modal.js)
+    addClass(id = "bc1", class = "active")
+    hideElement(id = "bc2_upload_content")
+    hideElement(id = "bc2_ex_content")
+    hideElement(id = "bc2_ex_link")
+    hideElement(id = "bc2_upload_link")
+    hideElement(id = "bc2_upload")
+    hideElement(id = "bc2_ex")
+    hideElement(id = "bc3")
+    hideElement(id = "bc3_link")
+    hideElement(id = "bc3_content")
+    hideElement(id = "bc1_link")
+    showElement(id = "bc1_text")
+    showElement(id = "bc1_content")
+  })
+  observeEvent(input$bc2_upload_link, {
+    addClass(id = "bc2_upload", class = "active")
+    hideElement(id = "bc3_content")
+    hideElement(id = "bc3")
+    hideElement(id = "bc3_link")
+    hideElement(id = "bc2_upload_link")
+    showElement(id = "bc2_upload_text")
+    showElement(id = "bc2_upload_content")
+  })
+  
+  # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
+  observeEvent(values$div_rate, {
+    if(values$div_rate) {
+      showElement(id = "div_rate_desc")
+      hideElement(id = "init_count_desc")
+    }
+  }, ignoreInit = T)
+  observeEvent(values$init_count, {
+    if(values$init_count) {
+      showElement(id = "init_count_desc")
+      hideElement(id = "div_rate_desc")
+    }
+  }, ignoreInit = T)
+  
+  # Code to show/hide descriptions of necessary columns for input
+  observeEvent(c(values$input_case, values$div_rate, values$init_count), {
+    if(!is.null(values$input_case) & !is.null(values$div_rate)) {
+      div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
+      div_loc = NULL
+      if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
+      if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
+      if(values$input_case == "B" & !values$div_rate) { div_loc = 3 }
+      if(values$input_case == "B" & values$div_rate) { div_loc = 4 }
+      # Hide descriptions
+      for(i in 1:4) {
+        args = list(id = div_names[i])
+        if(i != div_loc) {
+          do.call(what = "hideElement", args = args)
+        }
+      }
+      # Show relevant description
+      args = list(id = div_names[div_loc])
+      do.call(what = "showElement", args = args)
+    }
+  }, ignoreInit = T)
+  # observeEvent(values$input_case, {
+  #   div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
+  #   if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
+  #   if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
+  #   if(values$input_case == "C" & !values$div_rate) { div_loc = 3 }
+  #   if(values$input_case == "C" & !values$div_rate) { div_loc = 4 }
+  #   # show correct description
+  #   args = list(id = div_names[div_loc])
+  #   do.call(what = "showElement", args = args)
+  # }, ignoreInit = T, priority = -1)
+  
+  # Code to show division rate vs. initial cell count choice buttons
+  observeEvent(input$no_dead, {
+    hideElement(id = "upload_button", anim = F)
+    hideElement(id = "advanced_input", anim = F)
+    hideElement(id = "static_vs_toxic_req", anim = F)
+    hideElement(id = "comma_tab_buttons", anim = F)
+    hideElement(id = "case_desc", anim = F)
+    hideElement(id = "case_buttons", anim = F)
+    showElement(id = "calc_method_buttons", anim = F)
+    showElement(id = "calc_method_desc", anim = F)
+    addClass(id = "no_dead", class = "active")
+    removeClass(id = "yes_dead", class = "active")
+    values$yes_dead = F
+    values$no_dead = T
+  }, ignoreInit = T)
+  # Code to show GR static vs. toxic columns needed
+  observeEvent(input$yes_dead, {
+    hideElement(id = "upload_button", anim = F)
+    hideElement(id = "advanced_input", anim = F)
+    hideElement(id = "calc_method_buttons", anim = F)
+    hideElement(id = "case_buttons", anim = F)
+    hideElement(id = "calc_method_desc", anim = F)
+    hideElement(id = "case_desc", anim = F)
+    showElement(id = "static_vs_toxic_req", anim = F)
+    showElement(id = "comma_tab_buttons", anim = F)
+    addClass(id = "yes_dead", class = "active")
+    removeClass(id = "no_dead", class = "active")
+    values$yes_dead = T
+    values$no_dead = F
+  }, ignoreInit = T)
+  # Code to show caseA/caseB choice buttons
+  observeEvent(input$initialCellCount, {
+    hideElement(id = "bc2_upload_content")
+    hideElement(id = "bc2_upload_text")
+    showElement(id = "bc2_upload_link")
+    showElement(id = "bc3_content")
+    removeClass(id = "bc2_upload", class = "active")
+    addClass(id = "bc3", class = "active")
+    showElement(id = "bc3", anim = F)
+    
+    removeClass(id = "divisionRate", class = "active")
+    addClass(id = "initialCellCount", class = "active")
+    hideElement(id = "static_vs_toxic_req", anim = F)
+    hideElement(id = "comma_tab_buttons", anim = F)
+    showElement(id = "case_buttons", anim = F)
+    showElement(id = "case_desc", anim = F)
+    values$div_rate = F
+    values$init_count = T
+  }, ignoreInit = T)
+  observeEvent(input$divisionRate, {
+    hideElement(id = "bc2_upload_content")
+    hideElement(id = "bc2_upload_text")
+    showElement(id = "bc2_upload_link")
+    showElement(id = "bc3_content")
+    removeClass(id = "bc2_upload", class = "active")
+    addClass(id = "bc3", class = "active")
+    showElement(id = "bc3", anim = F)
+    
+    removeClass(id = "initialCellCount", class = "active")
+    addClass(id = "divisionRate", class = "active")
+    hideElement(id = "static_vs_toxic_req", anim = F)
+    hideElement(id = "comma_tab_buttons", anim = F)
+    showElement(id = "case_buttons", anim = F)
+    showElement(id = "case_desc", anim = F)
+    values$div_rate = T
+    values$init_count = F
+  }, ignoreInit = T)
+  # Code to show csv/tsv choice buttons
+  observeEvent(input$caseA, {
+    removeClass(id = "caseB", class = "active")
+    addClass(id = "caseA", class = "active")
+    showElement(id = "comma_tab_buttons", anim = F)
+    values$input_case = "A"
+  }, ignoreInit = T)
+  observeEvent(input$caseB, {
+    removeClass(id = "caseA", class = "active")
+    addClass(id = "caseB", class = "active")
+    showElement(id = "comma_tab_buttons", anim = F)
+    values$input_case = "B"
+  }, ignoreInit = T)
+  
+  # Code to make import dialog csv/tsv buttons work like radiobuttons
+  observeEvent(input$comma_input, {
+    removeClass(id = "tab_input", class = "active")
+    addClass(id = "comma_input", class = "active")
+    values$separator = ","
+    showElement(id = "upload_button", anim = F)
+    #showElement(id = "advanced_input", anim = F)
+  }, ignoreInit = T)
+  observeEvent(input$tab_input, {
+    removeClass(id = "comma_input", class = "active")
+    addClass(id = "tab_input", class = "active")
+    values$separator = "\t"
+    showElement(id = "upload_button", anim = F)
+    #showElement(id = "advanced_input", anim = F)
+  }, ignoreInit = T)
+  
+  # Code for closing input dialog when data is uploaded
+  # observeEvent(c(input$uploadData,input$fetchURLData), {
+  #   #observeEvent(values$check_fail, {
+  #     toggleModal(session, 'import_button', toggle = "close")
+  #   }, ignoreInit = T)
+  observeEvent(c(input$loadExample, input$loadExampleB),{
+    toggleModal(session, 'example_modal', toggle = "close")
+  }, ignoreInit = T)
+  observeEvent(input$div_rate_input,{
+    toggleModal(session, 'importDialog_div', toggle = "close")
+  }, ignoreInit = T)
+  
+  # Open division rate input dialog if necessary
+  #  observeEvent(c(input$uploadData, input$fetchURLData), {
+  observeEvent(values$check_fail, {
+    toggleModal(session, 'import_button', toggle = "close")
+    if(!values$check_fail) {
+      if(values$div_rate) {
+        toggleModal(session, 'importDialog_div', toggle = "open")
+      }
+    } else {
+      toggleModal(session, 'import_fail', toggle = "open")
+    }
+  }, ignoreInit = T)
+  ####################
+  
+  
+  
+  ############ initialize modals ################
   observeEvent(input$instructions_button, {
     runjs(instructions.modal.js)
   })
@@ -140,7 +362,9 @@ shinyServer(function(input, output,session) {
     runjs(about.modal.js)
   })
   observeEvent(input$start_button, {
-    runjs(start.modal.js)
+    #runjs(start.modal.js)
+    shinyjs::show(id = "input_top")
+    shinyjs::click(id = "input_top")
   })
   observeEvent(input$contact, {
     runjs(contact.modal.js)
@@ -245,8 +469,8 @@ shinyServer(function(input, output,session) {
     shinyjs::hide(id = "drc_top")
     values$filters_loaded = F
     
-    shinyjs::show(id = "input_top")
-    shinyjs::click(id = "input_top")
+    # shinyjs::show(id = "input_top")
+    # shinyjs::click(id = "input_top")
     output$input_table = renderDataTable({ datatable(values$inData,  
        extensions = c('Buttons'
                       #, 'FixedHeader'
@@ -268,9 +492,9 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T)
   
   # Code for showing/hiding advanced analysis options
-  observeEvent(values$inData, {
-    showElement(id = "advanced_analysis", anim = T, animType = "fade")
-  })
+  # observeEvent(values$inData, {
+  #   showElement(id = "advanced_analysis", anim = T, animType = "fade")
+  # })
   ####################
   
   
@@ -796,160 +1020,6 @@ shinyServer(function(input, output,session) {
     }
   })
   ###############
-  
-  ########### code for input modals ################
-  # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
-  observeEvent(values$div_rate, {
-    if(values$div_rate) {
-      showElement(id = "div_rate_desc")
-      hideElement(id = "init_count_desc")
-    }
-  }, ignoreInit = T)
-  observeEvent(values$init_count, {
-    if(values$init_count) {
-      showElement(id = "init_count_desc")
-      hideElement(id = "div_rate_desc")
-    }
-  }, ignoreInit = T)
-  
-  # Code to show/hide descriptions of necessary columns for input
-  observeEvent(c(values$input_case, values$div_rate, values$init_count), {
-    if(!is.null(values$input_case) & !is.null(values$div_rate)) {
-      div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
-      div_loc = NULL
-      if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
-      if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
-      if(values$input_case == "B" & !values$div_rate) { div_loc = 3 }
-      if(values$input_case == "B" & values$div_rate) { div_loc = 4 }
-      # Hide descriptions
-      for(i in 1:4) {
-        args = list(id = div_names[i])
-        if(i != div_loc) {
-          do.call(what = "hideElement", args = args)
-        }
-      }
-      # Show relevant description
-      args = list(id = div_names[div_loc])
-      do.call(what = "showElement", args = args)
-    }
-  }, ignoreInit = T)
-  # observeEvent(values$input_case, {
-  #   div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
-  #   if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
-  #   if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
-  #   if(values$input_case == "C" & !values$div_rate) { div_loc = 3 }
-  #   if(values$input_case == "C" & !values$div_rate) { div_loc = 4 }
-  #   # show correct description
-  #   args = list(id = div_names[div_loc])
-  #   do.call(what = "showElement", args = args)
-  # }, ignoreInit = T, priority = -1)
-  
-  # Code to show division rate vs. initial cell count choice buttons
-  observeEvent(input$no_dead, {
-    hideElement(id = "upload_button", anim = F)
-    hideElement(id = "advanced_input", anim = F)
-    hideElement(id = "static_vs_toxic_req", anim = F)
-    hideElement(id = "comma_tab_buttons", anim = F)
-    hideElement(id = "case_desc", anim = F)
-    hideElement(id = "case_buttons", anim = F)
-    showElement(id = "calc_method_buttons", anim = F)
-    showElement(id = "calc_method_desc", anim = F)
-    addClass(id = "no_dead", class = "active")
-    removeClass(id = "yes_dead", class = "active")
-    values$yes_dead = F
-    values$no_dead = T
-  }, ignoreInit = T)
-  # Code to show GR static vs. toxic columns needed
-  observeEvent(input$yes_dead, {
-    hideElement(id = "upload_button", anim = F)
-    hideElement(id = "advanced_input", anim = F)
-    hideElement(id = "calc_method_buttons", anim = F)
-    hideElement(id = "case_buttons", anim = F)
-    hideElement(id = "calc_method_desc", anim = F)
-    hideElement(id = "case_desc", anim = F)
-    showElement(id = "static_vs_toxic_req", anim = F)
-    showElement(id = "comma_tab_buttons", anim = F)
-    addClass(id = "yes_dead", class = "active")
-    removeClass(id = "no_dead", class = "active")
-    values$yes_dead = T
-    values$no_dead = F
-  }, ignoreInit = T)
-  # Code to show caseA/caseB choice buttons
-  observeEvent(input$initialCellCount, {
-    removeClass(id = "divisionRate", class = "active")
-    addClass(id = "initialCellCount", class = "active")
-    hideElement(id = "static_vs_toxic_req", anim = F)
-    hideElement(id = "comma_tab_buttons", anim = F)
-    showElement(id = "case_buttons", anim = F)
-    showElement(id = "case_desc", anim = F)
-    values$div_rate = F
-    values$init_count = T
-  }, ignoreInit = T)
-  observeEvent(input$divisionRate, {
-    removeClass(id = "initialCellCount", class = "active")
-    addClass(id = "divisionRate", class = "active")
-    hideElement(id = "static_vs_toxic_req", anim = F)
-    hideElement(id = "comma_tab_buttons", anim = F)
-    showElement(id = "case_buttons", anim = F)
-    showElement(id = "case_desc", anim = F)
-    values$div_rate = T
-    values$init_count = F
-  }, ignoreInit = T)
-  # Code to show csv/tsv choice buttons
-  observeEvent(input$caseA, {
-    removeClass(id = "caseB", class = "active")
-    addClass(id = "caseA", class = "active")
-    showElement(id = "comma_tab_buttons", anim = F)
-    values$input_case = "A"
-  }, ignoreInit = T)
-  observeEvent(input$caseB, {
-    removeClass(id = "caseB", class = "active")
-    addClass(id = "caseA", class = "active")
-    showElement(id = "comma_tab_buttons", anim = F)
-    values$input_case = "B"
-  }, ignoreInit = T)
-
-  # Code to make import dialog csv/tsv buttons work like radiobuttons
-  observeEvent(input$comma_input, {
-    removeClass(id = "tab_input", class = "active")
-    addClass(id = "comma_input", class = "active")
-    values$separator = ","
-    showElement(id = "upload_button", anim = F)
-    #showElement(id = "advanced_input", anim = F)
-  }, ignoreInit = T)
-  observeEvent(input$tab_input, {
-    removeClass(id = "comma_input", class = "active")
-    addClass(id = "tab_input", class = "active")
-    values$separator = "\t"
-    showElement(id = "upload_button", anim = F)
-    #showElement(id = "advanced_input", anim = F)
-  }, ignoreInit = T)
-  
-  # Code for closing input dialog when data is uploaded
-# observeEvent(c(input$uploadData,input$fetchURLData), {
-#   #observeEvent(values$check_fail, {
-#     toggleModal(session, 'import_button', toggle = "close")
-#   }, ignoreInit = T)
-  observeEvent(c(input$loadExample, input$loadExampleB),{
-    toggleModal(session, 'example_modal', toggle = "close")
-  }, ignoreInit = T)
-  observeEvent(input$div_rate_input,{
-    toggleModal(session, 'importDialog_div', toggle = "close")
-  }, ignoreInit = T)
-  
-  # Open division rate input dialog if necessary
-#  observeEvent(c(input$uploadData, input$fetchURLData), {
-  observeEvent(values$check_fail, {
-    toggleModal(session, 'import_button', toggle = "close")
-    if(!values$check_fail) {
-      if(values$div_rate) {
-        toggleModal(session, 'importDialog_div', toggle = "open")
-      }
-    } else {
-      toggleModal(session, 'import_fail', toggle = "open")
-    }
-  }, ignoreInit = T)
-####################
   
 ############ code for loading data ##############
   # Code for loading example data for input Case A

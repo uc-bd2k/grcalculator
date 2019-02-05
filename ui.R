@@ -6,21 +6,12 @@ library(ggplot2)
 library(formattable)
 library(shiny.semantic)
 library(shinycssloaders)
-
-#library(dplyr)
-#library(readr)
 library(DT)
-#library(crosstalk)
-#library(magrittr)
-#library(markdown)
-#library(clipr)
-#library(rclipboard)
-#library(aws.s3)
+
 curve_choices = 1:8
 names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
                   "Traditional sigmoid normal", "Traditional sigmoid low", 
                   "Traditional sigmoid high", "Traditional biphasic")
-
 
 shinyUI(
   semanticPage(
@@ -42,6 +33,8 @@ shinyUI(
                margin-bottom: 0px;
                }"
     ),
+    
+    #### about modal start #########
     div(class = "ui small modal", id = "about_modal",
         div(class = "header", "About",
             div(class = "actions", style = "float: right; display: inline-block; vertical-align: top;",
@@ -52,6 +45,8 @@ shinyUI(
             includeMarkdown("www/about.md")
         )
     ),
+    ######## about modal end #########
+    #### contact modal start #########
     div(class = "ui mini modal", id = "contact_modal",
         div(class = "header", "Contact us",
             div(class = "actions", style = "float: right; display: inline-block; vertical-align: top;",
@@ -62,105 +57,108 @@ shinyUI(
             includeMarkdown("www/contact.md")
         )
     ),
-    div(class = "ui small modal", id = "import_modal",
+    ######## contact modal end #########
+    #### import modal start #########
+    div(class = "ui small modal", #id = "import_modal",
         div(class = "ui basic segment",
-          div(class = "twelve wide column",
-            h3("Do you have live and dead cell counts?"),
-              div(class = "ui buttons",
-                  div(class = "ui toggle button action-button", id = 'no_dead', "No"),
-                  div(class = "or"),
-                  div(class = "ui toggle button action-button", id = 'yes_dead', "Yes")
-              )
-          ),
-          br(),
-          shinyjs::hidden(
-          div(class = "twelve wide column", id = "static_vs_toxic_req",
-                  includeMarkdown("www/static_vs_toxic_req.md")
-          ) ),
-          
-          shinyjs::hidden(
-        div(class = "twelve wide column", `data-toggle` = "buttons", id = "calc_method_buttons",
-              h3("Do you have initial (time 0) cell counts?"),
-            div(class = "ui buttons",
-                div(class = "ui toggle button action-button", id = 'initialCellCount', "Yes, I do"),
-                div(class = "or"),
-                div(class = "ui toggle button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
-            )
-            )
-        ),
-        br(),
+          # div(class = "twelve wide column",
+          #   h3("Do you have live and dead cell counts?"),
+          #     div(class = "ui buttons",
+          #         div(class = "ui toggle button action-button", id = 'no_dead', "No"),
+          #         div(class = "or"),
+          #         div(class = "ui toggle button action-button", id = 'yes_dead', "Yes")
+          #     )
+          # ),
+          # br(),
+        #   shinyjs::hidden(
+        #   div(class = "twelve wide column", id = "static_vs_toxic_req",
+        #           includeMarkdown("www/static_vs_toxic_req.md")
+        #   ) ),
+        #   
+        #   shinyjs::hidden(
+        # div(class = "twelve wide column", `data-toggle` = "buttons", id = "calc_method_buttons",
+        #       h3("Do you have initial (time 0) cell counts?"),
+        #     div(class = "ui buttons",
+        #         div(class = "ui toggle button action-button", id = 'initialCellCount', "Yes, I do"),
+        #         div(class = "or"),
+        #         div(class = "ui toggle button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
+        #     )
+        #     )
+        # ),
+        # br(),
         # shinyjs::hidden(
         # div(class = "twelve wide column", id = "calc_method_desc",
         #       p("Use cell line division times (instead of initial cell count) to calculate GR values.", id = "div_rate_desc"),
         #       p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.", id = "init_count_desc")
         #     )
         # ),
-        shinyjs::hidden( 
-        div(class = "twelve wide column", `data-toggle` = "buttons", id = "case_buttons",
-            h3("Choose input file format"),
-            div(class = "ui buttons",
-            div(class = "ui toggle button action-button", id = "caseA", "Case A (multiple cell counts per row)"),
-            div(class = "or"),
-            div(class = "ui toggle button action-button", id = "caseB", "Case B (one cell count per row)")
-            )
-        )
-      ),
-      shinyjs::hidden(  div(class = "twelve wide column", id = "case_desc",
-         shinyjs::hidden(
-           div(id = "caseA_div_desc",
-               includeMarkdown("www/caseA_div.md")
-           ),
-           div(id = "caseA_initial_desc",
-               includeMarkdown("www/caseA_initial.md")
-           ),
-           div(id = "caseB_initial_desc",
-               includeMarkdown("www/caseB_initial.md")
-           ),
-           div(id = "caseB_div_desc",
-               includeMarkdown("www/caseB_div.md")
-           )
-          )
-         )
-         ),br(),
-        shinyjs::hidden(
-        div(class = "twelve wide column", `data-toggle` = "buttons", id = "comma_tab_buttons",
-            h3("Select file type"),
-            div(class = "ui buttons",
-                div(class = "ui toggle button action-button", id = "comma_input",
-                    "comma-separated (.csv)", value = "comma"),
-                div(class = "or"),
-                div(class = "ui toggle button action-button", id = "tab_input", 
-                    "tab-separated (.tsv)", value = "tab")
-            )
-          )
-        ), br(),
-      shinyjs::hidden(
-        div(id = 'upload_button', h3("Upload data file"),
-      div(class = "ui two column grid",
-      div(class = "row",
-        div(class = "six wide column",
-          tags$b('From your computer:'),
-          br(),
-          div(class="ui icon button", id="divUpload",
-            tags$i(class="cloud icon"), "Choose file..."
-          ),
-          tags$input(type="file", id = "uploadData", style="display: none"),
-          #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
-          # The following tag allows for the same file path to be used twice in a row for upload
-          tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });')
-        ),
-        div(class = "ten wide column",
-          div(class = "ui form", style = "width: 200px; display: inline-block;",
-              div(class = "field",
-                  tags$label("Or from a URL:"),
-                  tags$input(type = "text", id = "url")
-              )
-          ),
-          div(class = "ui button action-button" , id = "fetchURLData", "Fetch Data",
-              style="width: 120px; vertical-align: bottom; display: inline-block;")
-        )
-      )
-      ))), br(),
+      #   shinyjs::hidden( 
+      #   div(class = "twelve wide column", `data-toggle` = "buttons", id = "case_buttons",
+      #       h3("Choose input file format"),
+      #       div(class = "ui buttons",
+      #       div(class = "ui toggle button action-button", id = "caseA", "Case A (multiple cell counts per row)"),
+      #       div(class = "or"),
+      #       div(class = "ui toggle button action-button", id = "caseB", "Case B (one cell count per row)")
+      #       )
+      #   )
+      # ),
+      # shinyjs::hidden(  div(class = "twelve wide column", id = "case_desc",
+      #    shinyjs::hidden(
+      #      div(id = "caseA_div_desc",
+      #          includeMarkdown("www/caseA_div.md")
+      #      ),
+      #      div(id = "caseA_initial_desc",
+      #          includeMarkdown("www/caseA_initial.md"),
+      #          tags$img(src = "images/caseA_blur.png", width = "100%")
+      #      ),
+      #      div(id = "caseB_initial_desc",
+      #          includeMarkdown("www/caseB_initial.md")
+      #      ),
+      #      div(id = "caseB_div_desc",
+      #          includeMarkdown("www/caseB_div.md")
+      #      )
+      #     )
+      #    )
+      #    ),br(),
+      #   shinyjs::hidden(
+      #   div(class = "twelve wide column", `data-toggle` = "buttons", id = "comma_tab_buttons",
+      #       h3("Select file type"),
+      #       div(class = "ui buttons",
+      #           div(class = "ui toggle button action-button", id = "comma_input",
+      #               "comma-separated (.csv)", value = "comma"),
+      #           div(class = "or"),
+      #           div(class = "ui toggle button action-button", id = "tab_input", 
+      #               "tab-separated (.tsv)", value = "tab")
+      #       )
+      #     )
+      #   ), br(),
+      # shinyjs::hidden(
+      #   div(id = 'upload_button', h3("Upload data file"),
+      # div(class = "ui two column grid",
+      # div(class = "row",
+      #   div(class = "six wide column",
+      #     tags$b('From your computer:'),
+      #     br(),
+      #     div(class="ui icon button", id="divUpload",
+      #       tags$i(class="cloud icon"), "Choose file..."
+      #     ),
+      #     tags$input(type="file", id = "uploadData", style="display: none"),
+      #     #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
+      #     # The following tag allows for the same file path to be used twice in a row for upload
+      #     tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });')
+      #   ),
+      #   div(class = "ten wide column",
+      #     div(class = "ui form", style = "width: 200px; display: inline-block;",
+      #         div(class = "field",
+      #             tags$label("Or from a URL:"),
+      #             tags$input(type = "text", id = "url")
+      #         )
+      #     ),
+      #     div(class = "ui button action-button" , id = "fetchURLData", "Fetch Data",
+      #         style="width: 120px; vertical-align: bottom; display: inline-block;")
+      #   )
+      # )
+      # ))), br(),
       div(class = "twelve wide column",
       shinyjs::hidden(
         div(id = 'advanced_input',
@@ -178,27 +176,33 @@ shinyUI(
       )
       )
     ),
-    div(class = "ui mini modal", id = 'example_modal', 
-        div(class = "ui center aligned basic segment",
-        #"Load Example", "examples",
-        p("Case A: control values assigned to treated measurements"),
-        p("Case B: control values stacked with treated measurements"),
-            div(class = "ui buttons", "Load example:",
-                div(class = "ui positive button action-button", id = 'loadExample',
-                    'Case A'),
-                div(class = "or"),
-                div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
-        )
-    )),
-    div(class = "ui small modal", id = 'start_modal', 
-        div(class = "ui basic center aligned segment",
-            div(class = "ui buttons", "Load example:", style = "vertical-align: middle;",
-                div(class = "ui positive button action-button", id = 'example_button',
-                    'Load example data'),
-                div(class = "or"),
-                div(class = "ui button action-button", id = 'import_button', 'Import your own data')
-            )
-        )),
+    ######## import modal end #########
+    #### example modal start #########
+    # div(class = "ui mini modal", #id = 'example_modal', 
+    #     div(class = "ui center aligned basic segment",
+    #     #"Load Example", "examples",
+    #     p("Case A: control values assigned to treated measurements"),
+    #     p("Case B: control values stacked with treated measurements"),
+    #         div(class = "ui buttons", "Load example:",
+    #             div(class = "ui positive button action-button", id = 'loadExample',
+    #                 'Case A'),
+    #             div(class = "or"),
+    #             div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
+    #     )
+    # )),
+    ######## example modal end #########
+    #### start modal start #########
+    # div(class = "ui small modal", #id = 'start_modal', 
+    #     div(class = "ui basic center aligned segment",
+    #         div(class = "ui buttons", "Load example:", style = "vertical-align: middle;",
+    #             div(class = "ui positive button action-button", id = 'example_button',
+    #                 'Load example data'),
+    #             div(class = "or"),
+    #             div(class = "ui button action-button", id = 'import_button', 'Import your own data')
+    #         )
+    #     )),
+    ######## start modal end #########
+    #### instructions modal start #########
     div(class = "ui small modal", id = 'instructions_modal', 
         div(class = "ui basic segment",
             includeMarkdown("www/GettingStartedModal.md")
@@ -210,7 +214,10 @@ shinyUI(
         radioButtons('drcImageType', label = '', choices = c('.pdf', '.tiff'), inline = F)
         )
     ),
+    ######## instructions modal end #########
+    
     div(class = "ui container",
+        ######### top menu start ########
         div(class = "ui top attached inverted seven item stackable menu",
             div(class = "ui center aligned container",
                 a(class = "item", img(class = "logo", src = "dcic.png"),
@@ -224,6 +231,7 @@ shinyUI(
                   href = "http://sorger.med.harvard.edu" )
             )
         ),
+        ######### top menu end ########
         div(class = "ui main basic segment",
           div(class="ui top basic secondary pointing menu", id = "tabs",
               a(class="active item", `data-tab`="first", "Getting Started"),
@@ -234,6 +242,7 @@ shinyUI(
               a(class="item", `data-tab`="output_tables", "Output Tables", id = "output_top")
               )
           ),
+      ######### first tab start #########
           div(class="ui active bottom center basic tab segment", `data-tab`="first",
                   div(class = "ui basic segment",
                       tags$img(src = "images/GRcalculator-logo_v2.png", width = "250px", style = "float: left;"),
@@ -245,8 +254,169 @@ shinyUI(
                 )
               
           ),
+      ######### first tab end #########
+      ######### input tab start #########
       div(class="ui bottom center basic tab segment", `data-tab`="input", id = "input_bottom",
-      div(class = "ui basic center aligned segment",
+              div(class = "ui basic segment",
+                  div(class="ui breadcrumb",
+                      div(class="active section", tags$span("Load/upload", id = "bc1_text"), 
+                          hidden(actionLink("bc1_link", "Load/upload")), id = "bc1"),
+                      hidden(
+                        div(class="section", tags$i(class="right angle icon divider"),
+                            tags$span("Example Data", id = "bc2_ex_text"), 
+                              hidden(actionLink("bc2_ex_link", "Example Data")), id = "bc2_ex"),
+                        div(class="section", tags$i(class="right angle icon divider"),
+                            tags$span("Data input", id = "bc2_upload_text"), 
+                            hidden(actionLink("bc2_upload_link", "Data input")), id = "bc2_upload"),
+                        div(class="section", tags$i(class="right angle icon divider"),
+                            tags$span("Data formatting", id = "bc3_text"), 
+                            hidden(actionLink("bc3_link", "Data formatting")), id = "bc3")
+                      )
+                  )
+              ),
+          ##### start bc1_content ######
+              div(class = "ui basic center aligned segment", id = "bc1_content",
+                  div(class = "ui buttons", "Load example:", style = "vertical-align: middle;",
+                      div(class = "ui positive button action-button", id = 'example_button',
+                          'Load example data'),
+                      div(class = "or"),
+                      div(class = "ui button action-button", id = 'import_button', 'Import your own data')
+                  )
+              ),
+          ########### end bc1_content ######
+          ##### start bc2_ex_content ######
+              hidden(
+                div(class = "ui center aligned basic segment", id = "bc2_ex_content",
+                    #"Load Example", "examples",
+                    p("Case A: control values assigned to treated measurements"),
+                    p("Case B: control values stacked with treated measurements"),
+                    div(class = "ui buttons", "Load example:",
+                        div(class = "ui positive button action-button", id = 'loadExample',
+                            'Case A'),
+                        div(class = "or"),
+                        div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
+                    )
+                )
+              ),
+          ########## end bc2_ex_content ######
+          ##### start bc2_upload_content ######
+            hidden(
+              div(class = "ui center aligned basic segment", id = "bc2_upload_content",
+              h3("Do you have live and dead cell counts?"),
+              div(class = "ui buttons",
+                  div(class = "ui toggle button action-button", id = 'no_dead', "No"),
+                  div(class = "or"),
+                  div(class = "ui toggle button action-button", id = 'yes_dead', "Yes")
+                ),
+            hidden(
+              div(class = "ui basic center aligned segment", id = "calc_method_buttons",
+                h3("Do you have initial (time 0) cell counts?"),
+                div(class = "ui buttons",
+                    div(class = "ui toggle button action-button", id = 'initialCellCount', "Yes, I do"),
+                    div(class = "or"),
+                    div(class = "ui toggle button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
+                )
+              )
+            )
+          )
+          ),
+          ######### end bc2_upload_content ######
+          ##### start bc3_content ########
+          hidden(
+          div(class = "ui basic segment", id = "bc3_content",
+          shinyjs::hidden(
+            div(class = "ui basic segment", id = "static_vs_toxic_req",
+                includeMarkdown("www/static_vs_toxic_req.md")
+            )
+          ),
+          shinyjs::hidden(
+            div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "case_buttons",
+                h3("Choose input file format"),
+                div(class = "ui buttons",
+                div(class = "ui toggle button action-button", id = "caseA", "Case A (multiple cell counts per row)"),
+                div(class = "or"),
+                div(class = "ui toggle button action-button", id = "caseB", "Case B (one cell count per row)")
+                )
+            )
+          ),
+          shinyjs::hidden(  div(class = "twelve wide column", id = "case_desc",
+                                shinyjs::hidden(
+                                  div(id = "caseA_div_desc",
+                                      includeMarkdown("www/caseA_div.md")
+                                  ),
+                                  div(id = "caseA_initial_desc",
+                                      div(class = "ui accordion",
+                                        div(class = "title", 
+                                            tags$i(class = "dropdown icon"), "Case A Example"
+                                        ),
+                                        div(class = "content",
+                                            tags$img(src = "images/caseA_blur.png", width = "90%",
+                                                     style = "float: center;")
+                                        )
+                                      ),
+                                      div(class = "ui accordion",
+                                          div(class = "title", 
+                                              tags$i(class = "dropdown icon"), "Case A required columns"
+                                          ),
+                                          div(class = "content",
+                                              includeMarkdown("www/caseA_initial.md")
+                                          )
+                                      )
+                                  ),
+                                  div(id = "caseB_initial_desc",
+                                      includeMarkdown("www/caseB_initial.md")
+                                  ),
+                                  div(id = "caseB_div_desc",
+                                      includeMarkdown("www/caseB_div.md")
+                                  )
+                                )
+            )
+          ),
+          shinyjs::hidden(
+            div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "comma_tab_buttons",
+                h3("Select file type"),
+                div(class = "ui buttons",
+                    div(class = "ui toggle button action-button", id = "comma_input",
+                        "comma-separated (.csv)", value = "comma"),
+                    div(class = "or"),
+                    div(class = "ui toggle button action-button", id = "tab_input", 
+                        "tab-separated (.tsv)", value = "tab")
+                )
+            )
+          ))
+          ), br(),
+          shinyjs::hidden(
+            div(id = 'upload_button', h3("Upload data file"),
+                div(class = "ui two column grid",
+                    div(class = "row",
+                        div(class = "six wide column",
+                            tags$b('From your computer:'),
+                            br(),
+                            div(class="ui icon button", id="divUpload",
+                                tags$i(class="cloud icon"), "Choose file..."
+                            ),
+                            tags$input(type="file", id = "uploadData", style="display: none"),
+                            #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
+                            # The following tag allows for the same file path to be used twice in a row for upload
+                            tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });')
+                        ),
+                        div(class = "ten wide column",
+                            div(class = "ui form", style = "width: 200px; display: inline-block;",
+                                div(class = "field",
+                                    tags$label("Or from a URL:"),
+                                    tags$input(type = "text", id = "url")
+                                )
+                            ),
+                            div(class = "ui button action-button" , id = "fetchURLData", "Fetch Data",
+                                style="width: 120px; vertical-align: bottom; display: inline-block;")
+                        )
+                    )
+                ))),
+          
+          
+          
+          hidden(
+      div(class = "ui basic center aligned segment", id = "bc_analyze_content",
           div(class = "ui three column grid",
               div(class = "four wide column"),
               div(class = "eight wide column",
@@ -278,8 +448,10 @@ shinyUI(
           tags$style(type='text/css', "#input_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}"),
           DT::dataTableOutput("input_table") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
       )
+      )
       ),
-      
+      ######### input tab start #########
+      ######### output tables tab start #########
           div(class="ui bottom center basic tab segment", `data-tab`="output_tables", id = "output_tables_bottom",
               div(class="ui two top attached buttons",
                   # tags$button(class = "ui button action-button", id = "input_table_button", "Input data"),
@@ -304,6 +476,8 @@ shinyUI(
                 #     )
               )
           ),
+      ######### output tables tab end #########
+      ######### drc/third tab start #########
           div(class="ui bottom center basic tab segment", `data-tab`="third",
             div(class = "ui basic segment", id = "drc_tabs",
                 h4(class="ui horizontal divider header",
@@ -393,7 +567,9 @@ shinyUI(
                         )
                 
           )
-),
+      ),
+      ######### drc/third tab end #########
+      ######### scatter/box/fourth tab start #########
           div(class="ui bottom center basic tab segment", `data-tab`="fourth",
               div(class = "ui basic center aligned segment",
                   div(class = "ui primary bottom attached button action-button",
@@ -446,7 +622,9 @@ shinyUI(
                 )
               )
           )
+      ######### scatter/box/fourth tab end #########
         ),
+          ######### footer start #########
         div(class = "ui bottom attached inverted footer segment", style = "margin: 0px;",
             div(class = "ui center aligned container",
                 div(class = "ui horizontal inverted large divided link list",
@@ -456,6 +634,7 @@ shinyUI(
                 )
             )
         )
+        ######### footer end #########
     )
     )
   )
