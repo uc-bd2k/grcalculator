@@ -132,6 +132,8 @@ shinyServer(function(input, output,session) {
   
   ########### code for input breadcrumbs ################
   observeEvent(input$import_button, {
+    removeClass(id = "example_button", class = "active")
+    addClass(id = "import_button", class = "active")
     #runjs(import.modal.js)
     hideElement(id = "bc1_content")
     hideElement(id = "bc1_text")
@@ -144,11 +146,13 @@ shinyServer(function(input, output,session) {
   })
   observeEvent(input$example_button, {
     #runjs(example.modal.js)
+    removeClass(id = "import_button", class = "active")
+    addClass(id = "example_button", class = "active")
     hideElement(id = "bc1_content")
     hideElement(id = "bc1_text")
     showElement(id = "bc1_link")
     showElement(id = "bc2_ex")
-    showElement(id = "bc2_ex")
+    showElement(id = "bc2_ex_text")
     removeClass(id = "bc1", class = "active")
     addClass(id = "bc2_ex", class = "active")
     showElement(id = "bc2_ex_content")
@@ -165,7 +169,11 @@ shinyServer(function(input, output,session) {
     hideElement(id = "bc3")
     hideElement(id = "bc3_link")
     hideElement(id = "bc3_content")
+    hideElement(id = "bc4")
+    hideElement(id = "bc4_link")
+    hideElement(id = "bc4_content")
     hideElement(id = "bc1_link")
+    hideElement(id = "upload_button")
     showElement(id = "bc1_text")
     showElement(id = "bc1_content")
   })
@@ -175,9 +183,38 @@ shinyServer(function(input, output,session) {
     hideElement(id = "bc3")
     hideElement(id = "bc3_link")
     hideElement(id = "bc2_upload_link")
+    hideElement(id = "upload_button")
     showElement(id = "bc2_upload_text")
     showElement(id = "bc2_upload_content")
+    hideElement(id = "bc4")
+    hideElement(id = "bc4_link")
+    hideElement(id = "bc4_content")
   })
+  
+  observeEvent(input$bc2_ex_link, {
+    addClass(id = "bc2_ex", class = "active")
+    hideElement(id = "bc3_content")
+    hideElement(id = "bc3")
+    hideElement(id = "bc3_link")
+    hideElement(id = "bc2_ex_link")
+    showElement(id = "bc2_ex_text")
+    showElement(id = "bc2_ex_content")
+    hideElement(id = "bc4")
+    hideElement(id = "bc4_link")
+    hideElement(id = "bc4_content")
+  })
+  
+  observeEvent(input$bc3_link, {
+    addClass(id = "bc3", class = "active")
+    hideElement(id = "bc3_link")
+    showElement(id = "bc3_text")
+    showElement(id = "bc3_content")
+    
+    hideElement(id = "bc4")
+    hideElement(id = "bc4_link")
+    hideElement(id = "bc4_content")
+  })
+  
   
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
   observeEvent(values$div_rate, {
@@ -195,23 +232,25 @@ shinyServer(function(input, output,session) {
   
   # Code to show/hide descriptions of necessary columns for input
   observeEvent(c(values$input_case, values$div_rate, values$init_count), {
-    if(!is.null(values$input_case) & !is.null(values$div_rate)) {
-      div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
-      div_loc = NULL
-      if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
-      if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
-      if(values$input_case == "B" & !values$div_rate) { div_loc = 3 }
-      if(values$input_case == "B" & values$div_rate) { div_loc = 4 }
-      # Hide descriptions
-      for(i in 1:4) {
-        args = list(id = div_names[i])
-        if(i != div_loc) {
-          do.call(what = "hideElement", args = args)
+    if(!is.null(values$input_case) && !is.null(values$div_rate)) {
+      if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+        div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
+        div_loc = NULL
+        if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
+        if(values$input_case == "A" & values$div_rate) { div_loc = 2 }
+        if(values$input_case == "B" & !values$div_rate) { div_loc = 3 }
+        if(values$input_case == "B" & values$div_rate) { div_loc = 4 }
+        # Hide descriptions
+        for(i in 1:4) {
+          args = list(id = div_names[i])
+          if(i != div_loc) {
+            do.call(what = "hideElement", args = args)
+          }
         }
+        # Show relevant description
+        args = list(id = div_names[div_loc])
+        do.call(what = "showElement", args = args)
       }
-      # Show relevant description
-      args = list(id = div_names[div_loc])
-      do.call(what = "showElement", args = args)
     }
   }, ignoreInit = T)
   # observeEvent(values$input_case, {
@@ -227,7 +266,7 @@ shinyServer(function(input, output,session) {
   
   # Code to show division rate vs. initial cell count choice buttons
   observeEvent(input$no_dead, {
-    hideElement(id = "upload_button", anim = F)
+    #hideElement(id = "upload_button", anim = F)
     hideElement(id = "advanced_input", anim = F)
     hideElement(id = "static_vs_toxic_req", anim = F)
     hideElement(id = "comma_tab_buttons", anim = F)
@@ -242,7 +281,16 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T)
   # Code to show GR static vs. toxic columns needed
   observeEvent(input$yes_dead, {
-    hideElement(id = "upload_button", anim = F)
+    #hideElement(id = "upload_button", anim = F)
+    hideElement(id = "bc2_upload_content")
+    hideElement(id = "bc2_upload_text")
+    showElement(id = "bc2_upload_link")
+    showElement(id = "bc3_content")
+    removeClass(id = "bc2_upload", class = "active")
+    addClass(id = "bc3", class = "active")
+    showElement(id = "bc3", anim = F)
+    showElement(id = "bc3_text", anim = F)
+    
     hideElement(id = "advanced_input", anim = F)
     hideElement(id = "calc_method_buttons", anim = F)
     hideElement(id = "case_buttons", anim = F)
@@ -264,6 +312,8 @@ shinyServer(function(input, output,session) {
     removeClass(id = "bc2_upload", class = "active")
     addClass(id = "bc3", class = "active")
     showElement(id = "bc3", anim = F)
+    showElement(id = "bc3_text", anim = F)
+    
     
     removeClass(id = "divisionRate", class = "active")
     addClass(id = "initialCellCount", class = "active")
@@ -282,6 +332,8 @@ shinyServer(function(input, output,session) {
     removeClass(id = "bc2_upload", class = "active")
     addClass(id = "bc3", class = "active")
     showElement(id = "bc3", anim = F)
+    showElement(id = "bc3_text", anim = F)
+    
     
     removeClass(id = "initialCellCount", class = "active")
     addClass(id = "divisionRate", class = "active")
@@ -327,9 +379,9 @@ shinyServer(function(input, output,session) {
   #   #observeEvent(values$check_fail, {
   #     toggleModal(session, 'import_button', toggle = "close")
   #   }, ignoreInit = T)
-  observeEvent(c(input$loadExample, input$loadExampleB),{
-    toggleModal(session, 'example_modal', toggle = "close")
-  }, ignoreInit = T)
+  # observeEvent(c(input$loadExample, input$loadExampleB),{
+  #   toggleModal(session, 'example_modal', toggle = "close")
+  # }, ignoreInit = T)
   observeEvent(input$div_rate_input,{
     toggleModal(session, 'importDialog_div', toggle = "close")
   }, ignoreInit = T)
@@ -375,15 +427,15 @@ shinyServer(function(input, output,session) {
   ## hide boxplot/scatterplot buttons for now
   shinyjs::hideElement("scatter_button")
   shinyjs::hideElement("boxplot_button")
-  shinyjs::click(id = "single_button")
+  #shinyjs::click(id = "single_button")
   
   ### hide example modal when example is picked
-  observeEvent(c(input$loadExample, input$loadExampleB), {
-    runjs("$('#example_modal').modal('hide')")
-  })
-  observeEvent(input$uploadData, {
-    runjs("$('#import_modal').modal('hide')")
-  })
+  # observeEvent(c(input$loadExample, input$loadExampleB), {
+  #   runjs("$('#example_modal').modal('hide')")
+  # })
+  # observeEvent(input$uploadData, {
+  #   runjs("$('#import_modal').modal('hide')")
+  # })
   
   ### start loader on analyze button first
   observeEvent(input$analyzeButton, {
@@ -889,6 +941,15 @@ shinyServer(function(input, output,session) {
   
   ###############
   
+  ####
+  output$dl_caseA = downloadHandler(
+    filename = function() {"caseA_example.csv"},
+    content = function(con) {
+      temp = read_csv("resources/caseA_example.csv")
+      return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
+    }
+  )
+  
   #### update plot options for dose-response curve ##########
   observeEvent(input$drc2_metric, {
     if(input$drc2_metric == "GR") {
@@ -1024,27 +1085,75 @@ shinyServer(function(input, output,session) {
 ############ code for loading data ##############
   # Code for loading example data for input Case A
   observeEvent(input$loadExample, {
+    removeClass(id = "loadExample_SvT", class = "active")
+    addClass(id = "loadExample", class = "active")
+    hideElement("bc2_ex_content")
+    hideElement("bc2_ex_text")
+    showElement("bc2_ex_link")
+    removeClass(id = "bc2_ex", class = "active")
+    
+    ### show current breadcrumb
+    addClass(id = "bc4", class = "active")
+    shinyjs::show("bc4")
+    shinyjs::show("bc4_content")
+    
     print("load example a")
     values$input_case = "A"
     values$data_dl = 'example'
     output$input_error = renderText("")
     #session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
-    values$inData <- read_tsv('resources/toy_example_input1_edited.tsv')
+    values$inData <- read_csv('resources/caseA_example.csv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
     # print("load example a done")
   })
-  
-  # Code for loading example data for input Case B
-  observeEvent(input$loadExampleB, {
-    values$input_case = "B"
+  # Code for loading example data for input static vs. toxic case
+  observeEvent(input$loadExample_SvT, {
+    removeClass(id = "loadExample", class = "active")
+    addClass(id = "loadExample_SvT", class = "active")
+    hideElement("bc2_ex_content")
+    hideElement("bc2_ex_text")
+    showElement("bc2_ex_link")
+    removeClass(id = "bc2_ex", class = "active")
+    
+    ### show current breadcrumb
+    addClass(id = "bc4", class = "active")
+    shinyjs::show("bc4")
+    shinyjs::show("bc4_content")
+    
+    values$input_case = "static_vs_toxic"
     values$data_dl = 'example'
     output$input_error = renderText("")
     #session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
-    values$inData <- read_tsv('resources/toy_example_input4_edited.tsv')
+    values$inData <- read_csv('resources/gr_static_vs_toxic_input_med.csv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
   })
+  
+  # Code for loading example data for input Case B
+  # observeEvent(input$loadExampleB, {
+  #   values$input_case = "B"
+  #   values$data_dl = 'example'
+  #   output$input_error = renderText("")
+  #   #session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
+  #   values$inData <- read_csv('resources/caseB_example.csv')
+  #   values$GR_table_show = NULL
+  #   values$parameter_table_show = NULL
+  # })
+  
+  ### hide and show correct things on data input
+  observeEvent(c(input$uploadData, input$fetchURLData), {
+    ### hide previous breadcrumb
+    shinyjs::hide("bc3_text")
+    shinyjs::show("bc3_link")
+    removeClass(id = "bc3", class = "active")
+    addClass(id = "bc4", class = "active")
+    shinyjs::hide("bc3_content")
+    shinyjs::hide("upload_button")
+    ### show current breadcrumb
+    shinyjs::show("bc4")
+    shinyjs::show("bc4_content")
+  }, ignoreInit = T, ignoreNULL = T)
   
   # Code for loading data from file
   observeEvent(input$uploadData, {

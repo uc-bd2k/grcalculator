@@ -232,7 +232,7 @@ shinyUI(
             )
         ),
         ######### top menu end ########
-        div(class = "ui main basic segment",
+        div(class = "ui main basic segment", style = "min-height: 500px",
           div(class="ui top basic secondary pointing menu", id = "tabs",
               a(class="active item", `data-tab`="first", "Getting Started"),
               shinyjs::hidden(
@@ -255,50 +255,52 @@ shinyUI(
               
           ),
       ######### first tab end #########
-      ######### input tab start #########
+    ######### input tab start #########
       div(class="ui bottom center basic tab segment", `data-tab`="input", id = "input_bottom",
               div(class = "ui basic segment",
                   div(class="ui breadcrumb",
-                      div(class="active section", tags$span("Load/upload", id = "bc1_text"), 
-                          hidden(actionLink("bc1_link", "Load/upload")), id = "bc1"),
+                      div(class="active section", tags$span("Choose upload or example data", id = "bc1_text"), 
+                          hidden(actionLink("bc1_link", "Choose upload or example data")), id = "bc1"),
                       hidden(
                         div(class="section", tags$i(class="right angle icon divider"),
-                            tags$span("Example Data", id = "bc2_ex_text"), 
-                              hidden(actionLink("bc2_ex_link", "Example Data")), id = "bc2_ex"),
+                            tags$span("Choose example data", id = "bc2_ex_text"), 
+                              hidden(actionLink("bc2_ex_link", "Choose example data")), id = "bc2_ex"),
                         div(class="section", tags$i(class="right angle icon divider"),
-                            tags$span("Data input", id = "bc2_upload_text"), 
-                            hidden(actionLink("bc2_upload_link", "Data input")), id = "bc2_upload"),
+                            tags$span("Choose upload data", id = "bc2_upload_text"), 
+                            hidden(actionLink("bc2_upload_link", "Choose upload data")), id = "bc2_upload"),
                         div(class="section", tags$i(class="right angle icon divider"),
-                            tags$span("Data formatting", id = "bc3_text"), 
-                            hidden(actionLink("bc3_link", "Data formatting")), id = "bc3")
+                            tags$span("Required columns", id = "bc3_text"), 
+                            hidden(actionLink("bc3_link", "Required columns")), id = "bc3"),
+                        div(class="section", tags$i(class="right angle icon divider"),
+                            tags$span("Choose groups", id = "bc4_text"), 
+                            hidden(actionLink("bc4_link", "Choose groups")), id = "bc4")
                       )
                   )
               ),
           ##### start bc1_content ######
               div(class = "ui basic center aligned segment", id = "bc1_content",
                   div(class = "ui buttons", "Load example:", style = "vertical-align: middle;",
-                      div(class = "ui positive button action-button", id = 'example_button',
+                      div(class = "ui toggle button action-button", id = 'example_button',
                           'Load example data'),
                       div(class = "or"),
-                      div(class = "ui button action-button", id = 'import_button', 'Import your own data')
+                      div(class = "ui toggle button action-button", id = 'import_button', 'Import your own data')
                   )
               ),
           ########### end bc1_content ######
+          
           ##### start bc2_ex_content ######
-              hidden(
-                div(class = "ui center aligned basic segment", id = "bc2_ex_content",
-                    #"Load Example", "examples",
-                    p("Case A: control values assigned to treated measurements"),
-                    p("Case B: control values stacked with treated measurements"),
-                    div(class = "ui buttons", "Load example:",
-                        div(class = "ui positive button action-button", id = 'loadExample',
-                            'Case A'),
-                        div(class = "or"),
-                        div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
-                    )
-                )
-              ),
+  hidden(
+    div(class = "ui center aligned basic segment", id = "bc2_ex_content",
+        div(class = "ui buttons", "Load example:",
+            div(class = "ui toggle button action-button", id = 'loadExample',
+                'Live cell data only (GR curves)'),
+            div(class = "or"),
+            div(class = "ui toggle button action-button", id = 'loadExample_SvT', 'Live and dead cell data (static and toxic GR curves)')
+        )
+    )
+  ),
           ########## end bc2_ex_content ######
+          
           ##### start bc2_upload_content ######
             hidden(
               div(class = "ui center aligned basic segment", id = "bc2_upload_content",
@@ -321,12 +323,31 @@ shinyUI(
           )
           ),
           ######### end bc2_upload_content ######
+          
           ##### start bc3_content ########
           hidden(
           div(class = "ui basic segment", id = "bc3_content",
           shinyjs::hidden(
             div(class = "ui basic segment", id = "static_vs_toxic_req",
-                includeMarkdown("www/static_vs_toxic_req.md")
+                div(class = "ui active accordion",
+                    div(class = "title active", 
+                        tags$i(class = "dropdown icon"), "Static vs. toxic case example"
+                    ),
+                    div(class = "content active",
+                        tags$img(src = "images/case_static_vs_toxic_blur.png", 
+                                 width = "90%",
+                                 style = "float: center;")
+                    )
+                ),
+                div(class = "ui accordion",
+                    div(class = "title", 
+                        tags$i(class = "dropdown icon"), "Static vs. toxic case required columns"
+                    ),
+                    div(class = "content",
+                        includeMarkdown("www/static_vs_toxic_req.md")
+                    )
+                ),
+                downloadLink(outputId = "dl_case_static_vs_toxic", "Download example data for static vs. toxic curves")
             )
           ),
           shinyjs::hidden(
@@ -340,36 +361,88 @@ shinyUI(
             )
           ),
           shinyjs::hidden(  div(class = "twelve wide column", id = "case_desc",
-                                shinyjs::hidden(
-                                  div(id = "caseA_div_desc",
-                                      includeMarkdown("www/caseA_div.md")
-                                  ),
-                                  div(id = "caseA_initial_desc",
-                                      div(class = "ui accordion",
-                                        div(class = "title", 
-                                            tags$i(class = "dropdown icon"), "Case A Example"
-                                        ),
-                                        div(class = "content",
-                                            tags$img(src = "images/caseA_blur.png", width = "90%",
-                                                     style = "float: center;")
-                                        )
-                                      ),
-                                      div(class = "ui accordion",
-                                          div(class = "title", 
-                                              tags$i(class = "dropdown icon"), "Case A required columns"
-                                          ),
-                                          div(class = "content",
-                                              includeMarkdown("www/caseA_initial.md")
-                                          )
-                                      )
-                                  ),
-                                  div(id = "caseB_initial_desc",
-                                      includeMarkdown("www/caseB_initial.md")
-                                  ),
-                                  div(id = "caseB_div_desc",
-                                      includeMarkdown("www/caseB_div.md")
-                                  )
-                                )
+            shinyjs::hidden(
+              div(id = "caseA_div_desc",
+                  div(class = "ui active accordion",
+                      div(class = "title active", 
+                          tags$i(class = "dropdown icon"), "Case A Example"
+                      ),
+                      div(class = "content active",
+                          tags$img(src = "images/caseA_blur_div.png", width = "90%",
+                                   style = "float: center;")
+                      )
+                  ),
+                  div(class = "ui accordion",
+                      div(class = "title", 
+                          tags$i(class = "dropdown icon"), "Case A required columns"
+                      ),
+                      div(class = "content",
+                          includeMarkdown("www/caseA_div.md")
+                      )
+                  ),
+                  downloadLink(outputId = "dl_caseA_div", "Download example data for case A")
+              ),
+              div(id = "caseA_initial_desc",
+                  div(class = "ui active accordion",
+                    div(class = "title active", 
+                        tags$i(class = "dropdown icon"), "Case A Example"
+                    ),
+                    div(class = "content active",
+                        tags$img(src = "images/caseA_blur.png", width = "90%",
+                                 style = "float: center;")
+                    )
+                  ),
+                  div(class = "ui accordion",
+                      div(class = "title", 
+                          tags$i(class = "dropdown icon"), "Case A required columns"
+                      ),
+                      div(class = "content",
+                          includeMarkdown("www/caseA_initial.md")
+                      )
+                  ),
+                  downloadLink(outputId = "dl_caseA", "Download example data for case A")
+              ),
+              div(id = "caseB_initial_desc",
+                  div(class = "ui active accordion",
+                      div(class = "title active", 
+                          tags$i(class = "dropdown icon"), "Case B Example"
+                      ),
+                      div(class = "content active",
+                          tags$img(src = "images/caseB_blur.png", width = "90%",
+                                   style = "float: center;")
+                      )
+                  ),
+                  div(class = "ui accordion",
+                      div(class = "title", 
+                          tags$i(class = "dropdown icon"), "Case B required columns"
+                      ),
+                      div(class = "content",
+                          includeMarkdown("www/caseB_initial.md")
+                      )
+                  ),
+                  downloadLink(outputId = "dl_caseB", "Download example data for case B")
+              ),
+              div(id = "caseB_div_desc",
+                  div(class = "ui active accordion",
+                      div(class = "title active", 
+                          tags$i(class = "dropdown icon"), "Case B Example"
+                      ),
+                      div(class = "content active",
+                          tags$img(src = "images/caseB_blur_div.png", width = "90%",
+                                   style = "float: center;")
+                      )
+                  ),
+                  div(class = "ui accordion",
+                      div(class = "title", 
+                          tags$i(class = "dropdown icon"), "Case B required columns"
+                      ),
+                      div(class = "content",
+                          includeMarkdown("www/caseB_div.md")
+                      )
+                  ),
+                  downloadLink(outputId = "dl_caseB_div", "Download example data for case B")
+              )
+            )
             )
           ),
           shinyjs::hidden(
@@ -383,8 +456,8 @@ shinyUI(
                         "tab-separated (.tsv)", value = "tab")
                 )
             )
-          ))
-          ), br(),
+          ),
+          br(),
           shinyjs::hidden(
             div(id = 'upload_button', h3("Upload data file"),
                 div(class = "ui two column grid",
@@ -411,12 +484,15 @@ shinyUI(
                                 style="width: 120px; vertical-align: bottom; display: inline-block;")
                         )
                     )
-                ))),
+                )))
+          )
           
+          ),
+          ########## end bc3_content ########
           
-          
+          ##### bc4 content start ########
           hidden(
-      div(class = "ui basic center aligned segment", id = "bc_analyze_content",
+      div(class = "ui basic center aligned segment", id = "bc4_content",
           div(class = "ui three column grid",
               div(class = "four wide column"),
               div(class = "eight wide column",
@@ -443,14 +519,16 @@ shinyUI(
              )
          ),
          div(class = "four wide column")
-         )),
+         ),
       div(class = "ui basic segment",
           tags$style(type='text/css', "#input_table { white-space: nowrap; text-overflow: ellipsis; overflow: scroll;}"),
           DT::dataTableOutput("input_table") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
       )
       )
+          )
+          ########## end bc4_content ########
       ),
-      ######### input tab start #########
+    ######### input tab end #########
       ######### output tables tab start #########
           div(class="ui bottom center basic tab segment", `data-tab`="output_tables", id = "output_tables_bottom",
               div(class="ui two top attached buttons",
