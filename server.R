@@ -21,6 +21,7 @@ library(dplyr)
 #source('functions/drawBox.R')
 #source('functions/parseLabel.R')
 source('functions/GRdrawDRC.app.R')
+source('functions/GRdrawDRCV2.app.R')
 source('functions/check_col_names.R')
 
 ######## code for zipping output data into one file ##########
@@ -552,14 +553,20 @@ shinyServer(function(input, output,session) {
   
   
   ######### show correct output data table on button click #############
-  # observeEvent(input$input_table_button, {
-  #   values$current_table_button = "input_table_button"
-  #   values$current_data = values$inData
-  #   ## emphasize the selected data table button
-  #   shinyjs::addClass(id = "input_table_button", class = "green")
-  #   shinyjs::removeClass(id = "gr_table_button", class = "green")
-  #   shinyjs::removeClass(id = "parameter_table_button", class = "green")
-  # })
+  observeEvent(input$analyzeButton, {
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      curve_choices = 1:8
+      names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+                               "Traditional sigmoid normal", "Traditional sigmoid low", 
+                               "Traditional sigmoid high", "Traditional biphasic")
+    }
+    if(identical(values$input_case, "static_vs_toxic")) {
+      curve_choices = 1:2
+      names(curve_choices) = c("GR static", "GR toxic")
+    }
+    updateSelectizeInput(session, inputId = "parameter_table_select", choices = curve_choices,
+                         selected = 1)
+  })
   observeEvent(input$gr_table_button, {
     values$current_table_button = "gr_table_button"
     #values$current_data = values$GR_table_show
@@ -586,18 +593,26 @@ shinyServer(function(input, output,session) {
     shinyjs::show("parameter_table_select")
     pp = input$parameter_table_select
     print(pp)
-    # curve_choices = 1:8
-    # names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
-    #                          "Traditional sigmoid normal", "Traditional sigmoid low", 
-    #                          "Traditional sigmoid high", "Traditional biphasic")
-    if(pp == 1) values$parameter_table = values$parameters_all$GR$sigmoid$normal
-    if(pp == 2) values$parameter_table = values$parameters_all$GR$sigmoid$low
-    if(pp == 3) values$parameter_table = values$parameters_all$GR$sigmoid$high
-    if(pp == 4) values$parameter_table = values$parameters_all$GR$biphasic$normal
-    if(pp == 5) values$parameter_table = values$parameters_all$rel_cell$sigmoid$normal
-    if(pp == 6) values$parameter_table = values$parameters_all$rel_cell$sigmoid$low
-    if(pp == 7) values$parameter_table = values$parameters_all$rel_cell$sigmoid$high
-    if(pp == 8) values$parameter_table = values$parameters_all$rel_cell$biphasic$normal
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      # curve_choices = 1:8
+      # names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+      #                          "Traditional sigmoid normal", "Traditional sigmoid low", 
+      #                          "Traditional sigmoid high", "Traditional biphasic")
+      if(pp == 1) values$parameter_table = values$parameters_all$GR$sigmoid$normal
+      if(pp == 2) values$parameter_table = values$parameters_all$GR$sigmoid$low
+      if(pp == 3) values$parameter_table = values$parameters_all$GR$sigmoid$high
+      if(pp == 4) values$parameter_table = values$parameters_all$GR$biphasic$normal
+      if(pp == 5) values$parameter_table = values$parameters_all$rel_cell$sigmoid$normal
+      if(pp == 6) values$parameter_table = values$parameters_all$rel_cell$sigmoid$low
+      if(pp == 7) values$parameter_table = values$parameters_all$rel_cell$sigmoid$high
+      if(pp == 8) values$parameter_table = values$parameters_all$rel_cell$biphasic$normal
+    }
+    if(identical(values$input_case, "static_vs_toxic")) {
+      # curve_choices = 1:2
+      # names(curve_choices) = c("GR static", "GR toxic")
+      if(pp == 1) values$parameter_table = values$parameters_all$GR$static
+      if(pp == 2) values$parameter_table = values$parameters_all$GR$toxic
+    }
     values$parameter_table_show = values$parameter_table
     values$current_data = values$parameter_table_show
   }, ignoreInit = T, ignoreNULL = T)
@@ -666,6 +681,7 @@ shinyServer(function(input, output,session) {
                  input$drc2_color, input$drc2_facet, input$drc2_metric, input$drc2_curves,
                  input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
                  ), {
+    req(input$groupingVars, input$drc2_facet)
     if(identical(values$input_case,"static_vs_toxic")) {
       filtered_drc = values$tables
       n <- length(input$groupingVars)
@@ -676,6 +692,7 @@ shinyServer(function(input, output,session) {
         print(filter_list)
         for(i in 1:length(filter_list)) {
           vals = filter_list[[i]]
+          #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
           df_colname = sym(names(filter_list)[i])
           print(head(filtered_drc$metadata$gr_table))
           if(length(vals) > 0) {
@@ -697,8 +714,9 @@ shinyServer(function(input, output,session) {
       }
       if(identical(values$grid_vs_single, "grid")) {
         #### render grid of plots
+        
         output$plots_grid <- renderUI({
-          plots = try(GRdrawDRCV2(fitData = filtered_drc, 
+          plots = try(GRdrawDRCV2.app(fitData = filtered_drc, 
                                   #metric = input$drc2_metric, 
                                   curves = input$drc2_curves,
                                   points = input$drc2_points, 

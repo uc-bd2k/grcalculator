@@ -8,11 +8,6 @@ library(shiny.semantic)
 library(shinycssloaders)
 library(DT)
 
-curve_choices = 1:8
-names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
-                  "Traditional sigmoid normal", "Traditional sigmoid low", 
-                  "Traditional sigmoid high", "Traditional biphasic")
-
 shinyUI(
   semanticPage(
     title = "Online Dose-response GR Calculator",
@@ -540,9 +535,7 @@ shinyUI(
                   ),
               tags$style(type = "text/css", "#parameter_table_select { display: inline-block; text-align: center; }"),
               shinyjs::hidden(selectInput(inputId = "parameter_table_select", "Curve",
-                                          choices = curve_choices,
-                                          selected = 1
-              )
+                                          choices = "")
               ),
               div(class = "ui basic center aligned segment", style = "min-height: 500px;",
                 DT::dataTableOutput("gr_table") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"),
@@ -661,9 +654,7 @@ shinyUI(
                     )
                   ),
                   selectInput(inputId = "box_scatter_fit", "Select fit type",
-                              choices = curve_choices,
-                              selected = 1
-                  )
+                              choices = "")
               ),
               div(class = "ui two column center aligned grid",
                 div(class = "four wide column",
