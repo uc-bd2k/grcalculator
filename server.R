@@ -307,42 +307,16 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T)
   # Code to show caseA/caseB choice buttons
   observeEvent(input$initialCellCount, {
-    hideElement(id = "bc2_upload_content")
-    hideElement(id = "bc2_upload_text")
-    showElement(id = "bc2_upload_link")
-    showElement(id = "bc3_content")
-    removeClass(id = "bc2_upload", class = "active")
-    addClass(id = "bc3", class = "active")
-    showElement(id = "bc3", anim = F)
-    showElement(id = "bc3_text", anim = F)
-    
-    
     removeClass(id = "divisionRate", class = "active")
     addClass(id = "initialCellCount", class = "active")
-    hideElement(id = "static_vs_toxic_req", anim = F)
-    hideElement(id = "comma_tab_buttons", anim = F)
     showElement(id = "case_buttons", anim = F)
-    showElement(id = "case_desc", anim = F)
     values$div_rate = F
     values$init_count = T
   }, ignoreInit = T)
   observeEvent(input$divisionRate, {
-    hideElement(id = "bc2_upload_content")
-    hideElement(id = "bc2_upload_text")
-    showElement(id = "bc2_upload_link")
-    showElement(id = "bc3_content")
-    removeClass(id = "bc2_upload", class = "active")
-    addClass(id = "bc3", class = "active")
-    showElement(id = "bc3", anim = F)
-    showElement(id = "bc3_text", anim = F)
-    
-    
     removeClass(id = "initialCellCount", class = "active")
     addClass(id = "divisionRate", class = "active")
-    hideElement(id = "static_vs_toxic_req", anim = F)
-    hideElement(id = "comma_tab_buttons", anim = F)
     showElement(id = "case_buttons", anim = F)
-    showElement(id = "case_desc", anim = F)
     values$div_rate = T
     values$init_count = F
   }, ignoreInit = T)
@@ -350,12 +324,36 @@ shinyServer(function(input, output,session) {
   observeEvent(input$caseA, {
     removeClass(id = "caseB", class = "active")
     addClass(id = "caseA", class = "active")
+    
+    hideElement(id = "bc2_upload_content")
+    hideElement(id = "bc2_upload_text")
+    showElement(id = "bc2_upload_link")
+    showElement(id = "bc3_content")
+    removeClass(id = "bc2_upload", class = "active")
+    addClass(id = "bc3", class = "active")
+    showElement(id = "bc3", anim = F)
+    showElement(id = "bc3_text", anim = F)
+    showElement(id = "case_desc", anim = F)
+    #hideElement(id = "static_vs_toxic_req", anim = F)
+    
     showElement(id = "comma_tab_buttons", anim = F)
     values$input_case = "A"
   }, ignoreInit = T)
   observeEvent(input$caseB, {
     removeClass(id = "caseA", class = "active")
     addClass(id = "caseB", class = "active")
+    
+    hideElement(id = "bc2_upload_content")
+    hideElement(id = "bc2_upload_text")
+    showElement(id = "bc2_upload_link")
+    showElement(id = "bc3_content")
+    removeClass(id = "bc2_upload", class = "active")
+    addClass(id = "bc3", class = "active")
+    showElement(id = "bc3", anim = F)
+    showElement(id = "bc3_text", anim = F)
+    showElement(id = "case_desc", anim = F)
+    #hideElement(id = "static_vs_toxic_req", anim = F)
+    
     showElement(id = "comma_tab_buttons", anim = F)
     values$input_case = "B"
   }, ignoreInit = T)
@@ -1339,7 +1337,7 @@ shinyServer(function(input, output,session) {
   observeEvent(values$inData, {
     static_vs_toxic_params = c("concentration", "cell_count", "cell_count__ctrl", 
                                "cell_count__time0", "dead_count", "dead_count__ctrl",
-                               "dead_count__time0", "time")
+                               "dead_count__time0")
     caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
     caseB_params = c('concentration', 'cell_count', 'time')
     time0_param = 'cell_count__time0'

@@ -104,7 +104,7 @@ shinyUI(
       #      ),
       #      div(id = "caseA_initial_desc",
       #          includeMarkdown("www/caseA_initial.md"),
-      #          tags$img(src = "images/caseA_blur.png", width = "100%")
+      #          tags$img(src = "images/data_examples/caseA_blur.png", width = "100%")
       #      ),
       #      div(id = "caseB_initial_desc",
       #          includeMarkdown("www/caseB_initial.md")
@@ -314,6 +314,16 @@ shinyUI(
                     div(class = "ui toggle button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
                 )
               )
+            ),
+            shinyjs::hidden(
+              div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "case_buttons",
+                  h3("Choose input file format"),
+                  div(class = "ui buttons",
+                      div(class = "ui toggle button action-button", id = "caseA", "Case A (multiple cell counts per row)"),
+                      div(class = "or"),
+                      div(class = "ui toggle button action-button", id = "caseB", "Case B (one cell count per row)")
+                  )
+              )
             )
           )
           ),
@@ -322,164 +332,155 @@ shinyUI(
           ##### start bc3_content ########
           hidden(
           div(class = "ui basic segment", id = "bc3_content",
+              shinyjs::hidden(
+                div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "comma_tab_buttons",
+                    h3("Select file type"),
+                    div(class = "ui buttons",
+                        div(class = "ui toggle button action-button", id = "comma_input",
+                            "comma-separated (.csv)", value = "comma"),
+                        div(class = "or"),
+                        div(class = "ui toggle button action-button", id = "tab_input", 
+                            "tab-separated (.tsv)", value = "tab")
+                    )
+                )
+              ),
+              br(),
+              shinyjs::hidden(
+                div(id = 'upload_button', h3("Upload data file"),
+                    div(class = "ui two column grid",
+                        div(class = "row",
+                            div(class = "six wide column",
+                                tags$b('From your computer:'),
+                                br(),
+                                div(class="ui icon button", id="divUpload",
+                                    tags$i(class="cloud icon"), "Choose file..."
+                                ),
+                                tags$input(type="file", id = "uploadData", style="display: none"),
+                                #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
+                                # The following tag allows for the same file path to be used twice in a row for upload
+                                tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });')
+                            ),
+                            div(class = "ten wide column",
+                                div(class = "ui form", style = "width: 200px; display: inline-block;",
+                                    div(class = "field",
+                                        tags$label("Or from a URL:"),
+                                        tags$input(type = "text", id = "url")
+                                    )
+                                ),
+                                div(class = "ui button action-button" , id = "fetchURLData", "Fetch Data",
+                                    style="width: 120px; vertical-align: bottom; display: inline-block;")
+                            )
+                        )
+                    ))),
+              br(),
           shinyjs::hidden(
             div(class = "ui basic segment", id = "static_vs_toxic_req",
+                downloadLink(outputId = "dl_case_static_vs_toxic", "Download example data for static vs. toxic curves"),
                 div(class = "ui active accordion",
                     div(class = "title active", 
                         tags$i(class = "dropdown icon"), "Static vs. toxic case example"
                     ),
                     div(class = "content active",
-                        tags$img(src = "images/case_static_vs_toxic_blur.png", 
-                                 width = "90%",
+                        tags$img(src = "images/data_examples/case_static_vs_toxic_blur.png", 
+                                 width = "100%",
                                  style = "float: center;")
                     )
                 ),
-                div(class = "ui accordion",
-                    div(class = "title", 
-                        tags$i(class = "dropdown icon"), "Static vs. toxic case required columns"
+                div(class = "ui active accordion",
+                    div(class = "title active", 
+                        tags$i(class = "dropdown icon"), "Static vs. toxic case column descriptions"
                     ),
-                    div(class = "content",
+                    div(class = "content active",
                         includeMarkdown("www/static_vs_toxic_req.md")
                     )
-                ),
-                downloadLink(outputId = "dl_case_static_vs_toxic", "Download example data for static vs. toxic curves")
-            )
-          ),
-          shinyjs::hidden(
-            div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "case_buttons",
-                h3("Choose input file format"),
-                div(class = "ui buttons",
-                div(class = "ui toggle button action-button", id = "caseA", "Case A (multiple cell counts per row)"),
-                div(class = "or"),
-                div(class = "ui toggle button action-button", id = "caseB", "Case B (one cell count per row)")
                 )
             )
           ),
           shinyjs::hidden(  div(class = "twelve wide column", id = "case_desc",
             shinyjs::hidden(
               div(id = "caseA_div_desc",
+                  downloadLink(outputId = "dl_caseA_div", "Download example data for case A"),
                   div(class = "ui active accordion",
                       div(class = "title active", 
                           tags$i(class = "dropdown icon"), "Case A Example"
                       ),
                       div(class = "content active",
-                          tags$img(src = "images/caseA_blur_div.png", width = "90%",
+                          tags$img(src = "images/data_examples/caseA_blur_div.png", width = "90%",
                                    style = "float: center;")
                       )
                   ),
-                  div(class = "ui accordion",
-                      div(class = "title", 
-                          tags$i(class = "dropdown icon"), "Case A required columns"
+                  div(class = "ui active accordion",
+                      div(class = "title active", 
+                          tags$i(class = "dropdown icon"), "Case A column descriptions"
                       ),
-                      div(class = "content",
+                      div(class = "content active",
                           includeMarkdown("www/caseA_div.md")
                       )
-                  ),
-                  downloadLink(outputId = "dl_caseA_div", "Download example data for case A")
+                  )
               ),
               div(id = "caseA_initial_desc",
+                  downloadLink(outputId = "dl_caseA", "Download example data for case A"),
                   div(class = "ui active accordion",
                     div(class = "title active", 
                         tags$i(class = "dropdown icon"), "Case A Example"
                     ),
                     div(class = "content active",
-                        tags$img(src = "images/caseA_blur.png", width = "90%",
+                        tags$img(src = "images/data_examples/caseA_blur.png", width = "90%",
                                  style = "float: center;")
                     )
                   ),
-                  div(class = "ui accordion",
-                      div(class = "title", 
-                          tags$i(class = "dropdown icon"), "Case A required columns"
+                  div(class = "ui active accordion",
+                      div(class = "title active", 
+                          tags$i(class = "dropdown icon"), "Case A column descriptions"
                       ),
-                      div(class = "content",
+                      div(class = "content active",
                           includeMarkdown("www/caseA_initial.md")
                       )
-                  ),
-                  downloadLink(outputId = "dl_caseA", "Download example data for case A")
+                  )
               ),
               div(id = "caseB_initial_desc",
+                  downloadLink(outputId = "dl_caseB", "Download example data for case B"),
                   div(class = "ui active accordion",
                       div(class = "title active", 
                           tags$i(class = "dropdown icon"), "Case B Example"
                       ),
                       div(class = "content active",
-                          tags$img(src = "images/caseB_blur.png", width = "90%",
+                          tags$img(src = "images/data_examples/caseB_blur.png", width = "80%",
                                    style = "float: center;")
                       )
                   ),
-                  div(class = "ui accordion",
-                      div(class = "title", 
-                          tags$i(class = "dropdown icon"), "Case B required columns"
+                  div(class = "ui active accordion",
+                      div(class = "title active", 
+                          tags$i(class = "dropdown icon"), "Case B column descriptions"
                       ),
-                      div(class = "content",
+                      div(class = "content active",
                           includeMarkdown("www/caseB_initial.md")
                       )
-                  ),
-                  downloadLink(outputId = "dl_caseB", "Download example data for case B")
+                  )
               ),
               div(id = "caseB_div_desc",
+                  downloadLink(outputId = "dl_caseB_div", "Download example data for case B"),
                   div(class = "ui active accordion",
                       div(class = "title active", 
                           tags$i(class = "dropdown icon"), "Case B Example"
                       ),
                       div(class = "content active",
-                          tags$img(src = "images/caseB_blur_div.png", width = "90%",
+                          tags$img(src = "images/data_examples/caseB_blur_div.png", width = "90%",
                                    style = "float: center;")
                       )
                   ),
-                  div(class = "ui accordion",
-                      div(class = "title", 
-                          tags$i(class = "dropdown icon"), "Case B required columns"
+                  div(class = "ui active accordion",
+                      div(class = "title active", 
+                          tags$i(class = "dropdown icon"), "Case B column descriptions"
                       ),
-                      div(class = "content",
+                      div(class = "content active",
                           includeMarkdown("www/caseB_div.md")
                       )
-                  ),
-                  downloadLink(outputId = "dl_caseB_div", "Download example data for case B")
-              )
-            )
-            )
-          ),
-          shinyjs::hidden(
-            div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "comma_tab_buttons",
-                h3("Select file type"),
-                div(class = "ui buttons",
-                    div(class = "ui toggle button action-button", id = "comma_input",
-                        "comma-separated (.csv)", value = "comma"),
-                    div(class = "or"),
-                    div(class = "ui toggle button action-button", id = "tab_input", 
-                        "tab-separated (.tsv)", value = "tab")
+                  )
                 )
             )
-          ),
-          br(),
-          shinyjs::hidden(
-            div(id = 'upload_button', h3("Upload data file"),
-                div(class = "ui two column grid",
-                    div(class = "row",
-                        div(class = "six wide column",
-                            tags$b('From your computer:'),
-                            br(),
-                            div(class="ui icon button", id="divUpload",
-                                tags$i(class="cloud icon"), "Choose file..."
-                            ),
-                            tags$input(type="file", id = "uploadData", style="display: none"),
-                            #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
-                            # The following tag allows for the same file path to be used twice in a row for upload
-                            tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });')
-                        ),
-                        div(class = "ten wide column",
-                            div(class = "ui form", style = "width: 200px; display: inline-block;",
-                                div(class = "field",
-                                    tags$label("Or from a URL:"),
-                                    tags$input(type = "text", id = "url")
-                                )
-                            ),
-                            div(class = "ui button action-button" , id = "fetchURLData", "Fetch Data",
-                                style="width: 120px; vertical-align: bottom; display: inline-block;")
-                        )
-                    )
-                )))
+            )
+          )
           )
           
           ),
