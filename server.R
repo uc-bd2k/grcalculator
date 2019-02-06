@@ -20,7 +20,7 @@ library(dplyr)
 #source('functions/drawScatter.R', local = T)
 #source('functions/drawBox.R')
 #source('functions/parseLabel.R')
-source('functions/.GRdrawDRC.app.R')
+source('functions/GRdrawDRC.app.R')
 source('functions/check_col_names.R')
 
 ######## code for zipping output data into one file ##########
@@ -300,6 +300,7 @@ shinyServer(function(input, output,session) {
     showElement(id = "comma_tab_buttons", anim = F)
     addClass(id = "yes_dead", class = "active")
     removeClass(id = "no_dead", class = "active")
+    values$input_case = "static_vs_toxic"
     values$yes_dead = T
     values$no_dead = F
   }, ignoreInit = T)
@@ -811,23 +812,16 @@ shinyServer(function(input, output,session) {
           }
         }
         filtered_drc = values$tables
-        if(input$drc2_curves == "sigmoid") { parameterTable -> parameter_list$sigmoid$normal }
-        if(input$drc2_curves == "sigmoid_high") { parameterTable -> parameter_list$sigmoid$high }
-        if(input$drc2_curves == "sigmoid_low") { parameterTable ->  parameter_list$sigmoid$low }
-        if(input$drc2_curves == "biphasic") { parameterTable ->  parameter_list$biphasic$normal }
-        if(input$drc2_curves == "line") { parameterTable -> parameter_list$sigmoid$normal }
-        if(input$drc2_curves == "none") { parameterTable ->  parameter_list$sigmoid$normal }
-        filtered_drc$assays[[input$drc2_metric]] = parameter_list
-        filtered_drc$metadata$gr_table = gr_table
-        test <<-filtered_drc
-        
+        # filtered_drc$assays[[input$drc2_metric]] = parameter_list
+        # filtered_drc$metadata$gr_table = gr_table
+        # test <<-filtered_drc
         if(values$grid_vs_single == "grid") {
           #### render grid of plots
           output$plots_grid <- renderUI({
             #if(values$grid_vs_single == "grid") {
-            plots = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
-                                       curves = input$drc2_curves,
-                                       points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+            plots = try(GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
+                                       curves = input$drc2_curves, points = input$drc2_points, 
+                                       xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                                        facet = input$drc2_facet, bars = input$drc2_bars,
                                        color = input$drc2_color, plot_type = "static",
                                        output_type = "separate"))
@@ -889,9 +883,9 @@ shinyServer(function(input, output,session) {
         
         ####### render single plot output
         if(values$grid_vs_single == "single") {
-          single_plot = try(.GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
-                                           curves = input$drc2_curves,
-                                           points = input$drc2_points, xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+          single_plot = try(GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
+                                           curves = input$drc2_curves, points = input$drc2_points,
+                                           xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                                            facet = "none", bars = input$drc2_bars,
                                            color = input$drc2_color, plot_type = "interactive"))
           if(class(single_plot) != "try-error") {
@@ -972,51 +966,51 @@ shinyServer(function(input, output,session) {
   
   ####### render box and scatter plots ##############
   #### update curve fit choice for box/scatterplots
-  curve_choices = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
-                    "Traditional sigmoid normal", "Traditional sigmoid low", 
-                    "Traditional sigmoid high", "Traditional biphasic")
-  observeEvent(input$box_scatter_fit, {
-    if(input$box_scatter_fit %in% 1:4) values$box_scatter_metric = "GR"
-    if(input$box_scatter_fit %in% 5:8) values$box_scatter_metric = "rel_cell"
-    if(input$box_scatter_fit %in% c(1, 5)) values$box_scatter_fit = "sigmoid"
-    if(input$box_scatter_fit %in% c(2, 6)) values$box_scatter_fit = "sigmoid_low"
-    if(input$box_scatter_fit %in% c(3, 7)) values$box_scatter_fit = "sigmoid_high"
-    if(input$box_scatter_fit %in% c(4, 8)) values$box_scatter_fit = "biphasic"
-  }, ignoreInit = F, ignoreNULL = T, priority = 1000)
-  ### render boxplot
-  observeEvent(c(values$tables, input$pick_box_x, input$pick_box_y,
-                 input$pick_box_point_color, input$pick_box_factors, 
-                 input$factorA, input$factorB, input$wilcox_method), {
-   output$boxplot <- renderPlotly({
-     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
-      plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric, 
-                  fit = values$box_scatter_fit,
-                  parameter = input$pick_box_y, groupVariable = input$pick_box_x,
-                  pointColor = input$pick_box_point_color, 
-                  factors = input$pick_box_factors, 
-                  wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
-     if(class(plot) != "try-error") return(plot)
-     } else {
-       return(ggplot())
-     }
-   })
-                   outputOptions(output, "boxplot", suspendWhenHidden = FALSE)
-                 }, ignoreInit = T, ignoreNULL = T)
+  # curve_choices = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+  #                   "Traditional sigmoid normal", "Traditional sigmoid low", 
+  #                   "Traditional sigmoid high", "Traditional biphasic")
+  # observeEvent(input$box_scatter_fit, {
+  #   if(input$box_scatter_fit %in% 1:4) values$box_scatter_metric = "GR"
+  #   if(input$box_scatter_fit %in% 5:8) values$box_scatter_metric = "rel_cell"
+  #   if(input$box_scatter_fit %in% c(1, 5)) values$box_scatter_fit = "sigmoid"
+  #   if(input$box_scatter_fit %in% c(2, 6)) values$box_scatter_fit = "sigmoid_low"
+  #   if(input$box_scatter_fit %in% c(3, 7)) values$box_scatter_fit = "sigmoid_high"
+  #   if(input$box_scatter_fit %in% c(4, 8)) values$box_scatter_fit = "biphasic"
+  # }, ignoreInit = F, ignoreNULL = T, priority = 1000)
+  # ### render boxplot
+  # observeEvent(c(values$tables, input$pick_box_x, input$pick_box_y,
+  #                input$pick_box_point_color, input$pick_box_factors, 
+  #                input$factorA, input$factorB, input$wilcox_method), {
+  #  output$boxplot <- renderPlotly({
+  #    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+  #     plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric, 
+  #                 fit = values$box_scatter_fit,
+  #                 parameter = input$pick_box_y, groupVariable = input$pick_box_x,
+  #                 pointColor = input$pick_box_point_color, 
+  #                 factors = input$pick_box_factors, 
+  #                 wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
+  #    if(class(plot) != "try-error") return(plot)
+  #    } else {
+  #      return(ggplot())
+  #    }
+  #  })
+  #                  outputOptions(output, "boxplot", suspendWhenHidden = FALSE)
+  #                }, ignoreInit = T, ignoreNULL = T)
   
   #### render scatterplot
-  observeEvent(c(values$tables, input$pick_parameter, input$x_scatter, input$y_scatter), {
-    output$scatterplot <- renderPlotly({
-      if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
-        plot = try(GRscatter(fitData = values$tables, metric = input$pick_parameter, xaxis = input$x_scatter,
-                             yaxis = input$y_scatter, # curves = "sigmoid",
-                             plotly = TRUE))
-        if(class(plot) != "try-error") return(plot)
-      } else {
-        return(ggplot())
-      }
-    })
-    outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
-  }, ignoreInit = T, ignoreNULL = T)
+  # observeEvent(c(values$tables, input$pick_parameter, input$x_scatter, input$y_scatter), {
+  #   output$scatterplot <- renderPlotly({
+  #     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+  #       plot = try(GRscatter(fitData = values$tables, metric = input$pick_parameter, xaxis = input$x_scatter,
+  #                            yaxis = input$y_scatter, # curves = "sigmoid",
+  #                            plotly = TRUE))
+  #       if(class(plot) != "try-error") return(plot)
+  #     } else {
+  #       return(ggplot())
+  #     }
+  #   })
+  #   outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
+  # }, ignoreInit = T, ignoreNULL = T)
   
   ################
   
