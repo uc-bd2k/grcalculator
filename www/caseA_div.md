@@ -7,6 +7,8 @@ Necessary columns:
   + **concentration** = concentration value (not log-transformed) of the treatment (all concentrations must be positive numbers)
   + **cell_count** = treated cell count (end of assay) - measure of cell number in the treated well at the end of the assay
   + **cell\_count\_\_ctrl** - control cell count (end of assay) - measure of cell number in the control well (e.g. untreated or DMSO-treated) from the same plate at the end of the assay
+  + **treatment\_duration** - the time in hours between the time of treatment and the end of the assay, when cell number is measured
+  + **division\_time** - the time in hours that it takes cells from each (untreated) cell line to double in population number.
 
 You may use a surrogate of cell number (such as CellTiter-Glo® staining) for the 'cell counts'.
 

@@ -261,11 +261,11 @@ shinyUI(
                             tags$span("Choose example data", id = "bc2_ex_text"), 
                               hidden(actionLink("bc2_ex_link", "Choose example data")), id = "bc2_ex"),
                         div(class="section", tags$i(class="right angle icon divider"),
-                            tags$span("Choose upload data", id = "bc2_upload_text"), 
-                            hidden(actionLink("bc2_upload_link", "Choose upload data")), id = "bc2_upload"),
+                            tags$span("Data format", id = "bc2_upload_text"), 
+                            hidden(actionLink("bc2_upload_link", "Data format")), id = "bc2_upload"),
                         div(class="section", tags$i(class="right angle icon divider"),
-                            tags$span("Required columns", id = "bc3_text"), 
-                            hidden(actionLink("bc3_link", "Required columns")), id = "bc3"),
+                            tags$span("File format", id = "bc3_text"), 
+                            hidden(actionLink("bc3_link", "File format")), id = "bc3"),
                         div(class="section", tags$i(class="right angle icon divider"),
                             tags$span("Choose groups", id = "bc4_text"), 
                             hidden(actionLink("bc4_link", "Choose groups")), id = "bc4")
@@ -333,7 +333,7 @@ shinyUI(
           hidden(
           div(class = "ui basic segment", id = "bc3_content",
               shinyjs::hidden(
-                div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "comma_tab_buttons",
+                div(class = "ui basic center aligned segment", `data-toggle` = "buttons", id = "comma_tab_buttons", style = "padding-top: 0px; margin-top: 0px;",
                     h3("Select file type"),
                     div(class = "ui buttons",
                         div(class = "ui toggle button action-button", id = "comma_input",
@@ -344,7 +344,6 @@ shinyUI(
                     )
                 )
               ),
-              br(),
               shinyjs::hidden(
                 div(id = 'upload_button', h3("Upload data file"),
                     div(class = "ui two column grid",
@@ -405,7 +404,7 @@ shinyUI(
                           tags$i(class = "dropdown icon"), "Case A Example"
                       ),
                       div(class = "content active",
-                          tags$img(src = "images/data_examples/caseA_blur_div.png", width = "90%",
+                          tags$img(src = "images/data_examples/caseA_div_blur.png", width = "90%",
                                    style = "float: center;")
                       )
                   ),

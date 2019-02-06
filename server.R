@@ -951,11 +951,39 @@ shinyServer(function(input, output,session) {
   
   ###############
   
-  ####
+  #### download buttons for example data
   output$dl_caseA = downloadHandler(
     filename = function() {"caseA_example.csv"},
     content = function(con) {
       temp = read_csv("resources/caseA_example.csv")
+      return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
+    }
+  )
+  output$dl_caseB = downloadHandler(
+    filename = function() {"caseB_example.csv"},
+    content = function(con) {
+      temp = read_csv("resources/caseB_example.csv")
+      return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
+    }
+  )
+  output$dl_caseA_div = downloadHandler(
+    filename = function() {"caseA_div_example.csv"},
+    content = function(con) {
+      temp = read_csv("resources/caseA_div_example.csv")
+      return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
+    }
+  )
+  output$dl_caseB_div = downloadHandler(
+    filename = function() {"caseB_div_example.csv"},
+    content = function(con) {
+      temp = read_csv("resources/caseB_div_example.csv")
+      return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
+    }
+  )
+  output$dl_case_static_vs_toxic = downloadHandler(
+    filename = function() {"gr_static_vs_toxic_input_med.csv"},
+    content = function(con) {
+      temp = read_csv("resources/case_static_vs_toxic_example.csv")
       return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
     }
   )

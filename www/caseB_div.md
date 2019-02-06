@@ -7,6 +7,8 @@ Necessary columns:
   + **concentration** = concentration value (not log-transformed) of the treatment - use 0 for untreated measurements - concentrations for other measurements must be positive numbers
   + **cell_count** = measure of cell number
   + **time** = time of cell number measurement - use 0 for measurements at the beginning of the assay and the length of the assay after treatment, e.g. "72" for a typical 3-day (72 hour) assay, for measurements at the end of the assay (note: time-course calculations have not been implemented yet, all measurements must be at the time of treatment or at the end of the assay.)
+  + **treatment\_duration** - the time in hours between the time of treatment and the end of the assay, when cell number is measured
+  + **division\_time** - the time in hours that it takes cells from each (untreated) cell line to double in population number.
 
 You may use a surrogate of cell number (such as CellTiter-Glo® staining) for the 'cell counts'.
 
