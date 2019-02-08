@@ -9,7 +9,7 @@ Necessary columns:
   + **cell_count** = treated live cell count (end of assay) - measure of cell number in the treated well at the end of the assay
   + **dead_count** = treated dead cell count (end of assay) - measure of cell number in the treated well at the end of the assay
   + **cell\_count\_\_ctrl** - control live cell count (end of assay) - measure of live cell number in the control well (e.g. untreated or DMSO-treated) from the same plate at the end of the assay
-    + **dead\_count\_\_ctrl** - control live cell count (end of assay) - measure of dead cell number in the control well (e.g. untreated or DMSO-treated) from the same plate at the end of the assay
+  + **dead\_count\_\_ctrl** - control live cell count (end of assay) - measure of dead cell number in the control well (e.g. untreated or DMSO-treated) from the same plate at the end of the assay
   + **cell\_count\_\_time0** - initial cell count (time of treatment) - measure of cell number at the beginning of the assay. (measure of cells in an untreated well grown in parallel until the time of treatment)
   + **dead\_count\_\_time0** - initial dead cell count (time of treatment) - measure of dead cell number at the beginning of the assay. (measure of cells in an untreated well grown in parallel until the time of treatment)
 

@@ -1,6 +1,7 @@
 GRdrawDRCV2.app = function(fitData,
                        points = c("average", "all", "none"),
                        curves = c("sigmoid", "line", "none"),
+                       color = "experiment",
                        experiments = list(),
                        plot_type = c("static", "interactive"),
                        output_type = c("together", "separate")
@@ -17,6 +18,7 @@ GRdrawDRCV2.app = function(fitData,
   # palette = palette[1]
   plot_type = plot_type[1]
   output_type = output_type[1]
+
   #########
   # data frame for points
   fit_df = fitData$metadata$gr_table
@@ -27,7 +29,11 @@ GRdrawDRCV2.app = function(fitData,
   # get grouping variables
   group_vars = GRmetrics::GRgetGroupVars(fitData)
   #group_vars = fitData$metadata$groupingVariables
-  id = c(group_vars, "time", "concentration")
+  # check that color variable is allowed
+  assertthat::assert_that(color %in% c("experiment", group_vars), 
+                          msg = "'color' must be either 'experiment' or one of the grouping variables")
+  color = dplyr::ensym(color)
+  id = unique(c(group_vars, "time", "concentration"))
   data = fit_df %>%
     reshape2::melt(id.vars = id,
                    measure.vars = c("GR_s", "GR_d", "GR_naive", "GR_combined"),
@@ -120,23 +126,32 @@ GRdrawDRCV2.app = function(fitData,
     ggplot2::geom_hline(yintercept = 1, size = 1, colour = "gray")
   #### start create plots function #########
   parameterTable = dplyr::bind_rows(params_GR_s, params_GR_d)
+  ### make sure facets are in the correct order
+  curve_data_all %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
+  data %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
+  data_mean %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
+  
   .create_plots = function(p, data, data_mean, parameterTable, curve_data_all, legend = "none", leg_colors) {
     if(curves == "line") {
       p = p + ggplot2::geom_line(data = data_mean, 
                 ggplot2::aes(x = log10(concentration), y = GRvalue, 
+                  text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
                   colour = GR_metric, group = GR_metric), size = 1.1)
     } else if(curves == "sigmoid") {
       p = p + ggplot2::geom_line(data = curve_data_all, 
                 ggplot2::aes(x = log10(concentration), y = GRvalue, 
+                  text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
                   colour = GR_metric, group = GR_metric), size = 1.1)
     }
     if(points == "average") {
       p = p + ggplot2::geom_point(data = data_mean,
                 aes(x = log10(concentration), y = GRvalue, 
+                    text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
                     colour = GR_metric, group = GR_metric))
     } else if (points == "all") {
       p = p + ggplot2::geom_point(data = data,
                 aes(x = log10(concentration), y = GRvalue, 
+                    text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
                     colour = GR_metric, group = GR_metric))
     }
     # add error bars to the plot
@@ -156,8 +171,10 @@ GRdrawDRCV2.app = function(fitData,
     p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
                                               log10(max)+0.1),
                                      ylim = c(-1, 1.5), expand = F) +
-      ggplot2::ggtitle("Concentration vs. GR values") +
-      ggplot2::ylab('GR value')
+      ggplot2::ylab("") +
+      ggplot2::xlab("")
+      #ggplot2::ggtitle("Concentration vs. GR values") +
+      #ggplot2::ylab('GR value')
     #ggplot2::geom_hline(yintercept = 0.5, size = 1, linetype = "dashed") +
     #ggplot2::geom_hline(yintercept = -1, size = 1, linetype = "dashed")
     # configure plot facets
@@ -200,14 +217,69 @@ GRdrawDRCV2.app = function(fitData,
     out = purrr::pmap(.l = data_input_list, .f = .create_plots)
     return(list(plot = out, legend = out_legend))
   } else {
-    leg_groups = c("GR_s", "GR_d")
-    leg_len = length(leg_groups)
-    leg_colors = scales::hue_pal()(leg_len)
-    names(leg_colors) = leg_groups
-    ### call create plot function once to output one plot object
-    out = .create_plots(p = p, data = data, data_mean = data_mean, 
-                        parameterTable = parameterTable, curve_data_all = curve_data_all,
-                        legend = "right", leg_colors = leg_colors)
-    return(list(plot = out))
+    # leg_groups = c("GR_s", "GR_d")
+    # leg_len = length(leg_groups)
+    # leg_colors = scales::hue_pal()(leg_len)
+    # names(leg_colors) = leg_groups
+    # ### call create plot function once to output one plot object
+    # out = .create_plots(p = p, data = data, data_mean = data_mean, 
+    #                     parameterTable = parameterTable, curve_data_all = curve_data_all,
+    #                     legend = "right", leg_colors = leg_colors)
+    
+    if(curves == "line") {
+      p = p + ggplot2::geom_line(data = data_mean, 
+                                 ggplot2::aes(x = log10(concentration), y = GRvalue, 
+                                              text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
+                                              colour = !!color, group = experiment), size = 1.1)
+    } else if(curves == "sigmoid") {
+      p = p + ggplot2::geom_line(data = curve_data_all, 
+                                 ggplot2::aes(x = log10(concentration), y = GRvalue, 
+                                              text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
+                                              colour = !!color, group = experiment), size = 1.1)
+    }
+    if(points == "average") {
+      p = p + ggplot2::geom_point(data = data_mean,
+                                  aes(x = log10(concentration), y = GRvalue, 
+                                      text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
+                                      colour = !!color, group = experiment))
+    } else if (points == "all") {
+      p = p + ggplot2::geom_point(data = data,
+                                  aes(x = log10(concentration), y = GRvalue, 
+                                      text = sprintf("GR value: %.3f<br>log10(concentration): %.3f", GRvalue, log10(concentration) ),
+                                      colour = !!color, group = experiment))
+    }
+    # add error bars to the plot
+    # bar_width = 0
+    # if(bars == "sd") {
+    #   p = p + ggplot2::geom_errorbar(data = data_mean, 
+    #         ggplot2::aes(x = log10_concentration, y = y_val_mean,
+    #            ymin = y_val_mean - y_val_sd, ymax = y_val_mean + y_val_sd, 
+    #             colour = !!color, group = experiment), width = bar_width)
+    # } else if(bars == "se") {
+    #   p = p + ggplot2::geom_errorbar(data = data_mean, 
+    #         ggplot2::aes(x = log10_concentration, y = y_val_mean,
+    #            ymin = y_val_mean - y_val_se, ymax = y_val_mean + y_val_se, 
+    #                colour = !!color, group = experiment), width = bar_width)
+    # }
+    # set x and y range for plot, set labels, add horizontal lines
+    p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
+                                              log10(max)+0.1),
+                                     ylim = c(-1, 1.5), expand = F) +
+      ggplot2::ylab("") +
+      ggplot2::xlab("")
+    #ggplot2::ggtitle("Concentration vs. GR values") +
+    #ggplot2::ylab('GR value')
+    #ggplot2::geom_hline(yintercept = 0.5, size = 1, linetype = "dashed") +
+    #ggplot2::geom_hline(yintercept = -1, size = 1, linetype = "dashed")
+    # configure plot facets
+    p = p + ggplot2::facet_wrap(~GR_metric, ncol = 5)
+    # add theme to plot, keep aspect ratio 1:1
+    p = p + ggplot2::theme_classic() + ggplot2::theme(legend.position = "right")#+ do.call(theme, args = list())
+    # add palette to plot
+    ###p = p + scale_colour_npg()
+    if(plot_type == "interactive") p = plotly::ggplotly(p)
+    if(plot_type == "static") p = p + ggplot2::theme(aspect.ratio = 1)
+    
+    return(list(plot = p))
   }
 }

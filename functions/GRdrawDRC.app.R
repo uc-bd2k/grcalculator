@@ -200,8 +200,11 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
   # add curves to the plot
   .create_plots = function(p, data, data_mean, parameterTable, curve_data_all, legend = "none", leg_colors, color) {
     if(curves == "line") {
-      p = p + ggplot2::geom_line(data = data_mean, ggplot2::aes(x = log10_concentration,
-                                                                y = y_val_mean, colour = !!color, group = experiment), size = 1.1)
+      p = p + ggplot2::geom_line(data = data_mean, 
+                ggplot2::aes(x = log10_concentration,
+                  text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                                        paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
+          y = y_val_mean, colour = !!color, group = experiment), size = 1.1)
       # p + ggplot2::geom_line(data = data_mean, ggplot2::aes_string(x = "log10_concentration",
       #       y = "y_val_mean", colour = color, group = "experiment"), size = 1.1)
       #### scale transformations don't work with plotly :(
@@ -209,17 +212,25 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
       # annotation_logticks(sides = "b", short = unit(0.1, "cm"), mid = unit(0.2, "cm"),long = unit(0.3, "cm"))
     } else if(curves %in% c("sigmoid", "biphasic", "sigmoid_low", "sigmoid_high")) {
       p = p + ggplot2::geom_line(data = curve_data_all,
-                                 ggplot2::aes(x = log10_concentration, y = y_val, colour = !!color, group = experiment), size = 1.1)
+                                 ggplot2::aes(x = log10_concentration, y = y_val,
+                                              text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                                                                    paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val, log10_concentration),colour = !!color, group = experiment), size = 1.1)
     } else if(curves == "none") {
       # do nothing
     }
     # add points to the plot
     if(points == "average") {
       p = p + ggplot2::geom_point(data = data_mean, ggplot2::aes(x = log10_concentration,
-                                                                 y = y_val_mean, colour = !!color, group = experiment), size = 2)
+                                                                 y = y_val_mean,
+                                                                 text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                                                                                       paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
+                                                                 colour = !!color, group = experiment), size = 2)
     } else if(points == "all") {
       p = p + ggplot2::geom_point(data = data, ggplot2::aes(x = log10_concentration,
-                                                            y = y_val, colour = !!color, group = experiment), size = 2)
+                                                            y = y_val, 
+                                                            text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                                                                                  paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
+                                                            colour = !!color, group = experiment), size = 2)
     } else if(points == "none") {
       # do nothing
     }
@@ -228,20 +239,27 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
     if(bars == "sd") {
       p = p + ggplot2::geom_errorbar(data = data_mean, ggplot2::aes(x = log10_concentration, y = y_val_mean,
                                                                     ymin = y_val_mean - y_val_sd, ymax = y_val_mean + y_val_sd, 
+                                                                    text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                                                                                          paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
                                                                     colour = !!color, group = experiment), width = bar_width)
     } else if(bars == "se") {
       p = p + ggplot2::geom_errorbar(data = data_mean, ggplot2::aes(x = log10_concentration, y = y_val_mean,
                                                                     ymin = y_val_mean - y_val_se, ymax = y_val_mean + y_val_se, 
+                                                                    text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                                                                                          paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
                                                                     colour = !!color, group = experiment), width = bar_width)
     }
-    p = p + ggplot2::xlab('Concentration (log10 scale)')
+    p = p +# ggplot2::xlab('Concentration (log10 scale)')
+      ggplot2::xlab("") + ggplot2::ylab("")
     if(metric == "GR") {
       # set x and y range for plot, set labels, add horizontal lines
       p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
                                                 log10(max)+0.1),
                                        ylim = c(-1, 1.5), expand = F) +
-        ggplot2::ggtitle("Concentration vs. GR values") +
-        ggplot2::ylab('GR value') +
+        #ggplot2::ggtitle("Concentration vs. GR values") +
+        #ggplot2::ylab('GR value') +
+        ggplot2::ylab("") +
+        ggplot2::xlab("") +
         ggplot2::geom_hline(yintercept = 0, size = 1, colour = "#1F77B4")
       #ggplot2::geom_hline(yintercept = 1, size = 1, linetype = "dashed") +
       #ggplot2::geom_hline(yintercept = 0.5, size = 1, linetype = "dashed") +
@@ -251,8 +269,10 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
       p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
                                                 log10(max)+0.1),
                                        ylim = c(0, 1.5), expand = F) +
-        ggplot2::ggtitle("Concentration vs. Relative cell count") +
-        ggplot2::ylab('Relative cell count')
+        ggplot2::ylab("") +
+        ggplot2::xlab("")
+        #ggplot2::ggtitle("Concentration vs. Relative cell count") +
+        #ggplot2::ylab('Relative cell count')
     }
     ###  - Change code above so that curve parameters are called the same thing
     ### for GR and traditional curve. Then change rug names below to agree with this.

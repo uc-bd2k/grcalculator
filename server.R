@@ -24,6 +24,11 @@ source('functions/GRdrawDRC.app.R')
 source('functions/GRdrawDRCV2.app.R')
 source('functions/check_col_names.R')
 
+prettyNumTable = function(df, digits = 3) {
+  df %<>% dplyr::mutate_if(is.numeric, 
+            function(x) base::prettyNum(x, digits = digits, drop0trailing = TRUE))
+}
+
 ######## code for zipping output data into one file ##########
 zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
   dir = tempdir()
@@ -611,7 +616,7 @@ shinyServer(function(input, output,session) {
       if(pp == 1) values$parameter_table = values$parameters_all$GR$static
       if(pp == 2) values$parameter_table = values$parameters_all$GR$toxic
     }
-    values$parameter_table_show = values$parameter_table
+    values$parameter_table_show = prettyNumTable(values$parameter_table)
     values$current_data = values$parameter_table_show
   }, ignoreInit = T, ignoreNULL = T)
   #### render current data table
@@ -708,7 +713,21 @@ shinyServer(function(input, output,session) {
       print(dim(filtered_drc$assays$GR$toxic))
       ######### begin render plots for static vs toxic case ##########
       if(identical(values$grid_vs_single, "single")) {
-        shinyjs::click(id = "grid_button")
+        #shinyjs::click(id = "grid_button")
+        single_plot = try(GRdrawDRCV2.app(fitData = filtered_drc, 
+                                          #metric = input$drc2_metric, 
+                                          curves = input$drc2_curves,
+                                          points = input$drc2_points, 
+                                          #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                          #facet = input$drc2_facet, 
+                                          #bars = input$drc2_bars,
+                                          color = input$drc2_color, 
+                                          plot_type = "static",
+                                          output_type = "together"))
+        if(class(single_plot) != "try-error") {
+          output$single_drc = renderPlotly(ggplotly(single_plot$plot, tooltip = "text"))
+          outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
+        }
       }
       if(identical(values$grid_vs_single, "grid")) {
         #### render grid of plots
@@ -734,7 +753,7 @@ shinyServer(function(input, output,session) {
               n <- i # Make local variable
               plotname <- paste("plot", n , sep="")
               output[[plotname]] <- renderPlotly({
-                ggplotly(plots[[n]])
+                ggplotly(plots[[n]], tooltip = "text")
               })
             })
           }
@@ -851,7 +870,7 @@ shinyServer(function(input, output,session) {
                 n <- i # Make local variable
                 plotname <- paste("plot", n , sep="")
                 output[[plotname]] <- renderPlotly({
-                  ggplotly(plots[[n]])
+                  ggplotly(plots[[n]], tooltip = "text")
                 })
               })
             }
@@ -905,7 +924,7 @@ shinyServer(function(input, output,session) {
                                            facet = "none", bars = input$drc2_bars,
                                            color = input$drc2_color, plot_type = "interactive"))
           if(class(single_plot) != "try-error") {
-            output$single_drc = renderPlotly(single_plot$plot)
+            output$single_drc = renderPlotly(ggplotly(single_plot$plot, tooltip = "text"))
             outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
           }
         }
@@ -981,7 +1000,7 @@ shinyServer(function(input, output,session) {
     }
   )
   output$dl_case_static_vs_toxic = downloadHandler(
-    filename = function() {"gr_static_vs_toxic_input_med.csv"},
+    filename = function() {"gr_static_vs_toxic_input_small.csv"},
     content = function(con) {
       temp = read_csv("resources/case_static_vs_toxic_example.csv")
       return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
@@ -1163,7 +1182,7 @@ shinyServer(function(input, output,session) {
     values$data_dl = 'example'
     output$input_error = renderText("")
     #session$sendCustomMessage(type = "resetFileInputHandler", "uploadData")
-    values$inData <- read_csv('resources/gr_static_vs_toxic_input_med.csv')
+    values$inData <- read_csv('resources/gr_static_vs_toxic_input_small.csv')
     values$GR_table_show = NULL
     values$parameter_table_show = NULL
   })
@@ -1538,7 +1557,7 @@ shinyServer(function(input, output,session) {
       values$parameter_table = values$parameters_all$GR$sigmoid$normal
       values$parameter_table_show = values$parameter_table
       values$GR_table = GRgetValues(values$tables)
-      values$GR_table_show = values$GR_table
+      values$GR_table_show = prettyNumTable(values$GR_table)
       ######### edit parameter tables ##########
       # values$parameter_table <- GRgetMetrics(tables)
       # values$GR_table <- GRgetValues(tables)

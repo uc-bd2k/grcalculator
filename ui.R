@@ -301,9 +301,9 @@ shinyUI(
               div(class = "ui center aligned basic segment", id = "bc2_upload_content",
               h3("Do you have live and dead cell counts?"),
               div(class = "ui buttons",
-                  div(class = "ui toggle button action-button", id = 'no_dead', "No"),
+                  div(class = "ui toggle button action-button", id = 'no_dead', "No, I only have live cell counts"),
                   div(class = "or"),
-                  div(class = "ui toggle button action-button", id = 'yes_dead', "Yes")
+                  div(class = "ui toggle button action-button", id = 'yes_dead', "Yes, I have both")
                 ),
             hidden(
               div(class = "ui basic center aligned segment", id = "calc_method_buttons",
@@ -352,7 +352,8 @@ shinyUI(
                                 tags$b('From your computer:'),
                                 br(),
                                 div(class="ui icon button", id="divUpload",
-                                    tags$i(class="cloud icon"), "Choose file..."
+                                    tags$i(class="upload icon"), " Choose file",
+                                    style = "width:140px"
                                 ),
                                 tags$input(type="file", id = "uploadData", style="display: none"),
                                 #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
@@ -366,12 +367,11 @@ shinyUI(
                                         tags$input(type = "text", id = "url")
                                     )
                                 ),
-                                div(class = "ui button action-button" , id = "fetchURLData", "Fetch Data",
-                                    style="width: 120px; vertical-align: bottom; display: inline-block;")
+                                div(class = "ui button action-button" , id = "fetchURLData", tags$i(class="cloud upload icon"), " Fetch Data",
+                                    style="width: 140px; vertical-align: bottom; display: inline-block;")
                             )
                         )
                     ))),
-              br(),
           shinyjs::hidden(
             div(class = "ui basic segment", id = "static_vs_toxic_req",
                 downloadLink(outputId = "dl_case_static_vs_toxic", "Download example data for static vs. toxic curves"),
