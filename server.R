@@ -477,10 +477,19 @@ shinyServer(function(input, output,session) {
   ### set which table to show in data table tab
   shinyjs::click(id = "input_table_button")
   
+  
   ## record whether we want a grid plot or a single plot for curves
+  observeEvent(input$grid_button, {
+    shinyjs::removeClass(id = "single_button", class = "active")
+    shinyjs::addClass(id = "grid_button", class = "active")
+  })
+  observeEvent(input$single_button, {
+    shinyjs::removeClass(id = "grid_button", class = "active")
+    shinyjs::addClass(id = "single_button", class = "active")
+  })
   observeEvent(c(input$grid_button, input$single_button), {
-    shinyjs::toggleElement("grid_button")
-    shinyjs::toggleElement("single_button")
+    #shinyjs::toggleElement("grid_button")
+    #shinyjs::toggleElement("single_button")
     #shinyjs::toggleElement("plots_grid")
     #shinyjs::toggleElement("plots_grid_legend")
     shinyjs::toggleElement("grid_segment")
@@ -591,9 +600,11 @@ shinyServer(function(input, output,session) {
     shinyjs::addClass(id = "parameter_table_button", class = "green")
   })
   ### define current output (parameter) data table
-  observeEvent(c(input$parameter_table_select, input$parameter_table_button), {
+  observeEvent(input$parameter_table_button, {
     print("parameter table button clicked")
     shinyjs::show("parameter_table_select")
+  }, ignoreInit = T, ignoreNULL = T)
+  observeEvent(c(input$parameter_table_select, input$parameter_table_button), {
     pp = input$parameter_table_select
     print(pp)
     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
@@ -699,7 +710,7 @@ shinyServer(function(input, output,session) {
           df_colname = sym(names(filter_list)[i])
           print(head(filtered_drc$metadata$gr_table))
           if(length(vals) > 0) {
-            if(vals %in% filtered_drc$metadata$gr_table[[df_colname]]) {
+            if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
               filtered_drc$assays$GR$static %<>% 
                 dplyr::filter(!!df_colname %in% vals)
               filtered_drc$assays$GR$toxic %<>% 
@@ -770,7 +781,7 @@ shinyServer(function(input, output,session) {
           cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
             cnter    <<- cnter + 1
             plotname <- paste("plot", cnter, sep="")
-            div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px;") , 
+            div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") , 
                 plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
                 # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
                 #tags$p(paste0("plot", i))
@@ -825,28 +836,60 @@ shinyServer(function(input, output,session) {
       # print(exp_list)
       #if(sum(grepl("param_", all_inputs)) > 0 ) {
       if(values$filters_loaded && !is.null(values$tables) ) {
-        parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
-        gr_table = GRmetrics::GRgetValues(values$tables)
-        if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
-        if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
-        if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
-        if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
-        if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
-        if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
-        if(length(input$groupingVars) > 0) {
-          for(i in 1:length(input$groupingVars)) {
-            df_colname = sym(input$groupingVars[i])
-            col_name = paste0("param_", input$groupingVars[i])
-            print(col_name)
-            sel_values_list <- input[[col_name]]
-            print(sel_values_list)
-            if(length(sel_values_list) > 0) {
-              parameterTable %<>% dplyr::filter(!!df_colname %in% sel_values_list)
-              gr_table %<>% dplyr::filter(!!df_colname %in% sel_values_list)
+        # parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
+        # gr_table = GRmetrics::GRgetValues(values$tables)
+        # if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
+        # if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
+        # if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
+        # if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
+        # if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
+        # if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
+        # if(length(input$groupingVars) > 0) {
+        #   for(i in 1:length(input$groupingVars)) {
+        #     df_colname = sym(input$groupingVars[i])
+        #     col_name = paste0("param_", input$groupingVars[i])
+        #     print(col_name)
+        #     sel_values_list <- input[[col_name]]
+        #     print(sel_values_list)
+        #     if(length(sel_values_list) > 0) {
+        #       parameterTable %<>% dplyr::filter(!!df_colname %in% sel_values_list)
+        #       gr_table %<>% dplyr::filter(!!df_colname %in% sel_values_list)
+        #     }
+        #   }
+        # }
+        filtered_drc = values$tables
+        n <- length(input$groupingVars)
+        if (n>0) {
+          filter_vars = paste0("param_", input$groupingVars)
+          filter_list = lapply(filter_vars, function(x) input[[x]] )
+          names(filter_list) = input$groupingVars
+          print(filter_list)
+          for(i in 1:length(filter_list)) {
+            vals = filter_list[[i]]
+            #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
+            df_colname = sym(names(filter_list)[i])
+            print(head(filtered_drc$metadata$gr_table))
+            test <<- filtered_drc
+            print("testing")
+            print("vals")
+            print(vals)
+            print("df_colname")
+            print(df_colname)
+            if(length(vals) > 0) {
+              if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
+                if(input$drc2_curves == "sigmoid") {
+                  filtered_drc$assays$GR$sigmoid$normal %<>% 
+                    dplyr::filter(!!df_colname %in% vals)
+                  }
+                if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
+                if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
+                if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
+                filtered_drc$metadata$gr_table %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+              }
             }
           }
         }
-        filtered_drc = values$tables
         # filtered_drc$assays[[input$drc2_metric]] = parameter_list
         # filtered_drc$metadata$gr_table = gr_table
         # test <<-filtered_drc
@@ -875,7 +918,7 @@ shinyServer(function(input, output,session) {
               })
             }
             #col.width <- round(16/input$ncol) # Calculate bootstrap column width
-            col.width <- 300
+            col.width <- 250
             #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
             #n.row = input$nrow
             #n.col = input$ncol
@@ -887,7 +930,7 @@ shinyServer(function(input, output,session) {
             cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
               cnter    <<- cnter + 1
               plotname <- paste("plot", cnter, sep="")
-              div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px;") , 
+              div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") , 
                   plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
                   # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
                   #tags$p(paste0("plot", i))
@@ -956,8 +999,12 @@ shinyServer(function(input, output,session) {
           codeOutput <- paste("param_", input$groupingVars[i], sep="")
           verbatimTextOutput(codeOutput)
           drc_choices = sort(unique(values$GR_table[[ input$groupingVars[i] ]]))
+          div(class = "ui column", #style = "flex: 0 0 100px; padding: 0px;",
+              style = "min-width:150px;",
           selectizeInput(codeOutput, input$groupingVars[i], choices = drc_choices, 
-                         multiple = TRUE, selected = drc_choices[1])
+                         width = "140px",
+                         multiple = TRUE, selected = drc_choices[1:min(5, length(drc_choices))])
+          )
         })
       } else code_output_list <- list()
       # Convert the list to a tagList - this is necessary for the list of items
@@ -1422,29 +1469,26 @@ shinyServer(function(input, output,session) {
   ############## old download button code ##########
   
 #========== Download button data tables
-  # output$downloadBind <- downloadHandler(
-  #   filename = function() {
-  #     return(paste0("GRdata_", format(Sys.time(), "%Y%m%d_%I%M%S"), 
-  #                   ".zip", sep = ""))
-  #   },
-  #   content = function(filename) {
-  #     files_all = list(values$inData,
-  #                      values$GR_table_show,
-  #                      values$parameter_table_show)
-  #     # take only tables that exist
-  #     drugs = NULL
-  #     if(values$num_selected > 0) {
-  #       files = files_all[1:values$num_selected]
-  #       for(i in 1:3) {
-  #         drugs = c(drugs, values[[paste0("selection.drug", i)]])
-  #       }
-  #     } else {
-  #       files = NULL
-  #       drugs = NULL
-  #     }
-  #     zipped_csv(files, filename, paste0("BindingData_", drugs), format(Sys.time(), "%Y%m%d_%I%M%S") )
-  #   }, contentType = "application/zip"
-  # )
+  #shinyjs::onclick("dl_output_button", expr = shinyjs::click(id = "dl_output_tables"))
+  observeEvent(input$dl_output_button, {
+    print("download!")
+    output$dl_output_tables <<- downloadHandler(
+      filename = function() {
+        return(paste0("GRdata_", format(Sys.time(), "%Y%m%d_%I%M%S"),
+                      ".zip", sep = ""))
+      },
+      content = function(con) {
+        files_all = list(values$inData,
+                         values$GR_table_show,
+                         values$parameter_table_show)
+        filenames = c("original_data", "GR_table", "parameter_table")
+        zipped_csv(files_all, con, filenames,format(Sys.time(), "%Y%m%d_%I%M%S") )
+      }, contentType = "application/zip"
+    )
+    jsinject <- "setTimeout(function(){window.open($('#dl_output_tables').attr('href'))}, 100);"
+    session$sendCustomMessage(type = 'jsCode', list(value = jsinject))     
+  })
+
 
 #========== Download buttons for DRC plots
   output$downloadDRC = downloadHandler(

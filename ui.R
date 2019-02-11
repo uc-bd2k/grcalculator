@@ -210,10 +210,9 @@ shinyUI(
         )
     ),
     ######## instructions modal end #########
-    
-    div(class = "ui container",
+   div(class = "ui container", style = "width: inherit!important; display: flex; min-height: 100vh; flex-direction: column;",
         ######### top menu start ########
-        div(class = "ui top attached inverted seven item stackable menu",
+        div(class = "ui top attached inverted seven item stackable menu",  style = "flex: 0.1;",
             div(class = "ui center aligned container",
                 a(class = "item", img(class = "logo", src = "dcic.png"),
                   href = "http://lincs-dcic.org/"),
@@ -227,7 +226,7 @@ shinyUI(
             )
         ),
         ######### top menu end ########
-        div(class = "ui main basic segment", style = "min-height: 500px",
+        div(class = "ui main basic segment", style = "min-height: 70vh",
           div(class="ui top basic secondary pointing menu", id = "tabs",
               a(class="active item", `data-tab`="first", "Getting Started"),
               shinyjs::hidden(
@@ -239,7 +238,7 @@ shinyUI(
           ),
       ######### first tab start #########
           div(class="ui active bottom center basic tab segment", `data-tab`="first",
-                  div(class = "ui basic segment",
+                  div(class = "ui container", style = "max-width: 750px!important;",
                       tags$img(src = "images/GRcalculator-logo_v2.png", width = "250px", style = "float: left;"),
                       includeMarkdown("www/GettingStarted.md"),
                       div(class = "ui bottom attached buttons",
@@ -533,9 +532,29 @@ shinyUI(
                   div(class = "or"),
                   tags$button(class = "ui button action-button", id = "parameter_table_button", "Parameter values")
                   ),
-              tags$style(type = "text/css", "#parameter_table_select { display: inline-block; text-align: center; }"),
-              shinyjs::hidden(selectInput(inputId = "parameter_table_select", "Curve",
-                                          choices = "")
+              #tags$style(type = "text/css", "#parameter_table_select { display: inline-block; text-align: center; }"),
+              br(),
+              div(class = "ui centered grid",
+                div(class = "basic center aligned segment",
+                div(class = "column",
+                    div(class="ui primary icon button action-button", id="dl_output_button",
+                        tags$i(class="download icon"), " Download GR data",
+                        style = "width:200px"
+                    ),
+                    #tags$script('$( "#dl_output_button" ).on( "click", function() { this.value = null; });'),
+                    tags$head(tags$script(HTML('
+                           Shiny.addCustomMessageHandler("jsCode",
+                           function(message) {
+                           eval(message.value);
+                           });'))),
+                    downloadLink(outputId = "dl_output_tables", label = "")
+                ),
+                br(),
+                div(class = "column",
+                  shinyjs::hidden(selectInput(inputId = "parameter_table_select", "",
+                                          choices = "", width= "250px"))
+                )
+                )
               ),
               div(class = "ui basic center aligned segment", style = "min-height: 500px;",
                 DT::dataTableOutput("gr_table") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"),
@@ -580,49 +599,42 @@ shinyUI(
                 )
                 ),
                 div(class = "ui basic center aligned segment",
-                  div(class = "ui three column center aligned grid",
-                    div(class = "six wide column", style = "padding: 0px;",
-                    # tags$head(tags$style(type="text/css", "label.control-label, .selectize-control.single{ display: inline-block!important; }")),
-                   # tags$style(type='text/css', 
-                               #".selectize-control.single { vertical-align: middle; display: inline-block;}",
-                    #           ".form-group { vertical-align: middle; display: inline-block;}"),
-                    #p("Grid variables", style = "vertical-align: middle; display: inline-block;"),
-                    selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T)#,
-                    #selectizeInput("nplots", label = "Number of plots per page", choices = c(5, 10, 25, 50), selected = 10)
+                  div(class = "ui grid",
+                    div(class = "row",
+                    div(class = "two wide column", style = "min-width: 125px;",
+                      div(class = "ui icon button action-button", tags$i(class = "square icon", style = "font-weight: 0"), id = "single_button"),
+                        div(class = "ui active icon button action-button", tags$i(class = "th large icon", style = "font-weight: 0"), id = "grid_button")
                     ),
-                    div(class = "four wide column",
-                      div(class = "ui primary bottom attached button action-button",
-                          id = "single_button", style = "width: 100%; display: inline-block;",
-                          "Single plot"
-                          ),
-                      shinyjs::hidden(
-                        div(class = "ui secondary bottom attached button action-button",
-                            id = "grid_button", style = "width: 100%; display: inline-block;",
-                            "Grid plot"
-                        )#,
-                        #sliderInput('height', label = "Plot size (pixels)", min = 200, max = 1000, step = 50, value = 500)
+                    div(class = "three wide column",
+                      selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T, width = "150px"),
+                      tags$button(class = "ui secondary bottom attached button action-button", id = "update_button", "Update Plot")
+                    ),
+                    div(class = "column", style = "width:600px",
+                        
+                      div(class = "row",
+                          div(class = "ui medium header", "Show/hide curves")
+                      ),
+                      div(class = "row",
+                          uiOutput("drc_filter", class = "ui grid")
+                          )
                       )
-                        ),
-                    div(class = "six wide column")
+                    )
                   )
                 ),
-                  div(class = "ui two column grid",
-                    div(class = "three wide column",
-                      div(class = "ui medium header", "Show/hide curves"),
-                      uiOutput("drc_filter"),
-                      tags$button(class = "ui secondary bottom attached button action-button", id = "update_button", "Update Plot")
-                        ),
-                    div(class = "thirteen wide column",
+                  #div(class = "ui two column grid",
+                    #div(class = "three wide column",
+                        #),
+                    #div(class = "thirteen wide column",
                         div(class = "ui basic center aligned segment", id = "grid_segment",
                           div(class = "ui two column grid",
-                            div(class = "twelve wide column",
-                                uiOutput("plots_grid", class = "ui doubling four column grid",
-                                         style = "min-height: 500px;")#,
+                            div(class = "fourteen wide column", style = "padding:0px;",
+                                uiOutput("plots_grid", class = "ui doubling three column grid",
+                                         style = "min-height: 500px; margin:0px;")#,
                                 #uiOutput("plots_grid_pages"),
                                 #tags$button(class = "ui button action-button", id = "download_plot_drc_button", 
                                 #            "Download Image File")
                             ),
-                            div(class = "four wide column", id = "plots_grid_legend",
+                            div(class = "two wide column", id = "plots_grid_legend", style = "padding:0px;",
                                 plotOutput("plots_grid_legend", height = "500px")
                             )
                         )
@@ -635,13 +647,14 @@ shinyUI(
                               )
                           )
                         )
-                        )
+                       # )
                 
-          )
+          #)
       ),
       ######### drc/third tab end #########
       ######### scatter/box/fourth tab start #########
           div(class="ui bottom center basic tab segment", `data-tab`="fourth",
+              style = "padding: 0px;",
               div(class = "ui basic center aligned segment",
                   div(class = "ui primary bottom attached button action-button",
                       id = "scatter_button", style = "width: 50%; display: inline-block;",
@@ -656,7 +669,7 @@ shinyUI(
                   selectInput(inputId = "box_scatter_fit", "Select fit type",
                               choices = "")
               ),
-              div(class = "ui two column center aligned grid",
+              div(class = "ui two column centered grid",
                 div(class = "four wide column",
           shinyjs::hidden(
                   div(id = "scatter_options",
@@ -692,9 +705,10 @@ shinyUI(
               )
           )
       ######### scatter/box/fourth tab end #########
-        ),
+        )
+,
           ######### footer start #########
-        div(class = "ui bottom attached inverted footer segment", style = "margin: 0px;",
+        div(class = "ui bottom attached inverted footer segment", style = "margin: 0px; flex: 1;",
             div(class = "ui center aligned container",
                 div(class = "ui horizontal inverted large divided link list",
                     a(class = "item", div(class = "action-button", "About", id = "about") ),
