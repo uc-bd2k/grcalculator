@@ -541,7 +541,7 @@ shinyUI(
                         tags$i(class="download icon"), " Download GR data",
                         style = "width:200px"
                     ),
-                    #tags$script('$( "#dl_output_button" ).on( "click", function() { this.value = null; });'),
+                    tags$script('$( "#dl_output_button" ).on( "click", function() { this.value = null; });'),
                     tags$head(tags$script(HTML('
                            Shiny.addCustomMessageHandler("jsCode",
                            function(message) {

@@ -450,7 +450,7 @@ shinyServer(function(input, output,session) {
   shinyjs::onclick("analyzeButton", {
     #shinyjs::click(id = "single_button")
     shinyjs::show(id = "drc_top")
-    shinyjs::show(id = "comparison_top")
+    #shinyjs::show(id = "comparison_top")
     shinyjs::show(id = "output_top")
     shinyjs::click(id = "drc_top")
     shinyjs::removeClass(id = "analyze_loader", "active")
@@ -1067,8 +1067,12 @@ shinyServer(function(input, output,session) {
   })
   ### update facets for main plot
   observeEvent(input$analyzeButton, {
+    ### select first grouping variable
+    # updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
+    #                    server = TRUE, selected=input$groupingVars[1])
+    ### select all grouping variables
     updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
-                       server = TRUE, selected=input$groupingVars[1])
+                         server = TRUE, selected=input$groupingVars)
     updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
                        server = TRUE, selected= "experiment")
   })
@@ -1469,20 +1473,44 @@ shinyServer(function(input, output,session) {
   ############## old download button code ##########
   
 #========== Download button data tables
-  #shinyjs::onclick("dl_output_button", expr = shinyjs::click(id = "dl_output_tables"))
+  files_all = list()
   observeEvent(input$dl_output_button, {
-    print("download!")
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      GR = values$tables$assays$GR
+      trad = values$tables$assays$rel_cell
+      files_all <<- list(
+        input_data = values$inData,
+        GR_table = values$GR_table,
+        GR_sigmoid_normal = GR$sigmoid$normal, 
+        GR_sigmoid_low = GR$sigmoid$low,
+        GR_sigmoid_high = GR$sigmoid$high,
+        GR_biphasic_normal = GR$biphasic$normal,
+        trad_sigmoid_normal = trad$sigmoid$normal, 
+        trad_sigmoid_low = trad$sigmoid$low,
+        trad_sigmoid_high = trad$sigmoid$high,
+        trad_biphasic_normal = trad$biphasic$normal
+      )
+    }
+    if(identical(values$input_case, "static_vs_toxic")) {
+      GR = values$tables$assays$GR
+      files_all <<- list(
+        input_data = values$inData,
+        GR_table = values$GR_table,
+        GR_static = GR$static,
+        GR_toxic = GR$toxic
+      )
+    }
+    print("files for download:")
+    print(names(files_all))
+    
     output$dl_output_tables <<- downloadHandler(
       filename = function() {
         return(paste0("GRdata_", format(Sys.time(), "%Y%m%d_%I%M%S"),
                       ".zip", sep = ""))
       },
       content = function(con) {
-        files_all = list(values$inData,
-                         values$GR_table_show,
-                         values$parameter_table_show)
-        filenames = c("original_data", "GR_table", "parameter_table")
-        zipped_csv(files_all, con, filenames,format(Sys.time(), "%Y%m%d_%I%M%S") )
+        zipped_csv(df_list = files_all, zippedfile = con, 
+                   filenames = names(files_all), stamp = format(Sys.time(), "%Y%m%d_%I%M%S") )
       }, contentType = "application/zip"
     )
     jsinject <- "setTimeout(function(){window.open($('#dl_output_tables').attr('href'))}, 100);"
