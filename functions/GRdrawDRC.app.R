@@ -39,26 +39,27 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
                           msg = "'color' must be either 'experiment' or one of the grouping variables")
   color = dplyr::ensym(color)
   # check that xrug and yrug are allowed
-  xrug_options = c("none", "GR50", "GEC50", "IC50", "EC50")
-  assertthat::assert_that(is.character(xrug))
-  assertthat::assert_that(xrug %in% xrug_options, 
-                          msg = 'xrug must be one of the following: "none", "GR50", "GEC50", "IC50", "EC50"')
-  
-  yrug_options = c("none", "GRinf", "GRmax", "Einf", "Emax")
-  assertthat::assert_that(is.character(yrug))
-  assertthat::assert_that(yrug %in% yrug_options, 
-                          msg = 'yrug must be one of the following: "none", "GRinf", "GRmax", "Einf", "Emax"')
-  # check to make sure the rug matches the metric... e.g. GR50 rug only for "GR" curve
-  # xrug
-  assertthat::assert_that(!(metric == "GR" && xrug %in% c("IC50", "EC50")),
-                          msg = 'For metric "GR", xrug must be "GR50" or GEC50"')
-  assertthat::assert_that(!(metric == "rel_cell" && xrug %in% c("GR50", "GEC50")),
-                          msg = 'For metric "rel_cell", xrug must be "IC50" or "EC50"')
-  # yrug
-  assertthat::assert_that(!(metric == "GR" && yrug %in% c("Einf", "Emax")),
-                          msg = 'For metric "GR", yrug must be "GRinf" or "GRmax"')
-  assertthat::assert_that(!(metric == "rel_cell" && yrug %in% c("GRinf", "GRmax")),
-                          msg = 'For metric "rel_cell", yrug must be "Einf" or "Emax"')
+  # if(curves == "biphasic") {
+  #   if(metric == "GR") {
+  #     xrug_options = c("none", "GEC50_1", "GEC50_2")
+  #     yrug_options = c("none", "GRinf_1", "GRinf_2", "GRmax")
+  #   } else {
+  #     xrug_options = c("none", "EC50_1", "EC50_2")
+  #     yrug_options = c("none", "Einf_1", "Einf_2", "Emax")
+  #   }
+  # } else {
+  #   if(metric == "GR") {
+  #     xrug_options = c("none", "GR50", "GEC50")
+  #     yrug_options = c("none", "GRinf", "GRmax")
+  #   } else {
+  #     xrug_options = c("none", "IC50", "EC50")
+  #     yrug_options = c("none", "Einf", "Emax")
+  #   }
+  # }
+  # assertthat::assert_that(is.character(xrug))
+  # assertthat::assert_that(xrug %in% xrug_options)
+  # assertthat::assert_that(is.character(yrug))
+  # assertthat::assert_that(yrug %in% yrug_options)
   # check that facets are allowed
   #assertthat::assert_that(length(facet) == 1)
   assertthat::assert_that(all(facet %in% group_vars) | identical(facet, "none"),
@@ -229,7 +230,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
       p = p + ggplot2::geom_point(data = data, ggplot2::aes(x = log10_concentration,
                                                             y = y_val, 
                                                             text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
-                                                                                  paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
+                                                                                  paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val, log10_concentration),
                                                             colour = !!color, group = experiment), size = 2)
     } else if(points == "none") {
       # do nothing
@@ -324,6 +325,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
     leg_len = length(leg_groups)
     leg_colors = scales::hue_pal()(leg_len)
     names(leg_colors) = leg_groups
+    if(curves %in% c("line", "none"))  curve_data_all = NA
     out_legend = .create_plots(p = p, data = data, data_mean = data_mean, 
                         parameterTable = parameterTable, curve_data_all = curve_data_all,
                         legend = "right", leg_colors = leg_colors, 
@@ -336,12 +338,18 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
       data %<>% dplyr::mutate(!!facet := paste(!!!facet_list, sep = "_"))
       data_mean %<>% dplyr::mutate(!!facet := paste(!!!facet_list, sep = "_"))
       parameterTable %<>% dplyr::mutate(!!facet := paste(!!!facet_list, sep = "_"))
-      curve_data_all %<>% dplyr::mutate(!!facet := paste(!!!facet_list, sep = "_"))
+      if(!curves %in% c("line", "none")) {
+        curve_data_all %<>% dplyr::mutate(!!facet := paste(!!!facet_list, sep = "_"))
+      }
     }
     data_list  = split(data, f = data[[facet_char]])
     data_mean_list  = split(data_mean, f = data_mean[[facet_char]])
     parameterTable_list = split(parameterTable, f = parameterTable[[facet_char]])
-    curve_data_all_list = split(curve_data_all, f = curve_data_all[[facet_char]])
+    if(!curves %in% c("line", "none")) {
+      curve_data_all_list = split(curve_data_all, f = curve_data_all[[facet_char]])
+    } else {
+      curve_data_all_list = NA
+    }
     
     leg_colors_list = lapply(data_list, function(x) leg_colors[unique(x[[color]])])
     data_input_list = list(p = lapply(1:length(unique( data[[facet_char]] )), function(x) return(p)), 
@@ -351,11 +359,12 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
                            color = lapply(1:length(unique( data[[facet_char]] )), function(x) return(color) ))
     out = purrr::pmap(.l = data_input_list, .f = .create_plots)
     return(list(plot = out, legend = out_legend))
-  } else {
+  } else if(identical(output_type, "together")) {
     leg_groups = unique(data[[color]])
     leg_len = length(leg_groups)
     leg_colors = scales::hue_pal()(leg_len)
     names(leg_colors) = leg_groups
+    
     ### call create plot function once to output one plot object
     out = .create_plots(p = p, data = data, data_mean = data_mean, 
                         parameterTable = parameterTable, curve_data_all = curve_data_all,

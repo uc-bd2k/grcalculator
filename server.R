@@ -448,7 +448,7 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   ### then jump to plots tab
   shinyjs::onclick("analyzeButton", {
-    #shinyjs::click(id = "single_button")
+    shinyjs::click(id = "single_button")
     shinyjs::show(id = "drc_top")
     #shinyjs::show(id = "comparison_top")
     shinyjs::show(id = "output_top")
@@ -697,7 +697,8 @@ shinyServer(function(input, output,session) {
                  input$drc2_color, input$drc2_metric, input$drc2_curves,
                  input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
                  ), {
-    req(input$groupingVars, input$drc2_facet)
+    req(input$groupingVars, input$drc2_facet, input$drc2_color, input$drc2_metric, input$drc2_points,
+        input$drc2_xrug, input$drc2_yrug, input$drc2_bars)
                    
     if(identical(values$input_case,"static_vs_toxic")) {
       filtered_drc = values$tables
@@ -839,14 +840,14 @@ shinyServer(function(input, output,session) {
       # print(exp_list)
       #if(sum(grepl("param_", all_inputs)) > 0 ) {
       if(values$filters_loaded && !is.null(values$tables) ) {
-        # parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
-        # gr_table = GRmetrics::GRgetValues(values$tables)
-        # if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
-        # if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
-        # if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
-        # if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
-        # if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
-        # if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
+        parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
+        gr_table = GRmetrics::GRgetValues(values$tables)
+        if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
+        if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
+        if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
+        if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
+        if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
+        if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
         # if(length(input$groupingVars) > 0) {
         #   for(i in 1:length(input$groupingVars)) {
         #     df_colname = sym(input$groupingVars[i])
@@ -880,13 +881,24 @@ shinyServer(function(input, output,session) {
             print(df_colname)
             if(length(vals) > 0) {
               if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
-                if(input$drc2_curves == "sigmoid") {
-                  filtered_drc$assays$GR$sigmoid$normal %<>% 
+                filtered_drc$assays$GR$sigmoid$normal %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$assays$GR$sigmoid$high %<>%
                     dplyr::filter(!!df_colname %in% vals)
-                  }
-                if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
-                if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
-                if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
+                filtered_drc$assays$GR$sigmoid$low %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$assays$GR$biphasic$normal %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$metadata$gr_table %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$assays$rel_cell$sigmoid$normal %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$assays$rel_cell$sigmoid$high %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$assays$rel_cell$sigmoid$low %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$assays$rel_cell$biphasic$normal %<>%
+                  dplyr::filter(!!df_colname %in% vals)
                 filtered_drc$metadata$gr_table %<>%
                   dplyr::filter(!!df_colname %in% vals)
               }
@@ -1058,14 +1070,25 @@ shinyServer(function(input, output,session) {
   )
   
   #### update plot options for dose-response curve ##########
-  observeEvent(input$drc2_metric, {
+  observeEvent(c(input$drc2_metric, input$drc2_curves), {
     if(input$drc2_metric == "GR") {
-      updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
-      updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
+      if(input$drc2_curves == "biphasic") {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GEC50_1", "GEC50_2"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf_1", "GRinf_2", "GRmax"))
+      } else {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
+      }
     }
     if(input$drc2_metric == "rel_cell") {
-      updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
-      updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
+      if(input$drc2_curves == "biphasic") {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "EC50_1", "EC50_2"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf_1", "Einf_2", "Emax"))
+      } else {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
+      }
+      
     }
   })
   ### update facets for main plot
