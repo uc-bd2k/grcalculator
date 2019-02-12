@@ -35,6 +35,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
   assertthat::assert_that(is.character(curves))
   assertthat::assert_that(curves %in% c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none"))
   # check that color variable is allowed
+  print(color)
   assertthat::assert_that(color %in% c("experiment", group_vars), 
                           msg = "'color' must be either 'experiment' or one of the grouping variables")
   color = dplyr::ensym(color)

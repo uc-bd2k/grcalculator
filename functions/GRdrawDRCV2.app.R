@@ -126,10 +126,24 @@ GRdrawDRCV2.app = function(fitData,
     ggplot2::geom_hline(yintercept = 1, size = 1, colour = "gray")
   #### start create plots function #########
   parameterTable = dplyr::bind_rows(params_GR_s, params_GR_d)
+  
+  # round to 3 significant digits and convert grouping variables to factors
+  data %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+    dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # points (all)
+  data_mean %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+    dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # points (average)
+  parameterTable %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+    dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # rugs
+  if(!curves %in% c("line","none")) {
+    curve_data_all %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+      dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # curves
+  }
   ### make sure facets are in the correct order
   curve_data_all %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
   data %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
   data_mean %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
+  
+  
   
   .create_plots = function(p, data, data_mean, parameterTable, curve_data_all, legend = "none", leg_colors) {
     if(curves == "line") {

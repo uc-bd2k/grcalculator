@@ -581,8 +581,8 @@ shinyUI(
               div( id = "plot_options",
                 div(class = "ui stackable three column grid",
                   div(class = "five wide column",
-  selectizeInput("drc2_metric", label = "Metric", choices = list(GR ="GR", `Relative cell count` = "rel_cell")),
-  selectizeInput("drc2_curves", label = "Curves", choices = c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none") ),
+  selectizeInput("drc2_metric", label = "Metric", choices = NULL),
+  selectizeInput("drc2_curves", label = "Curves", choices = "none"),
   selectizeInput("drc2_points", label = "Points", choices = c("average", "all", "none") )
 ),
                   div(class = "five wide column",
@@ -606,8 +606,8 @@ shinyUI(
                         div(class = "ui active icon button action-button", tags$i(class = "th large icon", style = "font-weight: 0"), id = "grid_button")
                     ),
                     div(class = "three wide column",
-                      selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T, width = "150px"),
-                      tags$button(class = "ui secondary bottom attached button action-button", id = "update_button", "Update Plot")
+                      selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T, width = "150px") #,
+                      #tags$button(class = "ui secondary bottom attached button action-button", id = "update_button", "Update Plot")
                     ),
                     div(class = "column", style = "width:600px",
                         

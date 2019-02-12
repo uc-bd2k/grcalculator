@@ -135,6 +135,72 @@ shinyServer(function(input, output,session) {
   
   ### file upload button
   runjs(upload.js)
+  #### update plot options for dose-response curve ##########
+  observeEvent(input$analyzeButton, {
+    if(values$input_case == "static_vs_toxic") {
+      curve_choices = c("sigmoid","line", "none")
+    } else {
+      curve_choices = c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none") 
+    }
+    updateSelectizeInput(session, "drc2_curves", choices = curve_choices)
+  }, ignoreNULL = T, ignoreInit = T)
+  observeEvent(input$analyzeButton, {
+    if(values$input_case == "static_vs_toxic") {
+      curve_types = list(GR ="GR")
+    } else {
+      curve_types = list(GR ="GR", `Relative cell count` = "rel_cell")
+    }
+    updateSelectizeInput(session, "drc2_metric", choices = curve_types)
+  }, ignoreNULL = T, ignoreInit = T)
+  
+  observeEvent(c(input$drc2_metric, input$drc2_curves), {
+    if(input$drc2_metric == "GR") {
+      if(input$drc2_curves == "biphasic") {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GEC50_1", "GEC50_2"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf_1", "GRinf_2", "GRmax"))
+      } else {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
+      }
+    }
+    if(input$drc2_metric == "rel_cell") {
+      if(input$drc2_curves == "biphasic") {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "EC50_1", "EC50_2"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf_1", "Einf_2", "Emax"))
+      } else {
+        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
+        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
+      }
+      
+    }
+  })
+  ### update facets for main plot
+  observeEvent(input$analyzeButton, {
+    ### select first grouping variable
+    # updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
+    #                    server = TRUE, selected=input$groupingVars[1])
+    ### select all grouping variables
+    updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
+                         server = TRUE, selected=input$groupingVars)
+  }, ignoreInit = T, ignoreNULL = T, priority = 1000)
+  ### update color variable
+  observeEvent(c(input$analyzeButton, input$single_button, input$grid_button), {
+    req(values$grid_vs_single, values$input_case, input$groupingVars)
+    if(values$grid_vs_single == "grid") {
+      if(values$input_case == "static_vs_toxic") {
+        updateSelectizeInput(session, 'drc2_color', choices = "GR_metric", 
+                             server = TRUE, selected= "GR_metric")
+        
+      } else {
+        updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
+                             server = TRUE, selected= "experiment")
+      }
+    } else {
+      updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
+                           server = TRUE, selected= "experiment")
+    }
+  }, ignoreInit = T, ignoreNULL = T, priority = 900)
+  ###############
   
   ########### code for input breadcrumbs ################
   observeEvent(input$import_button, {
@@ -448,7 +514,7 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   ### then jump to plots tab
   shinyjs::onclick("analyzeButton", {
-    shinyjs::click(id = "single_button")
+    #shinyjs::click(id = "single_button")
     shinyjs::show(id = "drc_top")
     #shinyjs::show(id = "comparison_top")
     shinyjs::show(id = "output_top")
@@ -494,13 +560,26 @@ shinyServer(function(input, output,session) {
     #shinyjs::toggleElement("plots_grid_legend")
     shinyjs::toggleElement("grid_segment")
     shinyjs::toggleElement("height")
-    shinyjs::toggleElement("drc2_facet")
+    #shinyjs::toggleElement("drc2_facet")
     shinyjs::toggleElement("nplots")
     shinyjs::toggleElement("single_segment")
     
     
     values$grid_vs_single = ifelse(values$grid_vs_single == "grid", "single", "grid")
   }, ignoreInit = T, ignoreNULL = F, priority = 1000)
+  
+  observeEvent(c(values$grid_vs_single, values$input_case), {
+    req(values$grid_vs_single, values$input_case)
+    if(values$grid_vs_single == "grid") {
+      if(values$input_case != "static_vs_toxic") {
+        shinyjs::showElement("drc2_facet")
+      } else {
+        shinyjs::hideElement("drc2_facet")
+      }
+    } else {
+      shinyjs::hideElement("drc2_facet")
+    }
+  }, ignoreInit = T, ignoreNULL = T)
   
   observeEvent(c(input$scatter_button, input$boxplot_button), {
     #shinyjs::toggleElement("scatter_button")
@@ -690,15 +769,32 @@ shinyServer(function(input, output,session) {
     } else { list() }
     })
   toListen_drc2 = toListen_drc %>% debounce(400)
-  facet_debounce = reactive({ input$drc2_facet }) %>% debounce(400)
+  facet_throttle = reactive({ input$drc2_facet }) %>% debounce(100)
+  button_throttle = reactive({
+    input$analyzeButton
+    values$grid_vs_single 
+  }) %>% throttle(500)
+  color_throttle = reactive({ input$drc2_color }) %>% throttle(100)
+  
   ###### begin render main dose-response curve plot(s) ########
-  observeEvent(c(input$nplots, values$tables, input$analyzeButton, toListen_drc2(), 
-                 values$grid_vs_single, facet_debounce(),
-                 input$drc2_color, input$drc2_metric, input$drc2_curves,
-                 input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
-                 ), {
-    req(input$groupingVars, input$drc2_facet, input$drc2_color, input$drc2_metric, input$drc2_points,
-        input$drc2_xrug, input$drc2_yrug, input$drc2_bars)
+  # observeEvent(c(input$nplots, values$tables, input$analyzeButton, toListen_drc2(), 
+  #                values$grid_vs_single, facet_debounce(),
+  #                input$drc2_color, input$drc2_metric, input$drc2_curves,
+  #                input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
+  #                ), {
+  observeEvent(c(toListen_drc2(), button_throttle()), {
+    req(input$groupingVars, input$drc2_metric, input$drc2_points, input$drc2_facet,
+        input$drc2_xrug, input$drc2_yrug, input$drc2_bars, values$grid_vs_single, input$drc2_color)
+    #col = isolate({ input$drc2_color })
+    for(x in c("groupingVars", "drc2_color", "drc2_metric", "drc2_points",
+                "drc2_xrug", "drc2_yrug", "drc2_bars") ) {
+      print(x)
+      print(input[[x]])
+    }
+    for(x in "grid_vs_single") {
+      print(x)
+      print(values[[x]])
+    }
                    
     if(identical(values$input_case,"static_vs_toxic")) {
       filtered_drc = values$tables
@@ -736,7 +832,7 @@ shinyServer(function(input, output,session) {
                                           #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                                           #facet = input$drc2_facet, 
                                           #bars = input$drc2_bars,
-                                          color = input$drc2_color, 
+                                          color = color_throttle(), 
                                           plot_type = "static",
                                           output_type = "together"))
         if(class(single_plot) != "try-error") {
@@ -755,7 +851,7 @@ shinyServer(function(input, output,session) {
                                   #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                                   #facet = input$drc2_facet, 
                                   #bars = input$drc2_bars,
-                                  #color = input$drc2_color, 
+                                  #color = color_throttle(), 
                                   plot_type = "static",
                                   output_type = "separate"))
           if(class(plots) != "try-error") {
@@ -816,51 +912,8 @@ shinyServer(function(input, output,session) {
       ######## end render plots for static vs toxic case #######
     } else if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       ######### begin render plots for case A and case B ##########
-      # all_inputs <- names(input)
-      # print(all_inputs)
-      # exp_list = NULL
-      # n <- length(input$groupingVars)
-      # if (n>0) {
-      #   for(i in 1:n) {
-      #     df_colname = input$groupingVars[i]
-      #     col_name = paste0("param_", input$groupingVars[i])
-      #     if (length(input[[col_name]])>0) {
-      #       sel_values_list <- input[[col_name]]
-      #       #df_colname <- sym(gsub("^param_(.*)","\\1",col_name))
-      #       print(df_colname)
-      #       print(sel_values_list)
-      #       exp_tmp <- values$parameter_table %>% dplyr::filter(!!df_colname %in% sel_values_list) %>%
-      #         extract2("experiment") %>% as.character() %>% unique()
-      #       exp_list = c(exp_list, exp_tmp)
-      #     }
-      #   }
-      # }
-      # print("exp_list")
-      # exp_list = unique(exp_list)
-      # print(exp_list)
-      #if(sum(grepl("param_", all_inputs)) > 0 ) {
       if(values$filters_loaded && !is.null(values$tables) ) {
-        parameter_list = GRmetrics::GRgetMetrics(values$tables)[[input$drc2_metric]]
         gr_table = GRmetrics::GRgetValues(values$tables)
-        if(input$drc2_curves == "sigmoid") { parameterTable =  parameter_list$sigmoid$normal }
-        if(input$drc2_curves == "sigmoid_high") { parameterTable =  parameter_list$sigmoid$high }
-        if(input$drc2_curves == "sigmoid_low") { parameterTable =  parameter_list$sigmoid$low }
-        if(input$drc2_curves == "biphasic") { parameterTable =  parameter_list$biphasic$normal }
-        if(input$drc2_curves == "line") { parameterTable =  parameter_list$sigmoid$normal }
-        if(input$drc2_curves == "none") { parameterTable =  parameter_list$sigmoid$normal }
-        # if(length(input$groupingVars) > 0) {
-        #   for(i in 1:length(input$groupingVars)) {
-        #     df_colname = sym(input$groupingVars[i])
-        #     col_name = paste0("param_", input$groupingVars[i])
-        #     print(col_name)
-        #     sel_values_list <- input[[col_name]]
-        #     print(sel_values_list)
-        #     if(length(sel_values_list) > 0) {
-        #       parameterTable %<>% dplyr::filter(!!df_colname %in% sel_values_list)
-        #       gr_table %<>% dplyr::filter(!!df_colname %in% sel_values_list)
-        #     }
-        #   }
-        # }
         filtered_drc = values$tables
         n <- length(input$groupingVars)
         if (n>0) {
@@ -872,13 +925,7 @@ shinyServer(function(input, output,session) {
             vals = filter_list[[i]]
             #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
             df_colname = sym(names(filter_list)[i])
-            print(head(filtered_drc$metadata$gr_table))
             test <<- filtered_drc
-            print("testing")
-            print("vals")
-            print(vals)
-            print("df_colname")
-            print(df_colname)
             if(length(vals) > 0) {
               if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
                 filtered_drc$assays$GR$sigmoid$normal %<>%
@@ -905,9 +952,6 @@ shinyServer(function(input, output,session) {
             }
           }
         }
-        # filtered_drc$assays[[input$drc2_metric]] = parameter_list
-        # filtered_drc$metadata$gr_table = gr_table
-        # test <<-filtered_drc
         if(values$grid_vs_single == "grid") {
           #### render grid of plots
           output$plots_grid <- renderUI({
@@ -916,7 +960,7 @@ shinyServer(function(input, output,session) {
                                        curves = input$drc2_curves, points = input$drc2_points, 
                                        xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                                        facet = input$drc2_facet, bars = input$drc2_bars,
-                                       color = input$drc2_color, plot_type = "static",
+                                       color = color_throttle(), plot_type = "static",
                                        output_type = "separate"))
             if(class(plots) != "try-error") {
               legend = plots$legend
@@ -980,7 +1024,7 @@ shinyServer(function(input, output,session) {
                                            curves = input$drc2_curves, points = input$drc2_points,
                                            xrug = input$drc2_xrug, yrug = input$drc2_yrug,
                                            facet = "none", bars = input$drc2_bars,
-                                           color = input$drc2_color, plot_type = "interactive"))
+                                           color = color_throttle(), plot_type = "interactive"))
           if(class(single_plot) != "try-error") {
             output$single_drc = renderPlotly(ggplotly(single_plot$plot, tooltip = "text"))
             outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
@@ -1068,41 +1112,6 @@ shinyServer(function(input, output,session) {
       return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
     }
   )
-  
-  #### update plot options for dose-response curve ##########
-  observeEvent(c(input$drc2_metric, input$drc2_curves), {
-    if(input$drc2_metric == "GR") {
-      if(input$drc2_curves == "biphasic") {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GEC50_1", "GEC50_2"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf_1", "GRinf_2", "GRmax"))
-      } else {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
-      }
-    }
-    if(input$drc2_metric == "rel_cell") {
-      if(input$drc2_curves == "biphasic") {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "EC50_1", "EC50_2"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf_1", "Einf_2", "Emax"))
-      } else {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
-      }
-      
-    }
-  })
-  ### update facets for main plot
-  observeEvent(input$analyzeButton, {
-    ### select first grouping variable
-    # updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
-    #                    server = TRUE, selected=input$groupingVars[1])
-    ### select all grouping variables
-    updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
-                         server = TRUE, selected=input$groupingVars)
-    updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
-                       server = TRUE, selected= "experiment")
-  })
-  ###############
   
   ####### render box and scatter plots ##############
   #### update curve fit choice for box/scatterplots
