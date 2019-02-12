@@ -189,11 +189,15 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
     dplyr::mutate(y_val_se = y_val_sd/sqrt(ynum))
   
   # round to 3 significant digits
-  data %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) # points (all)
-  data_mean %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) # points (average)
-  parameterTable %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) # rugs
+  data %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+    dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # points (all)
+  data_mean %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+    dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # points (average)
+  parameterTable %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+    dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # rugs
   if(!curves %in% c("line","none")) {
-    curve_data_all %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) # curves
+    curve_data_all %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
+      dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # curves
   }
   
   # initialize plot

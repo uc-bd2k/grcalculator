@@ -1,6 +1,6 @@
 ### GR draw DRC test
 
-caseA = read.csv("/Users/nicholasclark/Git/grcalculator/resources/caseA_example.csv")
+#caseA = read.csv("/Users/nicholasclark/Git/grcalculator/resources/caseA_example.csv")
 fitData = GRfit(caseA, groupingVariables = c("cell_line", "treatment"), case = "A")
 # metric = c("GR", "rel_cell")
 # experiments = list()
