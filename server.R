@@ -689,13 +689,16 @@ shinyServer(function(input, output,session) {
       lapply(1:length(input$groupingVars), function(i) input[[ paste("param_", input$groupingVars[i], sep="") ]] )
     } else { list() }
     })
+  toListen_drc2 = toListen_drc %>% debounce(400)
+  facet_debounce = reactive({ input$drc2_facet }) %>% debounce(400)
   ###### begin render main dose-response curve plot(s) ########
-  observeEvent(c(input$nplots, values$tables, input$analyzeButton, input$update_button, 
-                 values$grid_vs_single,
-                 input$drc2_color, input$drc2_facet, input$drc2_metric, input$drc2_curves,
+  observeEvent(c(input$nplots, values$tables, input$analyzeButton, toListen_drc2(), 
+                 values$grid_vs_single, facet_debounce(),
+                 input$drc2_color, input$drc2_metric, input$drc2_curves,
                  input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
                  ), {
     req(input$groupingVars, input$drc2_facet)
+                   
     if(identical(values$input_case,"static_vs_toxic")) {
       filtered_drc = values$tables
       n <- length(input$groupingVars)
@@ -976,18 +979,18 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T)
   ######### end render main dose-response curve plot(s) ########
   #### make a list of the variables to filter over
-  filter_params = reactiveValues()
-  observeEvent(reactiveValuesToList(input), {
-    if(length(values$group_vars) > 0) {
-      for(x in values$group_vars) {
-        print(x)
-        filter_params[[x]] = input[[paste0("param_", x)]]
-      }
-    }
-  })
-  observeEvent(reactiveValuesToList(filter_params), {
-    print("filteringgggg")
-  })
+  # filter_params = reactiveValues()
+  # observeEvent(reactiveValuesToList(input), {
+  #   if(length(values$group_vars) > 0) {
+  #     for(x in values$group_vars) {
+  #       print(x)
+  #       filter_params[[x]] = input[[paste0("param_", x)]]
+  #     }
+  #   }
+  # })
+  # observeEvent(reactiveValuesToList(filter_params), {
+  #   print("filteringgggg")
+  # })
   #### render curve filter options
   observeEvent(input$analyzeButton, {
     values$group_vars = input$groupingVars
