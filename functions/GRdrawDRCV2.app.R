@@ -81,14 +81,14 @@ GRdrawDRCV2.app = function(fitData,
   .create_GR_s_data = function(EC50, Einf, h, fit, flat, experiment, cc) {
     df = data.frame(experiment = experiment, concentration = cc, 
                     log10_concentration = log10(cc))
-    if(fit == "curve") df$GRvalue = Einf + (1 - Einf)/(1 + (cc / (10^EC50)^h))
+    if(fit == "curve") df$GRvalue = Einf + (1 - Einf)/(1 + (cc / (10^EC50))^h)
     if(fit == "flat") df$GRvalue = flat
     return(df)
   }
   .create_GR_d_data = function(EC50, Einf, h, fit, flat, experiment, cc) {
     df = data.frame(experiment = experiment, concentration = cc, 
                     log10_concentration = log10(cc))
-    if(fit == "curve") df$GRvalue = Einf + (0 - Einf)/(1 + (cc / (10^EC50)^h))
+    if(fit == "curve") df$GRvalue = Einf + (0 - Einf)/(1 + (cc / (10^EC50))^h)
     if(fit == "flat") df$GRvalue = flat
     return(df)
   }

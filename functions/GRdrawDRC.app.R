@@ -107,7 +107,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
   # define function for sigmoid curve mapping
   .create_curve_data = function(EC50, Einf, h, fit, flat, experiment, cc) {
     df = data.frame(experiment = experiment, concentration = cc, log10_concentration = log10(cc))
-    if(fit == "curve") df$y_val = Einf + (1 - Einf)/(1 + (cc / (10^EC50)^h))
+    if(fit == "curve") df$y_val = Einf + (1 - Einf)/(1 + (cc / (10^EC50))^h)
     if(fit == "flat") df$y_val = flat
     return(df)
   }
