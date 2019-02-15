@@ -602,8 +602,10 @@ shinyUI(
                   div(class = "ui grid",
                     div(class = "row",
                     div(class = "two wide column", style = "min-width: 125px;",
-                      div(class = "ui icon button action-button", tags$i(class = "square icon", style = "font-weight: 0"), id = "single_button"),
-                        div(class = "ui active icon button action-button", tags$i(class = "th large icon", style = "font-weight: 0"), id = "grid_button")
+                        #hidden(
+                      div(class = "ui active icon button action-button", tags$i(class = "square icon", style = "font-weight: 0"), id = "single_button"),
+                      div(class = "ui icon button action-button", tags$i(class = "th large icon", style = "font-weight: 0"), id = "grid_button")
+                        #)
                     ),
                     div(class = "three wide column",
                       selectizeInput("drc2_facet", label = "Grid variables", choices = "none", multiple = T, width = "150px") #,
@@ -625,6 +627,7 @@ shinyUI(
                     #div(class = "three wide column",
                         #),
                     #div(class = "thirteen wide column",
+                      shinyjs::hidden(
                         div(class = "ui basic center aligned segment", id = "grid_segment",
                           div(class = "ui two column grid",
                             div(class = "fourteen wide column", style = "padding:0px;",
@@ -638,15 +641,15 @@ shinyUI(
                                 plotOutput("plots_grid_legend", height = "500px")
                             )
                         )
+                        )
                         ),
-                        shinyjs::hidden(
+                       # hidden(
                           div(class = "ui basic center aligned segment", id = "single_segment",
                               tags$style(type='text/css', "#single_drc { display: inline-block }"),
                               div(class = "twelve wide column",
                                   plotlyOutput("single_drc", width = "800px", height = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
                               )
                           )
-                        )
                        # )
                 
           #)

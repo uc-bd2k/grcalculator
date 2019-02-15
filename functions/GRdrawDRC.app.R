@@ -13,6 +13,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
                       output_type = c("together", "separate")#,
                       #legend = c("none", "right", "only")
                       ) {
+  tic("drawing plots - making data frames")
   # make all inputs length 1
   metric = metric[1]
   points = points[1]
@@ -200,7 +201,6 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
     curve_data_all %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
       dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # curves
   }
-  
   # initialize plot
   p = ggplot2::ggplot()
   # add curves to the plot
@@ -323,7 +323,9 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
     if(plot_type == "interactive") return(plotly::ggplotly(p))
     if(plot_type == "static") return(p + ggplot2::theme(aspect.ratio = 1))
   }
+  toc()
   if(output_type == "separate") {
+    tic("separate plots")
     ### get legend only
     ### call create plot function once to output one plot object
     leg_groups = unique(data[[color]])
@@ -363,8 +365,10 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
                            legend = "none", leg_colors = leg_colors_list, 
                            color = lapply(1:length(unique( data[[facet_char]] )), function(x) return(color) ))
     out = purrr::pmap(.l = data_input_list, .f = .create_plots)
+    toc()
     return(list(plot = out, legend = out_legend))
   } else if(identical(output_type, "together")) {
+    tic("one plot")
     leg_groups = unique(data[[color]])
     leg_len = length(leg_groups)
     leg_colors = scales::hue_pal()(leg_len)
@@ -375,6 +379,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
                         parameterTable = parameterTable, curve_data_all = curve_data_all,
                         legend = "right", leg_colors = leg_colors,
                         color = color)
+    toc()
     return(list(plot = out))
   }
 }
