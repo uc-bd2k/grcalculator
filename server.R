@@ -3,14 +3,11 @@ library(shinyjs)
 library(plotly)
 library(ggplot2)
 library(readr)
-library(drc)
 library(GRmetrics)
 library(magrittr)
-library(S4Vectors)
 library(stringr)
 library(DT)
 library(formattable)
-library(plyr)
 library(shinycssloaders)
 library(dplyr)
 library(tictoc)
@@ -685,6 +682,7 @@ shinyServer(function(input, output,session) {
     shinyjs::show("parameter_table_select")
   }, ignoreInit = T, ignoreNULL = T)
   observeEvent(c(input$parameter_table_select, input$parameter_table_button), {
+    req(input$parameter_table_select, values$input_case, values$parameters_all)
     pp = input$parameter_table_select
     print(pp)
     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
@@ -765,8 +763,11 @@ shinyServer(function(input, output,session) {
   
   ### initialize listener for filter boxes
   toListen_drc <- reactive({
+    req(input$groupingVars, values$tables)
     if(length(input$groupingVars) > 0) {
-      lapply(1:length(input$groupingVars), function(i) input[[ paste("param_", input$groupingVars[i], sep="") ]] )
+      filters = lapply(1:length(input$groupingVars), function(i) input[[ paste("param_", input$groupingVars[i], sep="") ]] )
+      names(filters) = paste("param_", input$groupingVars, sep="")
+      filters
     } else { list() }
     })
   toListen_drc2 = toListen_drc %>% debounce(400)
@@ -778,16 +779,17 @@ shinyServer(function(input, output,session) {
   color_throttle = reactive({ input$drc2_color }) %>% throttle(100)
   
   filter_data = reactive({
-      req(values$input_case, values$tables, input$groupingVars)
+      req(values$input_case, values$tables, input$groupingVars, toListen_drc2())
+    print("tolisten")
+    print(toListen_drc2())
     filtered_drc = NULL
       if(identical(values$input_case,"static_vs_toxic")) {
         filtered_drc = values$tables
-        n <- length(input$groupingVars)
+        n <- length(toListen_drc2())
         if (n>0) {
-          filter_vars = paste0("param_", input$groupingVars)
-          filter_list = lapply(filter_vars, function(x) input[[x]] )
-          names(filter_list) = input$groupingVars
-          #print(filter_list)
+          filter_list = toListen_drc2()
+          print("filter")
+          print(filter_list)
           for(i in 1:length(filter_list)) {
             vals = filter_list[[i]]
             #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
@@ -808,13 +810,11 @@ shinyServer(function(input, output,session) {
       } else {
           gr_table = GRmetrics::GRgetValues(values$tables)
           filtered_drc = values$tables
-          n <- length(input$groupingVars)
+          n <- length(toListen_drc2())
           if (n>0) {
-            filter_vars = paste0("param_", input$groupingVars)
-            filter_list = lapply(filter_vars, function(x) input[[x]] )
-            names(filter_list) = input$groupingVars
+            filter_list = toListen_drc2()
+            print("filter")
             print(filter_list)
-            print("filtering tables")
             tic()
             for(i in 1:length(filter_list)) {
               vals = filter_list[[i]]
