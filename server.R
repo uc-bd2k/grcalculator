@@ -764,11 +764,12 @@ shinyServer(function(input, output,session) {
   ### initialize listener for filter boxes
   toListen_drc <- reactive({
     req(input$groupingVars, values$tables)
+    req(!is.null(unlist(input$groupingVars)))
     if(length(input$groupingVars) > 0) {
       filters = lapply(1:length(input$groupingVars), function(i) input[[ paste("param_", input$groupingVars[i], sep="") ]] )
-      names(filters) = paste("param_", input$groupingVars, sep="")
+      names(filters) = input$groupingVars
       filters
-    } else { list() }
+    }
     })
   toListen_drc2 = toListen_drc %>% debounce(400)
   facet_throttle = reactive({ input$drc2_facet }) %>% debounce(100)
@@ -779,87 +780,56 @@ shinyServer(function(input, output,session) {
   color_throttle = reactive({ input$drc2_color }) %>% throttle(100)
   
   filter_data = reactive({
-      req(values$input_case, values$tables, input$groupingVars, toListen_drc2())
-    print("tolisten")
-    print(toListen_drc2())
-    filtered_drc = NULL
-      if(identical(values$input_case,"static_vs_toxic")) {
-        filtered_drc = values$tables
-        n <- length(toListen_drc2())
-        if (n>0) {
-          filter_list = toListen_drc2()
-          print("filter")
-          print(filter_list)
-          for(i in 1:length(filter_list)) {
-            vals = filter_list[[i]]
-            #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
-            df_colname = sym(names(filter_list)[i])
-            #print(head(filtered_drc$metadata$gr_table))
-            if(length(vals) > 0) {
-              if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
-                filtered_drc$assays$GR$static %<>%
-                  dplyr::filter(!!df_colname %in% vals)
-                filtered_drc$assays$GR$toxic %<>%
-                  dplyr::filter(!!df_colname %in% vals)
-                filtered_drc$metadata$gr_table %<>%
-                  dplyr::filter(!!df_colname %in% vals)
-              }
-            }
-          }
-        }
-      } else {
-          gr_table = GRmetrics::GRgetValues(values$tables)
-          filtered_drc = values$tables
-          n <- length(toListen_drc2())
-          if (n>0) {
-            filter_list = toListen_drc2()
-            print("filter")
-            print(filter_list)
-            tic()
-            for(i in 1:length(filter_list)) {
-              vals = filter_list[[i]]
-              #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
-              df_colname = sym(names(filter_list)[i])
-              test <<- filtered_drc
-
-              if(length(vals) > 0) {
-                if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
-                  if(input$drc2_metric == "GR") {
-                    if(input$drc2_curves == "sigmoid") {
-                      filtered_drc$assays$GR$sigmoid$normal %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    } else if(input$drc2_curves == "sigmoid_high") {
-                      filtered_drc$assays$GR$sigmoid$high %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    } else if(input$drc2_curves == "sigmoid_low") {
-                      filtered_drc$assays$GR$sigmoid$low %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    } else if(input$drc2_curves == "biphasic") {
-                      filtered_drc$assays$GR$biphasic$normal %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    }
-                  } else {
-                    if(input$drc2_curves == "sigmoid") {
-                      filtered_drc$assays$rel_cell$sigmoid$normal %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    } else if(input$drc2_curves == "sigmoid_low") {
-                      filtered_drc$assays$rel_cell$sigmoid$low %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    } else if(input$drc2_curves == "sigmoid_high") {
-                      filtered_drc$assays$rel_cell$sigmoid$high %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    } else if(input$drc2_curves == "biphasic") {
-                      filtered_drc$assays$rel_cell$biphasic$normal %<>%
-                        dplyr::filter(!!df_colname %in% vals)
-                    }
-                  }
-                  filtered_drc$metadata$gr_table %<>%
+    req(values$input_case, values$tables, toListen_drc2())
+    req(!is.null(unlist(toListen_drc2())))
+      gr_table = GRmetrics::GRgetValues(values$tables)
+      filtered_drc = values$tables
+      for(i in 1:length(toListen_drc2())) {
+        vals = toListen_drc2()[[i]]
+        df_colname = sym(names(toListen_drc2())[i])
+        #test <<- filtered_drc
+        if(length(vals) > 0) {
+          if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
+            if(values$input_case %in% c("A", "B")) {
+              if(input$drc2_metric == "GR") {
+                if(input$drc2_curves == "sigmoid") {
+                  filtered_drc$assays$GR$sigmoid$normal %<>%
+                    dplyr::filter(!!df_colname %in% vals)
+                } else if(input$drc2_curves == "sigmoid_high") {
+                  filtered_drc$assays$GR$sigmoid$high %<>%
+                    dplyr::filter(!!df_colname %in% vals)
+                } else if(input$drc2_curves == "sigmoid_low") {
+                  filtered_drc$assays$GR$sigmoid$low %<>%
+                    dplyr::filter(!!df_colname %in% vals)
+                } else if(input$drc2_curves == "biphasic") {
+                  filtered_drc$assays$GR$biphasic$normal %<>%
+                    dplyr::filter(!!df_colname %in% vals)
+                }
+              } else {
+                if(input$drc2_curves == "sigmoid") {
+                  filtered_drc$assays$rel_cell$sigmoid$normal %<>%
+                    dplyr::filter(!!df_colname %in% vals)
+                } else if(input$drc2_curves == "sigmoid_low") {
+                  filtered_drc$assays$rel_cell$sigmoid$low %<>%
+                    dplyr::filter(!!df_colname %in% vals)
+                } else if(input$drc2_curves == "sigmoid_high") {
+                  filtered_drc$assays$rel_cell$sigmoid$high %<>%
+                    dplyr::filter(!!df_colname %in% vals)
+                } else if(input$drc2_curves == "biphasic") {
+                  filtered_drc$assays$rel_cell$biphasic$normal %<>%
                     dplyr::filter(!!df_colname %in% vals)
                 }
               }
+            } else {
+              filtered_drc$assays$GR$static %<>%
+                dplyr::filter(!!df_colname %in% vals)
+              filtered_drc$assays$GR$toxic %<>%
+                dplyr::filter(!!df_colname %in% vals)
             }
-            toc()
+            filtered_drc$metadata$gr_table %<>%
+              dplyr::filter(!!df_colname %in% vals)
           }
+        }
       }
     filtered_drc
   })
