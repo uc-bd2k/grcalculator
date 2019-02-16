@@ -154,38 +154,46 @@ shinyServer(function(input, output,session) {
   
   #### update rug choices for drc plots
   observeEvent(c(input$drc2_metric, input$drc2_curves), {
-    req(input$drc2_metric, input$drc2_curves)
-    if(input$drc2_metric == "GR") {
-      if(input$drc2_curves == "biphasic") {
-        new_xrug = c("none", "GEC50_1", "GEC50_2")
-      } else {
-        new_xrug = c("none", "GR50", "GEC50")
+    req(input$drc2_metric, input$drc2_curves, values$input_case)
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      if(input$drc2_metric == "GR") {
+        if(input$drc2_curves == "biphasic") {
+          new_xrug = c("none", "GEC50_1", "GEC50_2")
+        } else {
+          new_xrug = c("none", "GR50", "GEC50")
+        }
       }
-    }
-    if(input$drc2_metric == "rel_cell") {
-      if(input$drc2_curves == "biphasic") {
-        new_xrug = c("none", "EC50_1", "EC50_2")
-      } else {
-        new_xrug = c("none", "IC50", "EC50")
+      if(input$drc2_metric == "rel_cell") {
+        if(input$drc2_curves == "biphasic") {
+          new_xrug = c("none", "EC50_1", "EC50_2")
+        } else {
+          new_xrug = c("none", "IC50", "EC50")
+        }
       }
+    } else {
+      new_xrug = c("none")
     }
     if(!identical(values$xrug_choices, new_xrug)) values$xrug_choices = new_xrug
   })
   observeEvent(c(input$drc2_metric, input$drc2_curves), {
-    req(input$drc2_metric, input$drc2_curves)
-    if(input$drc2_metric == "GR") {
-      if(input$drc2_curves == "biphasic") {
-        new_yrug = c("none", "GRinf_1", "GRinf_2", "GRmax")
-      } else {
-        new_yrug = c("none", "GRinf", "GRmax")
+    req(input$drc2_metric, input$drc2_curves, values$input_case)
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      if(input$drc2_metric == "GR") {
+        if(input$drc2_curves == "biphasic") {
+          new_yrug = c("none", "GRinf_1", "GRinf_2", "GRmax")
+        } else {
+          new_yrug = c("none", "GRinf", "GRmax")
+        }
       }
-    }
-    if(input$drc2_metric == "rel_cell") {
-      if(input$drc2_curves == "biphasic") {
-        new_yrug = c("none", "Einf_1", "Einf_2", "Emax")
-      } else {
-        new_yrug = c("none", "Einf", "Emax")
+      if(input$drc2_metric == "rel_cell") {
+        if(input$drc2_curves == "biphasic") {
+          new_yrug = c("none", "Einf_1", "Einf_2", "Emax")
+        } else {
+          new_yrug = c("none", "Einf", "Emax")
+        }
       }
+    } else {
+      new_yrug = c("none")
     }
     if(!identical(values$yrug_choices, new_yrug)) values$yrug_choices = new_yrug
   })
@@ -209,7 +217,7 @@ shinyServer(function(input, output,session) {
     #                    server = TRUE, selected=input$groupingVars[1])
     ### select all grouping variables
     updateSelectizeInput(session, 'drc2_facet', choices = c(input$groupingVars), 
-                         server = TRUE, selected=input$groupingVars)
+                         server = TRUE, selected=input$groupingVars[1])
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   ### update color variable
   observeEvent(c(input$analyzeButton, input$single_button, input$grid_button), {
@@ -1174,9 +1182,9 @@ shinyServer(function(input, output,session) {
     }
   )
   output$dl_case_static_vs_toxic = downloadHandler(
-    filename = function() {"gr_static_vs_toxic_input_small.csv"},
+    filename = function() {"gr_static_vs_toxic_example.csv"},
     content = function(con) {
-      temp = read_csv("resources/case_static_vs_toxic_example.csv")
+      temp = read_csv("resources/gr_static_vs_toxic_input_small.csv")
       return( write.table(temp, file = con, quote = T, row.names = F, sep = ",") )
     }
   )
