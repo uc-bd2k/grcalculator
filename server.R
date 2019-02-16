@@ -596,18 +596,18 @@ shinyServer(function(input, output,session) {
     values$grid_vs_single = ifelse(values$grid_vs_single == "grid", "single", "grid")
   }, ignoreInit = T, ignoreNULL = F, priority = 1000)
   
-  # observeEvent(c(values$grid_vs_single, values$input_case), {
-  #   req(values$grid_vs_single, values$input_case)
-  #   if(values$grid_vs_single == "grid") {
-  #     if(values$input_case != "static_vs_toxic") {
-  #       shinyjs::showElement("drc2_facet")
-  #     } else {
-  #       shinyjs::hideElement("drc2_facet")
-  #     }
-  #   } else {
-  #     shinyjs::hideElement("drc2_facet")
-  #   }
-  # }, ignoreInit = T, ignoreNULL = T)
+  observeEvent(c(values$grid_vs_single, values$input_case), {
+    req(values$grid_vs_single, values$input_case)
+    if(values$grid_vs_single == "grid") {
+      if(values$input_case != "static_vs_toxic") {
+        shinyjs::showElement("drc2_facet")
+      } else {
+        shinyjs::hideElement("drc2_facet")
+      }
+    } else {
+      shinyjs::hideElement("drc2_facet")
+    }
+  }, ignoreInit = T, ignoreNULL = T)
   
   observeEvent(c(input$scatter_button, input$boxplot_button), {
     #shinyjs::toggleElement("scatter_button")
@@ -864,20 +864,8 @@ shinyServer(function(input, output,session) {
     filtered_drc
   })
   
-  facet_length = reactive({
-    req(input$drc2_facet)
-    max(length(input$drc2_facet), 1)*500
-  })
-  
-  # output$plot.ui <- renderUI({
-  #   req(facet_length(), filter_data())
-  #   print("render")
-  #   print(facet_length())
-  #   plotlyOutput("single_drc", height = paste0(facet_length(), "px"))
-  # })
-  
   output$single_drc = renderPlot({
-    req(filter_data(), input$drc2_curves, input$drc2_metric, input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_facet,
+    req(filter_data(), input$drc2_curves, input$drc2_metric, input$drc2_points, input$drc2_xrug, input$drc2_yrug,
         input$drc2_bars, color_throttle(), values$input_case)
     if(values$input_case != "static_vs_toxic") {
       single_plot = try(GRdrawDRC.app(fitData = filter_data(), 
@@ -886,11 +874,15 @@ shinyServer(function(input, output,session) {
                                       points = input$drc2_points,
                                       xrug = input$drc2_xrug,
                                       yrug = input$drc2_yrug,
-                                      facet = input$drc2_facet, 
+                                      facet = "none", 
                                       bars = input$drc2_bars,
                                       color = color_throttle(),
                                       plot_type = "static",
                                       output_type = "together"))
+        if(class(single_plot) != "try-error") {
+          #ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
+          single_plot$plot
+        }
     } else {
       single_plot = try(GRdrawDRCV2.app(fitData = filter_data(), 
                                       #metric = input$drc2_metric, 
@@ -898,16 +890,15 @@ shinyServer(function(input, output,session) {
                                       points = input$drc2_points,
                                       #xrug = input$drc2_xrug,
                                       #yrug = input$drc2_yrug,
-                                      facet = input$drc2_facet, 
+                                      #facet = "none", 
                                       #bars = input$drc2_bars,
                                       color = color_throttle(),
                                       plot_type = "static",
                                       output_type = "together"))
-
-    }
-    if(class(single_plot) != "try-error") {
-      #ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
-      single_plot$plot
+      if(class(single_plot) != "try-error") {
+        #ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
+        single_plot$plot
+      }
     }
   })
   #outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
@@ -951,7 +942,7 @@ shinyServer(function(input, output,session) {
   
   output$plots_grid_legend = renderPlot({
     req(drc_grid_plots())
-    drc_grid_plots()[["legend"]]
+      drc_grid_plots()[["legend"]]
   })
   
   output$plots_grid <- renderUI({
