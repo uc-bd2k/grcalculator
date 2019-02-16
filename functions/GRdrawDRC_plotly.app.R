@@ -1,18 +1,18 @@
-GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = list(),
-                      min = "auto", max = "auto",
-                      color = "experiment",
-                      points = c("average", "all", "none"),
-                      curves = c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none"),
-                      bars = c("none", "sd", "se"),
-                      xrug = c("none", "GR50", "GEC50", "IC50", "EC50"),
-                      yrug = c("none", "GRinf", "GRmax", "Einf", "Emax"),
-                      theme = c("classic", "minimal", "bw"),
-                      palette = c("default","npg", "aaas"),
-                      facet = "none",
-                      plot_type = c("static", "interactive"),
-                      output_type = c("together", "separate")#,
-                      #legend = c("none", "right", "only")
-                      ) {
+GRdrawDRC_plotly.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = list(),
+                          min = "auto", max = "auto",
+                          color = "experiment",
+                          points = c("average", "all", "none"),
+                          curves = c("sigmoid", "line", "biphasic", "sigmoid_high", "sigmoid_low", "none"),
+                          bars = c("none", "sd", "se"),
+                          xrug = c("none", "GR50", "GEC50", "IC50", "EC50"),
+                          yrug = c("none", "GRinf", "GRmax", "Einf", "Emax"),
+                          theme = c("classic", "minimal", "bw"),
+                          palette = c("default","npg", "aaas"),
+                          facet = "none",
+                          plot_type = c("static", "interactive"),
+                          output_type = c("together", "separate")#,
+                          #legend = c("none", "right", "only")
+) {
   tic("drawing plots - making data frames")
   # make all inputs length 1
   metric = metric[1]
@@ -100,8 +100,8 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
       parameterTable = parameterTable[ parameterTable[[temp_grp]] %in% temp_list,]
     }
   }
-  if(min == "auto") min = min(data$concentration, na.rm = TRUE)
-  if(max == "auto") max = max(data$concentration, na.rm = TRUE)
+  min = min(data$concentration, na.rm = TRUE)
+  max = max(data$concentration, na.rm = TRUE)
   # define x support for curve
   len = (log10(max) - log10(min))*20
   concentration = 10^(seq(log10(min) - 1, log10(max) + 1, length.out = len))
@@ -202,126 +202,97 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
       dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # curves
   }
   # initialize plot
-  p = ggplot2::ggplot()
+  p = plotly::plot_ly()
   # add curves to the plot
   .create_plots = function(p, data, data_mean, parameterTable, curve_data_all, legend = "none", leg_colors, color) {
     if(curves == "line") {
-      p = p + ggplot2::geom_line(data = data_mean, 
-                ggplot2::aes(x = log10_concentration,
-                  text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
-                                        paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
-          y = y_val_mean, colour = !!color, group = experiment), size = 1.1)
-      # p + ggplot2::geom_line(data = data_mean, ggplot2::aes_string(x = "log10_concentration",
-      #       y = "y_val_mean", colour = color, group = "experiment"), size = 1.1)
-      #### scale transformations don't work with plotly :(
-      # scale_x_continuous(labels = trans_format("identity", math_format(10^.x)),limits = c(-3.5, 1.5)) +
-      # annotation_logticks(sides = "b", short = unit(0.1, "cm"), mid = unit(0.2, "cm"),long = unit(0.3, "cm"))
+      text = with(data_mean, (sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration)))
+      p = p %>% plotly::add_lines(data = data_mean, x = ~log10_concentration, y = ~y_val_mean, 
+                                    color = ~eval(color), split = ~experiment, legendgroup = ~eval(color), 
+                                    text = text)
     } else if(curves %in% c("sigmoid", "biphasic", "sigmoid_low", "sigmoid_high")) {
-      p = p + ggplot2::geom_line(data = curve_data_all,
-                                 ggplot2::aes(x = log10_concentration, y = y_val,
-                                              text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
-                                                                    paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val, log10_concentration),colour = !!color, group = experiment), size = 1.1)
+      text = with(curve_data_all, sprintf(ifelse(metric == "GR", 
+                            paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                            paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val, log10_concentration))
+      p = p %>% plotly::add_lines(data = curve_data_all, x = ~log10_concentration, y = ~y_val,
+                                  split = ~experiment, color = ~eval(color), legendgroup = ~eval(color), 
+                                  text = text)
     } else if(curves == "none") {
       # do nothing
     }
     # add points to the plot
     if(points == "average") {
-      p = p + ggplot2::geom_point(data = data_mean, ggplot2::aes(x = log10_concentration,
-                                                                 y = y_val_mean,
-                                                                 text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
-                                                                                       paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
-                                                                 colour = !!color, group = experiment), size = 2)
+      text = text = with(data_mean, sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                                   paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration))
+      p = p %>% plotly::add_markers(data = data_mean, x = ~log10_concentration, y = ~y_val_mean, 
+                                    color = ~eval(color), split = ~experiment, legendgroup = ~eval(color), 
+                                    text = text)
     } else if(points == "all") {
-      p = p + ggplot2::geom_point(data = data, ggplot2::aes(x = log10_concentration,
-                                                            y = y_val, 
-                                                            text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
-                                                                                  paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val, log10_concentration),
-                                                            colour = !!color, group = experiment), size = 2)
+      text = with(data, sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+                            paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val, log10_concentration))
+      p = p %>% plotly::add_markers(data = data, x = ~log10_concentration, y = ~y_val, 
+                                    color = ~eval(color), legendgroup = ~eval(color), split = ~experiment,
+                                    text = text)
     } else if(points == "none") {
       # do nothing
     }
     # add error bars to the plot
     bar_width = 0
     if(bars == "sd") {
-      p = p + ggplot2::geom_errorbar(data = data_mean, ggplot2::aes(x = log10_concentration, y = y_val_mean,
-                                                                    ymin = y_val_mean - y_val_sd, ymax = y_val_mean + y_val_sd, 
-                                                                    text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
-                                                                                          paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
-                                                                    colour = !!color, group = experiment), width = bar_width)
+      # p = p + ggplot2::geom_errorbar(data = data_mean, ggplot2::aes(x = log10_concentration, y = y_val_mean,
+      #                                                               ymin = y_val_mean - y_val_sd, ymax = y_val_mean + y_val_sd, 
+      #                                                               text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+      #                                                                                     paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
+      #                                                               colour = !!color, group = experiment), width = bar_width)
     } else if(bars == "se") {
-      p = p + ggplot2::geom_errorbar(data = data_mean, ggplot2::aes(x = log10_concentration, y = y_val_mean,
-                                                                    ymin = y_val_mean - y_val_se, ymax = y_val_mean + y_val_se, 
-                                                                    text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
-                                                                                          paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
-                                                                    colour = !!color, group = experiment), width = bar_width)
+      # p = p + ggplot2::geom_errorbar(data = data_mean, ggplot2::aes(x = log10_concentration, y = y_val_mean,
+      #                                                               ymin = y_val_mean - y_val_se, ymax = y_val_mean + y_val_se, 
+      #                                                               text = sprintf(ifelse(metric == "GR", paste0("GR value: ", "%.3f<br>log10(concentration): %.3f"),
+      #                                                                                     paste0("Relative cell viability: ", "%.3f<br>log10(concentration): %.3f") ), y_val_mean, log10_concentration),
+      #                                                               colour = !!color, group = experiment), width = bar_width)
     }
-    p = p +# ggplot2::xlab('Concentration (log10 scale)')
-      ggplot2::xlab("") + ggplot2::ylab("")
+    # p = p +# ggplot2::xlab('Concentration (log10 scale)')
+    #   ggplot2::xlab("") + ggplot2::ylab("")
     if(metric == "GR") {
-      # set x and y range for plot, set labels, add horizontal lines
-      p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
-                                                log10(max)+0.1),
-                                       ylim = c(-1, 1.5), expand = F) +
-        #ggplot2::ggtitle("Concentration vs. GR values") +
-        #ggplot2::ylab('GR value') +
-        ggplot2::ylab("") +
-        ggplot2::xlab("") +
-        ggplot2::geom_hline(yintercept = 0, size = 1, colour = "#1F77B4")
-      #ggplot2::geom_hline(yintercept = 1, size = 1, linetype = "dashed") +
-      #ggplot2::geom_hline(yintercept = 0.5, size = 1, linetype = "dashed") +
-      #ggplot2::geom_hline(yintercept = -1, size = 1, linetype = "dashed")
+      # # set x and y range for plot, set labels, add horizontal lines
+      # p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
+      #                                           log10(max)+0.1),
+      #                                  ylim = c(-1, 1.5), expand = F) +
+      #   ggplot2::ylab("") +
+      #   ggplot2::xlab("") +
+      #   ggplot2::geom_hline(yintercept = 0, size = 1, colour = "#1F77B4")
+
     } else if(metric == "rel_cell") {
       # set x and y range for plot, set labels, add horizontal lines
-      p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
-                                                log10(max)+0.1),
-                                       ylim = c(0, 1.5), expand = F) +
-        ggplot2::ylab("") +
-        ggplot2::xlab("")
-        #ggplot2::ggtitle("Concentration vs. Relative cell count") +
-        #ggplot2::ylab('Relative cell count')
+      # p = p + ggplot2::coord_cartesian(xlim = c(log10(min)-0.1,
+      #                                           log10(max)+0.1),
+      #                                  ylim = c(0, 1.5), expand = F) +
+      #   ggplot2::ylab("") +
+      #   ggplot2::xlab("")
+
     }
-    ###  - Change code above so that curve parameters are called the same thing
-    ### for GR and traditional curve. Then change rug names below to agree with this.
-    ### - Maybe make an option for marginal plots of GR metrics instead of rugs.
-    ### - Check how to change color scheme so that colors get used more than once
-    ### instead of running out of colors
     
     # add rugs to plot
-    rug_size = 1.1
-    if(xrug != "none") p = p + ggplot2::geom_rug(data = parameterTable,
-                                                 ggplot2::aes_string(x = paste0("log10_", xrug), colour = color, group = "experiment"), size = rug_size)
-    if(yrug != "none") p = p + ggplot2::geom_rug(data = parameterTable,
-                                                 ggplot2::aes_string(y = yrug, colour = color, group = "experiment"), size = rug_size)
-    ### alternative way to do the rug... allows for length control (good), but xrug and yrug 
-    ### can look like different lengths on the screen (bad)
-    # rug_len = 0.25
-    # if(xrug != "none") {
-    #   p = p + ggplot2::geom_segment(data = parameterTable, 
-    #     ggplot2::aes_string(x = paste0("log10_", xrug), xend = paste0("log10_", xrug),
-    #                         y = p$coordinates$limits$y[1], yend = p$coordinates$limits$y[1] + rug_len,
-    #                         colour = "experiment"), size = rug_size)
-    # }
-    # if(yrug != "none") {
-    #   p = p + ggplot2::geom_segment(data = parameterTable, 
-    #     ggplot2::aes_string(x = p$coordinates$limits$x[1], xend = p$coordinates$limits$x[1] + rug_len,
-    #                         y = yrug, yend = yrug,
-    #                         colour = "experiment"), size = rug_size)
-    # }
-    
+    # rug_size = 1.1
+    # if(xrug != "none") p = p + ggplot2::geom_rug(data = parameterTable,
+    #                                              ggplot2::aes_string(x = paste0("log10_", xrug), colour = color, group = "experiment"), size = rug_size)
+    # if(yrug != "none") p = p + ggplot2::geom_rug(data = parameterTable,
+    #                                              ggplot2::aes_string(y = yrug, colour = color, group = "experiment"), size = rug_size)
+    return(p)
     # configure plot facets
-    if(!identical(facet, "none")) {
-      facet = dplyr::syms(facet)
-      #p = p + lemon::facet_rep_wrap(facet, ncol = 5)
-      p = p + ggplot2::facet_wrap(facet, ncol = 5)
-    }
-    # add theme to plot, keep aspect ratio 1:1
-    p = p + ggplot2::theme_classic() + ggplot2::theme(legend.position = legend)  +
-      ggplot2::scale_colour_manual(values=leg_colors) #+ do.call(theme, args = list())
-    # add palette to plot
-    ###p = p + scale_colour_npg()
-    # return ggplot or plotly object
-    if(plot_type == "interactive") return(plotly::ggplotly(p))
-    if(plot_type == "static") return(p + ggplot2::theme(aspect.ratio = 1))
+    # if(!identical(facet, "none")) {
+    #   facet = dplyr::syms(facet)
+    #   #p = p + lemon::facet_rep_wrap(facet, ncol = 5)
+    #   p = p + ggplot2::facet_wrap(facet, ncol = 5)
+    # }
+    # # add theme to plot, keep aspect ratio 1:1
+    # p = p + ggplot2::theme_classic() + ggplot2::theme(legend.position = legend)  +
+    #   ggplot2::scale_colour_manual(values=leg_colors) #+ do.call(theme, args = list())
+    # # add palette to plot
+    # ###p = p + scale_colour_npg()
+    # # return ggplot or plotly object
+    # if(plot_type == "interactive") return(plotly::ggplotly(p))
+    # if(plot_type == "static") return(p + ggplot2::theme(aspect.ratio = 1))
   }
   toc()
   if(output_type == "separate") {
@@ -332,11 +303,11 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = l
     leg_len = length(leg_groups)
     leg_colors = scales::hue_pal()(leg_len)
     names(leg_colors) = leg_groups
-    if(curves %in% c("line", "none")) curve_data_all = NA
+    if(curves %in% c("line", "none"))  curve_data_all = NA
     out_legend = .create_plots(p = p, data = data, data_mean = data_mean, 
-                        parameterTable = parameterTable, curve_data_all = curve_data_all,
-                        legend = "right", leg_colors = leg_colors, 
-                        color = color)
+                               parameterTable = parameterTable, curve_data_all = curve_data_all,
+                               legend = "right", leg_colors = leg_colors, 
+                               color = color)
     out_legend = cowplot::ggdraw(cowplot::get_legend(out_legend))
     facet_char = paste0(facet, collapse = "_")
     if(length(facet) > 1) {

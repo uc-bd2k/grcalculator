@@ -2,6 +2,7 @@ GRdrawDRCV2.app = function(fitData,
                        points = c("average", "all", "none"),
                        curves = c("sigmoid", "line", "none"),
                        color = "experiment",
+                       facet = "none",
                        experiments = list(),
                        plot_type = c("static", "interactive"),
                        output_type = c("together", "separate")
@@ -18,7 +19,7 @@ GRdrawDRCV2.app = function(fitData,
   # palette = palette[1]
   plot_type = plot_type[1]
   output_type = output_type[1]
-
+  
   #########
   # data frame for points
   fit_df = fitData$metadata$gr_table
@@ -286,7 +287,13 @@ GRdrawDRCV2.app = function(fitData,
     #ggplot2::geom_hline(yintercept = 0.5, size = 1, linetype = "dashed") +
     #ggplot2::geom_hline(yintercept = -1, size = 1, linetype = "dashed")
     # configure plot facets
-    p = p + ggplot2::facet_wrap(~GR_metric, ncol = 5)
+    if(!identical(facet, "none")) {
+      print(facet)
+      facet = dplyr::syms(facet)
+      print(facet)
+      #p = p + lemon::facet_rep_wrap(facet, ncol = 5)
+      p = p + ggplot2::facet_grid(cols = vars(GR_metric), rows = vars(!!!facet))
+    }
     # add theme to plot, keep aspect ratio 1:1
     p = p + ggplot2::theme_classic() + ggplot2::theme(legend.position = "right")#+ do.call(theme, args = list())
     # add palette to plot

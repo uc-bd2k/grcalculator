@@ -647,7 +647,7 @@ shinyUI(
                           div(class = "ui basic center aligned segment", id = "single_segment",
                               tags$style(type='text/css', "#single_drc { display: inline-block }"),
                               div(class = "twelve wide column",
-                                  plotlyOutput("single_drc", width = "800px", height = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+                                  plotOutput("single_drc", width = "800px") #%>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
                               )
                           )
                        # )

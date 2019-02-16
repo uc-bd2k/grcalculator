@@ -21,6 +21,7 @@ library(tictoc)
 source('functions/GRdrawDRC.app.R')
 source('functions/GRdrawDRCV2.app.R')
 source('functions/check_col_names.R')
+source('functions/GRdrawDRC_plotly.app.R')
 
 prettyNumTable = function(df, digits = 3) {
   df %<>% dplyr::mutate_if(is.numeric, 
@@ -151,27 +152,56 @@ shinyServer(function(input, output,session) {
     updateSelectizeInput(session, "drc2_metric", choices = curve_types)
   }, ignoreNULL = T, ignoreInit = T)
   
+  #### update rug choices for drc plots
   observeEvent(c(input$drc2_metric, input$drc2_curves), {
+    req(input$drc2_metric, input$drc2_curves)
     if(input$drc2_metric == "GR") {
       if(input$drc2_curves == "biphasic") {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GEC50_1", "GEC50_2"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf_1", "GRinf_2", "GRmax"))
+        new_xrug = c("none", "GEC50_1", "GEC50_2")
       } else {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "GR50", "GEC50"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "GRinf", "GRmax"))
+        new_xrug = c("none", "GR50", "GEC50")
       }
     }
     if(input$drc2_metric == "rel_cell") {
       if(input$drc2_curves == "biphasic") {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "EC50_1", "EC50_2"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf_1", "Einf_2", "Emax"))
+        new_xrug = c("none", "EC50_1", "EC50_2")
       } else {
-        updateSelectizeInput(session, 'drc2_xrug', choices = c("none", "IC50", "EC50"))
-        updateSelectizeInput(session, 'drc2_yrug', choices = c("none", "Einf", "Emax"))
+        new_xrug = c("none", "IC50", "EC50")
       }
-      
     }
+    if(!identical(values$xrug_choices, new_xrug)) values$xrug_choices = new_xrug
   })
+  observeEvent(c(input$drc2_metric, input$drc2_curves), {
+    req(input$drc2_metric, input$drc2_curves)
+    if(input$drc2_metric == "GR") {
+      if(input$drc2_curves == "biphasic") {
+        new_yrug = c("none", "GRinf_1", "GRinf_2", "GRmax")
+      } else {
+        new_yrug = c("none", "GRinf", "GRmax")
+      }
+    }
+    if(input$drc2_metric == "rel_cell") {
+      if(input$drc2_curves == "biphasic") {
+        new_yrug = c("none", "Einf_1", "Einf_2", "Emax")
+      } else {
+        new_yrug = c("none", "Einf", "Emax")
+      }
+    }
+    if(!identical(values$yrug_choices, new_yrug)) values$yrug_choices = new_yrug
+  })
+  observe({
+    req(values$xrug_choices)
+    print("xrug_update")
+    print(values$xrug_choices)
+    updateSelectizeInput(session, 'drc2_xrug', choices = values$xrug_choices)
+  })
+  observe({
+    req(values$yrug_choices)
+    print("yrug_update")
+    print(values$yrug_choices)
+    updateSelectizeInput(session, 'drc2_yrug', choices = values$yrug_choices)
+  })
+
   ### update facets for main plot
   observeEvent(input$analyzeButton, {
     ### select first grouping variable
@@ -559,25 +589,25 @@ shinyServer(function(input, output,session) {
     shinyjs::toggleElement("grid_segment")
     shinyjs::toggleElement("height")
     #shinyjs::toggleElement("drc2_facet")
-    shinyjs::toggleElement("nplots")
+    #shinyjs::toggleElement("nplots")
     shinyjs::toggleElement("single_segment")
     
     
     values$grid_vs_single = ifelse(values$grid_vs_single == "grid", "single", "grid")
   }, ignoreInit = T, ignoreNULL = F, priority = 1000)
   
-  observeEvent(c(values$grid_vs_single, values$input_case), {
-    req(values$grid_vs_single, values$input_case)
-    if(values$grid_vs_single == "grid") {
-      if(values$input_case != "static_vs_toxic") {
-        shinyjs::showElement("drc2_facet")
-      } else {
-        shinyjs::hideElement("drc2_facet")
-      }
-    } else {
-      shinyjs::hideElement("drc2_facet")
-    }
-  }, ignoreInit = T, ignoreNULL = T)
+  # observeEvent(c(values$grid_vs_single, values$input_case), {
+  #   req(values$grid_vs_single, values$input_case)
+  #   if(values$grid_vs_single == "grid") {
+  #     if(values$input_case != "static_vs_toxic") {
+  #       shinyjs::showElement("drc2_facet")
+  #     } else {
+  #       shinyjs::hideElement("drc2_facet")
+  #     }
+  #   } else {
+  #     shinyjs::hideElement("drc2_facet")
+  #   }
+  # }, ignoreInit = T, ignoreNULL = T)
   
   observeEvent(c(input$scatter_button, input$boxplot_button), {
     #shinyjs::toggleElement("scatter_button")
@@ -834,8 +864,20 @@ shinyServer(function(input, output,session) {
     filtered_drc
   })
   
-  output$single_drc = renderPlotly({
-    req(filter_data(), input$drc2_curves, input$drc2_metric, input$drc2_points, input$drc2_xrug, input$drc2_yrug,
+  facet_length = reactive({
+    req(input$drc2_facet)
+    max(length(input$drc2_facet), 1)*500
+  })
+  
+  # output$plot.ui <- renderUI({
+  #   req(facet_length(), filter_data())
+  #   print("render")
+  #   print(facet_length())
+  #   plotlyOutput("single_drc", height = paste0(facet_length(), "px"))
+  # })
+  
+  output$single_drc = renderPlot({
+    req(filter_data(), input$drc2_curves, input$drc2_metric, input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_facet,
         input$drc2_bars, color_throttle(), values$input_case)
     if(values$input_case != "static_vs_toxic") {
       single_plot = try(GRdrawDRC.app(fitData = filter_data(), 
@@ -844,14 +886,11 @@ shinyServer(function(input, output,session) {
                                       points = input$drc2_points,
                                       xrug = input$drc2_xrug,
                                       yrug = input$drc2_yrug,
-                                      facet = "none", 
+                                      facet = input$drc2_facet, 
                                       bars = input$drc2_bars,
                                       color = color_throttle(),
                                       plot_type = "static",
                                       output_type = "together"))
-        if(class(single_plot) != "try-error") {
-          ggplotly(single_plot$plot, tooltip = "text")
-        }
     } else {
       single_plot = try(GRdrawDRCV2.app(fitData = filter_data(), 
                                       #metric = input$drc2_metric, 
@@ -859,19 +898,94 @@ shinyServer(function(input, output,session) {
                                       points = input$drc2_points,
                                       #xrug = input$drc2_xrug,
                                       #yrug = input$drc2_yrug,
-                                      #facet = "none", 
+                                      facet = input$drc2_facet, 
                                       #bars = input$drc2_bars,
                                       color = color_throttle(),
                                       plot_type = "static",
                                       output_type = "together"))
-      if(class(single_plot) != "try-error") {
-        ggplotly(single_plot$plot, tooltip = "text")
-      }
+
+    }
+    if(class(single_plot) != "try-error") {
+      #ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
+      single_plot$plot
     }
   })
-  outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
+  #outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
   
+  drc_grid_plots = reactive({
+    if(identical(values$input_case,"static_vs_toxic")) {
+      try(GRdrawDRCV2.app(fitData = filter_data(),
+                          #metric = input$drc2_metric,
+                          curves = input$drc2_curves,
+                          points = input$drc2_points,
+                          #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                          #facet = input$drc2_facet,
+                          #bars = input$drc2_bars,
+                          #color = color_throttle(),
+                          plot_type = "static",
+                          output_type = "separate"))
+    } else {
+      plots = try(GRdrawDRC.app(fitData = filter_data(), metric = input$drc2_metric,
+                                curves = input$drc2_curves, points = input$drc2_points,
+                                xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                facet = input$drc2_facet, bars = input$drc2_bars,
+                                color = color_throttle(), plot_type = "static",
+                                output_type = "separate"))
+    }
+  })
   
+  observeEvent(drc_grid_plots(), {
+    req(drc_grid_plots())
+    plots = drc_grid_plots()[["plot"]]
+    for (i in 1:length(plots)) {
+      local({
+        n <- i # Make local variable
+        plotname <- paste("plot", n , sep="")
+        output[[plotname]] <- renderPlot({
+          #ggplotly(plots[[n]], tooltip = "text")
+          plots[[n]]
+        })
+      })
+    }
+  })
+  
+  output$plots_grid_legend = renderPlot({
+    req(drc_grid_plots())
+    drc_grid_plots()[["legend"]]
+  })
+  
+  output$plots_grid <- renderUI({
+    req(filter_data(), input$drc2_curves, input$drc2_metric, input$drc2_points, input$drc2_xrug, input$drc2_yrug,
+        input$drc2_bars, color_throttle(), values$input_case, drc_grid_plots())
+    plots = drc_grid_plots()[["plot"]]
+      #col.width <- round(16/input$ncol) # Calculate bootstrap column width
+      col.width <- 300
+      #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
+      #n.row = input$nrow
+      #n.col = input$ncol
+      cnter <<- 0 # Counter variable
+      #n_pages =  ceiling(n_total_plots/input$nplots)
+      cols  <- lapply(1:length(plots), function(i) {
+        cnter    <<- cnter + 1
+        plotname <- paste("plot", cnter, sep="")
+        div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") ,
+            plotOutput(plotname,width = col.width, height = col.width)# %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+        )
+      })
+      do.call(tagList, cols)
+  })
+  # output$plots_grid_pages = renderUI({
+  #   n_pages = 10
+  #   div(class = "ui pagination menu", id = "drc_pages",
+  #       tags$a(class = "item", type = "firstItem", "«"),
+  #       tags$a(class = "item", type = "prevItem", "⟨"),
+  #       tags$a(class = "active item", 1, id = "drc_page1"),
+  #       lapply(2:n_pages, function(x) tags$a(class = "item", x,
+  #                                            id = paste0("drc_page", x)) ),
+  #       tags$a(class = "item", type = "nextItem", "⟩"),
+  #       tags$a(class = "item", type = "lastItem", "»")
+  #   )
+  # })
   
   ###### begin render main dose-response curve plot(s) ########
   # observeEvent(c(input$nplots, values$tables, input$analyzeButton, toListen_drc2(),
@@ -879,76 +993,23 @@ shinyServer(function(input, output,session) {
   #                color_throttle(), input$drc2_metric, input$drc2_curves,
   #                input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
   #                ), {
-  # observeEvent(c(toListen_drc2(), button_throttle()), {
+  # observeEvent(c(toListen_drc2(), button_throttle(), filter_data()), {
   #   req(input$groupingVars, input$drc2_metric, input$drc2_points, input$drc2_facet,
-  #       input$drc2_xrug, input$drc2_yrug, input$drc2_bars, values$grid_vs_single, input$drc2_color)
-  #   #col = isolate({ input$drc2_color })
-  #   # for(x in c("groupingVars", "drc2_color", "drc2_metric", "drc2_points",
-  #   #             "drc2_xrug", "drc2_yrug", "drc2_bars") ) {
-  #   #   print(x)
-  #   #   print(input[[x]])
-  #   # }
-  #   # for(x in "grid_vs_single") {
-  #   #   print(x)
-  #   #   print(values[[x]])
-  #   # }
-  #                  
+  #       input$drc2_xrug, input$drc2_yrug, input$drc2_bars, values$grid_vs_single, input$drc2_color, filter_data())
+  # 
   #   if(identical(values$input_case,"static_vs_toxic")) {
-  #     filtered_drc = values$tables
-  #     n <- length(input$groupingVars)
-  #     if (n>0) {
-  #       filter_vars = paste0("param_", input$groupingVars)
-  #       filter_list = lapply(filter_vars, function(x) input[[x]] )
-  #       names(filter_list) = input$groupingVars
-  #       print(filter_list)
-  #       for(i in 1:length(filter_list)) {
-  #         vals = filter_list[[i]]
-  #         #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
-  #         df_colname = sym(names(filter_list)[i])
-  #         print(head(filtered_drc$metadata$gr_table))
-  #         if(length(vals) > 0) {
-  #           if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
-  #             filtered_drc$assays$GR$static %<>% 
-  #               dplyr::filter(!!df_colname %in% vals)
-  #             filtered_drc$assays$GR$toxic %<>% 
-  #               dplyr::filter(!!df_colname %in% vals)
-  #             filtered_drc$metadata$gr_table %<>%
-  #               dplyr::filter(!!df_colname %in% vals)
-  #           }
-  #         }
-  #       }
-  #     }
-  #     print(dim(filtered_drc$assays$GR$toxic))
   #     ######### begin render plots for static vs toxic case ##########
-  #     if(identical(values$grid_vs_single, "single")) {
-  #       #shinyjs::click(id = "grid_button")
-  #       single_plot = try(GRdrawDRCV2.app(fitData = filtered_drc, 
-  #                                         #metric = input$drc2_metric, 
-  #                                         curves = input$drc2_curves,
-  #                                         points = input$drc2_points, 
-  #                                         #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-  #                                         #facet = input$drc2_facet, 
-  #                                         #bars = input$drc2_bars,
-  #                                         color = color_throttle(), 
-  #                                         plot_type = "static",
-  #                                         output_type = "together"))
-  #       if(class(single_plot) != "try-error") {
-  #         output$single_drc = renderPlotly(ggplotly(single_plot$plot, tooltip = "text"))
-  #         outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
-  #       }
-  #     }
   #     if(identical(values$grid_vs_single, "grid")) {
   #       #### render grid of plots
-  #       
   #       output$plots_grid <- renderUI({
-  #         plots = try(GRdrawDRCV2.app(fitData = filtered_drc, 
-  #                                 #metric = input$drc2_metric, 
+  #         plots = try(GRdrawDRCV2.app(fitData = filter_data(),
+  #                                 #metric = input$drc2_metric,
   #                                 curves = input$drc2_curves,
-  #                                 points = input$drc2_points, 
+  #                                 points = input$drc2_points,
   #                                 #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-  #                                 #facet = input$drc2_facet, 
+  #                                 #facet = input$drc2_facet,
   #                                 #bars = input$drc2_bars,
-  #                                 #color = color_throttle(), 
+  #                                 #color = color_throttle(),
   #                                 plot_type = "static",
   #                                 output_type = "separate"))
   #         if(class(plots) != "try-error") {
@@ -960,8 +1021,9 @@ shinyServer(function(input, output,session) {
   #           local({
   #             n <- i # Make local variable
   #             plotname <- paste("plot", n , sep="")
-  #             output[[plotname]] <- renderPlotly({
-  #               ggplotly(plots[[n]], tooltip = "text")
+  #             output[[plotname]] <- renderPlot({
+  #               #ggplotly(plots[[n]], tooltip = "text")
+  #               plots[[n]]
   #             })
   #           })
   #         }
@@ -972,22 +1034,14 @@ shinyServer(function(input, output,session) {
   #         #n.col = input$ncol
   #         cnter <<- 0 # Counter variable
   #         #n_pages =  ceiling(n_total_plots/input$nplots)
-  #         
-  #         # Create row with columns
-  #         #rows  <- lapply(1:n.row,function(row.num){
   #         cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
   #           cnter    <<- cnter + 1
   #           plotname <- paste("plot", cnter, sep="")
-  #           div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") , 
-  #               plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
-  #               # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
-  #               #tags$p(paste0("plot", i))
+  #           div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") ,
+  #               plotOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
   #           )
   #         })
   #         do.call(tagList, cols)
-  #         #} else {
-  #         #  div(class = "ui basic segment")
-  #         #}
   #       })
   #       #### render page buttons
   #       output$plots_grid_pages = renderUI({
@@ -996,72 +1050,23 @@ shinyServer(function(input, output,session) {
   #             tags$a(class = "item", type = "firstItem", "«"),
   #             tags$a(class = "item", type = "prevItem", "⟨"),
   #             tags$a(class = "active item", 1, id = "drc_page1"),
-  #             lapply(2:n_pages, function(x) tags$a(class = "item", x, 
+  #             lapply(2:n_pages, function(x) tags$a(class = "item", x,
   #                                                  id = paste0("drc_page", x)) ),
   #             tags$a(class = "item", type = "nextItem", "⟩"),
   #             tags$a(class = "item", type = "lastItem", "»")
   #         )
-  #         #} #else {
-  #         #div(class = "ui basic segment")
-  #         #}
   #       })
   #     }
   #     ######## end render plots for static vs toxic case #######
   #   } else if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
   #     ######### begin render plots for case A and case B ##########
-  #     if(values$filters_loaded && !is.null(values$tables) ) {
-  #       gr_table = GRmetrics::GRgetValues(values$tables)
-  #       filtered_drc = values$tables
-  #       n <- length(input$groupingVars)
-  #       if (n>0) {
-  #         filter_vars = paste0("param_", input$groupingVars)
-  #         filter_list = lapply(filter_vars, function(x) input[[x]] )
-  #         names(filter_list) = input$groupingVars
-  #         print(filter_list)
-  #         print("filtering tables")
-  #         tic()
-  #         for(i in 1:length(filter_list)) {
-  #           vals = filter_list[[i]]
-  #           #do.call("freezeReactiveValue", args = list(x = input, name = filter_vars[i]))
-  #           df_colname = sym(names(filter_list)[i])
-  #           test <<- filtered_drc
-  #           
-  #           if(length(vals) > 0) {
-  #             if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
-  #               filtered_drc$assays$GR$sigmoid$normal %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$assays$GR$sigmoid$high %<>%
-  #                   dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$assays$GR$sigmoid$low %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$assays$GR$biphasic$normal %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$metadata$gr_table %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$assays$rel_cell$sigmoid$normal %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$assays$rel_cell$sigmoid$high %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$assays$rel_cell$sigmoid$low %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$assays$rel_cell$biphasic$normal %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #               filtered_drc$metadata$gr_table %<>%
-  #                 dplyr::filter(!!df_colname %in% vals)
-  #             }
-  #           }
-  #         }
-  #         toc()
-  #         
-  #       }
   #       if(values$grid_vs_single == "grid") {
   #         #### render grid of plots
   #         output$plots_grid <- renderUI({
-  #           #if(values$grid_vs_single == "grid") {
   #           print("generating plots")
   #           tic()
-  #           plots = try(GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
-  #                                      curves = input$drc2_curves, points = input$drc2_points, 
+  #           plots = try(GRdrawDRC.app(fitData = filter_data(), metric = input$drc2_metric,
+  #                                      curves = input$drc2_curves, points = input$drc2_points,
   #                                      xrug = input$drc2_xrug, yrug = input$drc2_yrug,
   #                                      facet = input$drc2_facet, bars = input$drc2_bars,
   #                                      color = color_throttle(), plot_type = "static",
@@ -1078,8 +1083,9 @@ shinyServer(function(input, output,session) {
   #             local({
   #               n <- i # Make local variable
   #               plotname <- paste("plot", n , sep="")
-  #               output[[plotname]] <- renderPlotly({
-  #                 ggplotly(plots[[n]], tooltip = "text")
+  #               output[[plotname]] <- renderPlot({
+  #                 #ggplotly(plots[[n]], tooltip = "text")
+  #                 plots[[n]]
   #               })
   #             })
   #           }
@@ -1091,22 +1097,14 @@ shinyServer(function(input, output,session) {
   #           #n.col = input$ncol
   #           cnter <<- 0 # Counter variable
   #           #n_pages =  ceiling(n_total_plots/input$nplots)
-  #           
-  #           # Create row with columns
-  #           #rows  <- lapply(1:n.row,function(row.num){
   #           cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
   #             cnter    <<- cnter + 1
   #             plotname <- paste("plot", cnter, sep="")
-  #             div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") , 
-  #                 plotlyOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
-  #                 # tags$img(src = "images/GRcalculator-logo.jpg", width = paste0(col.width, "px"), height = paste0(col.width, "px")),
-  #                 #tags$p(paste0("plot", i))
+  #             div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") ,
+  #                 plotOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
   #             )
   #           })
   #           do.call(tagList, cols)
-  #           #} else {
-  #           #  div(class = "ui basic segment")
-  #           #}
   #         })
   #         #### render page buttons
   #         output$plots_grid_pages = renderUI({
@@ -1115,49 +1113,18 @@ shinyServer(function(input, output,session) {
   #               tags$a(class = "item", type = "firstItem", "«"),
   #               tags$a(class = "item", type = "prevItem", "⟨"),
   #               tags$a(class = "active item", 1, id = "drc_page1"),
-  #               lapply(2:n_pages, function(x) tags$a(class = "item", x, 
+  #               lapply(2:n_pages, function(x) tags$a(class = "item", x,
   #                                                    id = paste0("drc_page", x)) ),
   #               tags$a(class = "item", type = "nextItem", "⟩"),
   #               tags$a(class = "item", type = "lastItem", "»")
   #           )
-  #           #} #else {
-  #           #div(class = "ui basic segment")
-  #           #}
   #         })
   #       }
-  #       
-  #       ####### render single plot output
-  #       if(values$grid_vs_single == "single") {
-  #         tic("single_plot")
-  #         single_plot = try(GRdrawDRC.app(fitData = filtered_drc, metric = input$drc2_metric, 
-  #                                          curves = input$drc2_curves, points = input$drc2_points,
-  #                                          xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-  #                                          facet = "none", bars = input$drc2_bars,
-  #                                          color = color_throttle(), plot_type = "interactive"))
-  #         if(class(single_plot) != "try-error") {
-  #           output$single_drc = renderPlotly(ggplotly(single_plot$plot, tooltip = "text"))
-  #           outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
-  #         }
-  #         toc()
-  #       }
-  #     }
   #   }
   # }, ignoreInit = T, ignoreNULL = T)
-  # ######### end render main dose-response curve plot(s) ########
-  # #### make a list of the variables to filter over
-  # # filter_params = reactiveValues()
-  # # observeEvent(reactiveValuesToList(input), {
-  # #   if(length(values$group_vars) > 0) {
-  # #     for(x in values$group_vars) {
-  # #       print(x)
-  # #       filter_params[[x]] = input[[paste0("param_", x)]]
-  # #     }
-  # #   }
-  # # })
-  # # observeEvent(reactiveValuesToList(filter_params), {
-  # #   print("filteringgggg")
-  # # })
-  # #### render curve filter options
+  ######### end render main dose-response curve plot(s) ########
+  
+  #### render curve filter options
   observeEvent(input$analyzeButton, {
     values$group_vars = input$groupingVars
     output$drc_filter <- renderUI({
