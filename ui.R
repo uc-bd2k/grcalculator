@@ -53,150 +53,7 @@ shinyUI(
         )
     ),
     ######## contact modal end #########
-    #### import modal start #########
-    div(class = "ui small modal", #id = "import_modal",
-        div(class = "ui basic segment",
-          # div(class = "twelve wide column",
-          #   h3("Do you have live and dead cell counts?"),
-          #     div(class = "ui buttons",
-          #         div(class = "ui toggle button action-button", id = 'no_dead', "No"),
-          #         div(class = "or"),
-          #         div(class = "ui toggle button action-button", id = 'yes_dead', "Yes")
-          #     )
-          # ),
-          # br(),
-        #   shinyjs::hidden(
-        #   div(class = "twelve wide column", id = "static_vs_toxic_req",
-        #           includeMarkdown("www/static_vs_toxic_req.md")
-        #   ) ),
-        #   
-        #   shinyjs::hidden(
-        # div(class = "twelve wide column", `data-toggle` = "buttons", id = "calc_method_buttons",
-        #       h3("Do you have initial (time 0) cell counts?"),
-        #     div(class = "ui buttons",
-        #         div(class = "ui toggle button action-button", id = 'initialCellCount', "Yes, I do"),
-        #         div(class = "or"),
-        #         div(class = "ui toggle button action-button", id = 'divisionRate', "No, but I have untreated cell division times")
-        #     )
-        #     )
-        # ),
-        # br(),
-        # shinyjs::hidden(
-        # div(class = "twelve wide column", id = "calc_method_desc",
-        #       p("Use cell line division times (instead of initial cell count) to calculate GR values.", id = "div_rate_desc"),
-        #       p("Use initial (Time 0) cell counts - the measure of cell number in untreated wells grown in parallel until the time of treatment - for GR value calculation.", id = "init_count_desc")
-        #     )
-        # ),
-      #   shinyjs::hidden( 
-      #   div(class = "twelve wide column", `data-toggle` = "buttons", id = "case_buttons",
-      #       h3("Choose input file format"),
-      #       div(class = "ui buttons",
-      #       div(class = "ui toggle button action-button", id = "caseA", "Case A (multiple cell counts per row)"),
-      #       div(class = "or"),
-      #       div(class = "ui toggle button action-button", id = "caseB", "Case B (one cell count per row)")
-      #       )
-      #   )
-      # ),
-      # shinyjs::hidden(  div(class = "twelve wide column", id = "case_desc",
-      #    shinyjs::hidden(
-      #      div(id = "caseA_div_desc",
-      #          includeMarkdown("www/caseA_div.md")
-      #      ),
-      #      div(id = "caseA_initial_desc",
-      #          includeMarkdown("www/caseA_initial.md"),
-      #          tags$img(src = "images/data_examples/caseA_blur.png", width = "100%")
-      #      ),
-      #      div(id = "caseB_initial_desc",
-      #          includeMarkdown("www/caseB_initial.md")
-      #      ),
-      #      div(id = "caseB_div_desc",
-      #          includeMarkdown("www/caseB_div.md")
-      #      )
-      #     )
-      #    )
-      #    ),br(),
-      #   shinyjs::hidden(
-      #   div(class = "twelve wide column", `data-toggle` = "buttons", id = "comma_tab_buttons",
-      #       h3("Select file type"),
-      #       div(class = "ui buttons",
-      #           div(class = "ui toggle button action-button", id = "comma_input",
-      #               "comma-separated (.csv)", value = "comma"),
-      #           div(class = "or"),
-      #           div(class = "ui toggle button action-button", id = "tab_input", 
-      #               "tab-separated (.tsv)", value = "tab")
-      #       )
-      #     )
-      #   ), br(),
-      # shinyjs::hidden(
-      #   div(id = 'upload_button', h3("Upload data file"),
-      # div(class = "ui two column grid",
-      # div(class = "row",
-      #   div(class = "six wide column",
-      #     tags$b('From your computer:'),
-      #     br(),
-      #     div(class="ui icon button", id="divUpload",
-      #       tags$i(class="cloud icon"), "Choose file..."
-      #     ),
-      #     tags$input(type="file", id = "uploadData", style="display: none"),
-      #     #fileInput('uploadData', "", multiple = FALSE, accept = NULL, width = NULL),
-      #     # The following tag allows for the same file path to be used twice in a row for upload
-      #     tags$script('$( "#uploadData" ).on( "click", function() { this.value = null; });')
-      #   ),
-      #   div(class = "ten wide column",
-      #     div(class = "ui form", style = "width: 200px; display: inline-block;",
-      #         div(class = "field",
-      #             tags$label("Or from a URL:"),
-      #             tags$input(type = "text", id = "url")
-      #         )
-      #     ),
-      #     div(class = "ui button action-button" , id = "fetchURLData", "Fetch Data",
-      #         style="width: 120px; vertical-align: bottom; display: inline-block;")
-      #   )
-      # )
-      # ))), br(),
-      div(class = "twelve wide column",
-      shinyjs::hidden(
-        div(id = 'advanced_input',
-          div(class = "ui button action-button", id = 'import_options', 'Advanced Options'),
-          conditionalPanel(
-            condition = "input.import_options % 2 == 1",
-            br(),
-            div(class = "ui toggle checkbox", 
-                tags$input(type = "checkbox", name = "public", 
-                           id = 'euro_in', tags$label("Input with commas as decimal points"))
-            )
-          )
-          )
-        ) 
-      )
-      )
-    ),
-    ######## import modal end #########
-    #### example modal start #########
-    # div(class = "ui mini modal", #id = 'example_modal', 
-    #     div(class = "ui center aligned basic segment",
-    #     #"Load Example", "examples",
-    #     p("Case A: control values assigned to treated measurements"),
-    #     p("Case B: control values stacked with treated measurements"),
-    #         div(class = "ui buttons", "Load example:",
-    #             div(class = "ui positive button action-button", id = 'loadExample',
-    #                 'Case A'),
-    #             div(class = "or"),
-    #             div(class = "ui button action-button", id = 'loadExampleB', 'Case B')
-    #     )
-    # )),
-    ######## example modal end #########
-    #### start modal start #########
-    # div(class = "ui small modal", #id = 'start_modal', 
-    #     div(class = "ui basic center aligned segment",
-    #         div(class = "ui buttons", "Load example:", style = "vertical-align: middle;",
-    #             div(class = "ui positive button action-button", id = 'example_button',
-    #                 'Load example data'),
-    #             div(class = "or"),
-    #             div(class = "ui button action-button", id = 'import_button', 'Import your own data')
-    #         )
-    #     )),
-    ######## start modal end #########
+
     #### instructions modal start #########
     div(class = "ui small modal", id = 'instructions_modal', 
         div(class = "ui basic segment",
@@ -490,7 +347,9 @@ shinyUI(
           div(class = "ui three column grid",
               div(class = "four wide column"),
               div(class = "eight wide column",
-              selectizeInput('groupingVars', 'Select grouping variables', choices = c(), multiple = TRUE, width = "100%"),
+              tags$h5("Select variable to group dose-response curves"),
+              selectizeInput('groupingVars', '', choices = c(), multiple = TRUE, width = "100%"),
+              tags$b( verbatimTextOutput("curve_groups", placeholder = F) ),
          div(class = "ui buttons",
               div(class = "ui bottom attached primary button action-button", 
                   id = "analyzeButton",
@@ -659,35 +518,36 @@ shinyUI(
           div(class="ui bottom center basic tab segment", `data-tab`="fourth",
               style = "padding: 0px;",
               div(class = "ui basic center aligned segment",
-                  div(class = "ui primary bottom attached button action-button",
+                div(class = "ui two buttons", style = "width: 400px;",
+                  div(class = "ui green button action-button",
+                      id = "boxplot_button", style = "width: 50%; display: inline-block;",
+                      "Boxplot"
+                  ),
+                  div(class = "ui grey button action-button",
                       id = "scatter_button", style = "width: 50%; display: inline-block;",
                       "Scatterplot"
-                  ),
-                  shinyjs::hidden(
-                    div(class = "ui secondary bottom attached button action-button",
-                        id = "boxplot_button", style = "width: 50%; display: inline-block;",
-                        "Boxplot"
-                    )
-                  ),
-                  selectInput(inputId = "box_scatter_fit", "Select fit type",
-                              choices = "")
+                  )
+                )
               ),
               div(class = "ui two column centered grid",
                 div(class = "four wide column",
+                  div(class = "ui basic segment",
+                      selectInput(inputId = "box_scatter_fit", "Select fit type",
+                                  choices = ""),
+                      selectInput('pick_box_point_color', 'Select point coloring', choices = ""),
           shinyjs::hidden(
                   div(id = "scatter_options",
-        selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')),
-        selectInput('pick_var', 'Select variable', choices = ""),
+        #selectInput('pick_parameter', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')),
+        #selectInput('pick_var', 'Select variable', choices = ""),
         selectInput('x_scatter', 'Select x-axis value', choices = ""),
-        selectizeInput('y_scatter', 'Select y-axis value', choices = ""),
-        bsButton('plot_scatter', 'Add', size = 'small'),
-        bsButton('clear', 'Clear', size = 'small')
+        selectizeInput('y_scatter', 'Select y-axis value', choices = "")
+        #bsButton('plot_scatter', 'Add', size = 'small'),
+        #bsButton('clear', 'Clear', size = 'small')
                   )
         ),
             div(id = "boxplot_options",
-        selectInput('pick_box_y', 'Select parameter', choices = c('GR50', 'GRmax', 'GRinf', 'h_GR', 'GR_AOC', 'IC50','Emax', 'Einf', 'h', 'AUC')),
+        selectInput('pick_box_y', 'Select parameter', choices = ""),
         selectInput('pick_box_x', 'Select grouping variable', choices = ""),
-        selectInput('pick_box_point_color', 'Select additional point coloring', choices = ""),
         selectizeInput('pick_box_factors', 'Show/hide data', choices = c(), multiple = T),
         actionLink('wilcox_panel', 'Compare boxplots'),
         conditionalPanel(condition = "input.wilcox_panel%2==1",
@@ -697,12 +557,13 @@ shinyUI(
                          textOutput("wilcox")
         )
           )
+        )
         ),
                 div(class = "twelve wide column",
                       ### box/scatter plot
                   div(class = "ui basic center aligned segment",
-  plotlyOutput('boxplot', height = "500px", width = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"),
-  shinyjs::hidden(plotlyOutput("scatterplot", height = "500px", width = "500px") %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"))
+  plotlyOutput('boxplot', height = "500px", width = "500px"), #%>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff"),
+  plotlyOutput("scatterplot", height = "500px", width = "500px") #%>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
                   )
                 )
               )

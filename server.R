@@ -130,10 +130,25 @@ shinyServer(function(input, output,session) {
                            current_data = NULL, current_table_button = "gr_table_button",
                            no_dead = NULL, yes_dead = NULL,
                            tables = NULL, grid_vs_single = "single", filters_loaded = F,
+                           box_vs_scatter = "boxplot",
                            group_vars = NULL)
   
   ### file upload button
   runjs(upload.js)
+  
+  ### list curve groups for selected grouping variables
+  output$curve_groups = renderText({
+    req(input$groupingVars, values$inData)
+    grps = input$groupingVars
+    curves = apply(values$inData[, grps], 1, function(x) paste0(x, collapse = " ")) %>% unique()
+    ncurves = length(curves)
+    if(ncurves <= 2) {
+      return(paste0(ncurves, "curves:", paste0(curves, sep = ", ")))
+    } else {
+      return(paste0(ncurves, " curves: ", curves[1], " ... ", curves[length(curves)], sep = "") )
+    }
+  })
+  
   #### update plot options for dose-response curve ##########
   observeEvent(input$analyzeButton, {
     if(values$input_case == "static_vs_toxic") {
@@ -532,8 +547,8 @@ shinyServer(function(input, output,session) {
   
   ##### show and hide parts of UI #########
   ## hide boxplot/scatterplot buttons for now
-  shinyjs::hideElement("scatter_button")
-  shinyjs::hideElement("boxplot_button")
+  #shinyjs::hideElement("scatter_button")
+  #shinyjs::hideElement("boxplot_button")
   #shinyjs::click(id = "single_button")
   
   ### hide example modal when example is picked
@@ -552,7 +567,7 @@ shinyServer(function(input, output,session) {
   shinyjs::onclick("analyzeButton", {
     #shinyjs::click(id = "single_button")
     shinyjs::show(id = "drc_top")
-    #shinyjs::show(id = "comparison_top")
+    shinyjs::show(id = "comparison_top")
     shinyjs::show(id = "output_top")
     shinyjs::click(id = "drc_top")
     shinyjs::removeClass(id = "analyze_loader", "active")
@@ -617,17 +632,38 @@ shinyServer(function(input, output,session) {
     }
   }, ignoreInit = T, ignoreNULL = T)
   
-  observeEvent(c(input$scatter_button, input$boxplot_button), {
-    #shinyjs::toggleElement("scatter_button")
-    #shinyjs::toggleElement("boxplot_button")
-
-    shinyjs::toggleElement("scatter_options")
-    shinyjs::toggleElement("boxplot_options")
-    
-    shinyjs::toggleElement("boxplot")
-    shinyjs::toggleElement("scatterplot")
-  }, ignoreInit = T, ignoreNULL = F, priority = 1000)
+  observeEvent(input$scatter_button, {
+    values$box_vs_scatter = "scatter"
+  })
+  observeEvent(input$boxplot_button, {
+    values$box_vs_scatter = "boxplot"
+  })
   
+  observeEvent(values$box_vs_scatter, {
+    if(values$box_vs_scatter == "scatter") {
+      removeClass("boxplot_button", class = "green")
+      addClass("boxplot_button", class = "grey")
+      removeClass("scatter_button", class = "grey")
+      addClass("scatter_button", class = "green")
+      
+      shinyjs::hideElement("boxplot_options")
+      shinyjs::showElement("scatter_options")
+      
+      shinyjs::hideElement("boxplot")
+      shinyjs::showElement("scatterplot")
+    } else {
+      removeClass("boxplot_button", class = "grey")
+      addClass("boxplot_button", class = "green")
+      removeClass("scatter_button", class = "green")
+      addClass("scatter_button", class = "grey")
+      
+      shinyjs::hideElement("scatter_options")
+      shinyjs::showElement("boxplot_options")
+      
+      shinyjs::hideElement("scatterplot")
+      shinyjs::showElement("boxplot")
+    }
+  }, ignoreInit = F, ignoreNULL = F, priority = 1000)
   ### show/hide parameter table button
   # shinyjs::onclick("parameter_table_button", {
   #   shinyjs::show("parameter_table_select")
@@ -1191,52 +1227,131 @@ shinyServer(function(input, output,session) {
   
   ####### render box and scatter plots ##############
   #### update curve fit choice for box/scatterplots
-  # curve_choices = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
-  #                   "Traditional sigmoid normal", "Traditional sigmoid low", 
-  #                   "Traditional sigmoid high", "Traditional biphasic")
-  # observeEvent(input$box_scatter_fit, {
-  #   if(input$box_scatter_fit %in% 1:4) values$box_scatter_metric = "GR"
-  #   if(input$box_scatter_fit %in% 5:8) values$box_scatter_metric = "rel_cell"
-  #   if(input$box_scatter_fit %in% c(1, 5)) values$box_scatter_fit = "sigmoid"
-  #   if(input$box_scatter_fit %in% c(2, 6)) values$box_scatter_fit = "sigmoid_low"
-  #   if(input$box_scatter_fit %in% c(3, 7)) values$box_scatter_fit = "sigmoid_high"
-  #   if(input$box_scatter_fit %in% c(4, 8)) values$box_scatter_fit = "biphasic"
-  # }, ignoreInit = F, ignoreNULL = T, priority = 1000)
+
+  observeEvent(input$analyzeButton, {
+    req(values$input_case)
+    if(values$input_case %in% c("A", "B")) {
+      curve_choices = 1:8
+      names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+                        "Traditional sigmoid normal", "Traditional sigmoid low",
+                        "Traditional sigmoid high", "Traditional biphasic")
+    } else {
+      curve_choices = 1:2
+      names(curve_choices) = c("GR static", "GR toxic")
+    }
+    updateSelectInput(session, "box_scatter_fit", choices = curve_choices)
+  })
+  
+  observeEvent(input$box_scatter_fit, {
+    req(values$input_case, input$box_scatter_fit)
+    if(values$input_case %in% c("A", "B")) {
+      if(input$box_scatter_fit %in% 1:4) values$box_scatter_metric = "GR"
+      if(input$box_scatter_fit %in% 5:8) values$box_scatter_metric = "rel_cell"
+      if(input$box_scatter_fit %in% c(1, 5)) values$box_scatter_fit = "sigmoid"
+      if(input$box_scatter_fit %in% c(2, 6)) values$box_scatter_fit = "sigmoid_low"
+      if(input$box_scatter_fit %in% c(3, 7)) values$box_scatter_fit = "sigmoid_high"
+      if(input$box_scatter_fit %in% c(4, 8)) values$box_scatter_fit = "biphasic"
+    } else {
+      
+    }
+  }, ignoreInit = F, ignoreNULL = T, priority = 1000)
+  
+  #### update choices for boxplot parameters
+  observeEvent(c(values$box_scatter_metric, values$box_scatter_fit), {
+    req(values$box_scatter_metric, values$box_scatter_fit, values$input_case)
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      if(values$box_scatter_metric == "GR") {
+        if(values$box_scatter_fit == "biphasic") {
+          new_choices = c("GRinf_1", "GRinf_2", "GRmax", "GEC50_1", "GEC50_2")
+        } else {
+          new_choices = c("GRinf", "GRmax", "GR50", "GEC50", "h_GR", "GR_AOC")
+        }
+      }
+      if(values$box_scatter_metric == "rel_cell") {
+        if(values$box_scatter_fit == "biphasic") {
+          new_choices = c("Einf_1", "Einf_2", "Emax", "EC50_1", "EC50_2")
+        } else {
+          new_choices = c("Einf", "Emax", "IC50", "EC50", "h", "AUC")
+        }
+      }
+    }
+    if(!identical(values$pick_box_y, new_choices)) {
+      values$pick_box_y = new_choices
+      updateSelectInput(session, "pick_box_y", choices = new_choices)
+    }
+  })
+  
+  ### update scatter choices
+  observeEvent(c(values$box_scatter_metric, values$box_scatter_fit), {
+    req(values$box_scatter_metric, values$box_scatter_fit, values$input_case)
+    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      if(values$box_scatter_metric == "GR") {
+        if(values$box_scatter_fit == "biphasic") {
+          new_choices = c("GRinf_1", "GRinf_2", "GRmax", "GEC50_1", "GEC50_2")
+        } else {
+          new_choices = c("GRinf", "GRmax", "GR50", "GEC50", "h_GR", "GR_AOC")
+        }
+      }
+      if(values$box_scatter_metric == "rel_cell") {
+        if(values$box_scatter_fit == "biphasic") {
+          new_choices = c("Einf_1", "Einf_2", "Emax", "EC50_1", "EC50_2")
+        } else {
+          new_choices = c("Einf", "Emax", "IC50", "EC50", "h", "AUC")
+        }
+      }
+    }
+    if(!identical(values$y_scatter, new_choices)) {
+      values$y_scatter = new_choices
+      updateSelectInput(session, "y_scatter", choices = new_choices,
+                        selected = new_choices[1])
+    }
+    if(!identical(values$x_scatter, new_choices)) {
+      values$x_scatter = new_choices
+      updateSelectInput(session, "x_scatter", choices = new_choices,
+                        selected = new_choices[2])
+    }
+  })
+  
   # ### render boxplot
-  # observeEvent(c(values$tables, input$pick_box_x, input$pick_box_y,
-  #                input$pick_box_point_color, input$pick_box_factors, 
-  #                input$factorA, input$factorB, input$wilcox_method), {
-  #  output$boxplot <- renderPlotly({
-  #    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
-  #     plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric, 
-  #                 fit = values$box_scatter_fit,
-  #                 parameter = input$pick_box_y, groupVariable = input$pick_box_x,
-  #                 pointColor = input$pick_box_point_color, 
-  #                 factors = input$pick_box_factors, 
-  #                 wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
-  #    if(class(plot) != "try-error") return(plot)
-  #    } else {
-  #      return(ggplot())
-  #    }
-  #  })
-  #                  outputOptions(output, "boxplot", suspendWhenHidden = FALSE)
-  #                }, ignoreInit = T, ignoreNULL = T)
+   output$boxplot <- renderPlotly({
+    # req(values$input_case, values$tables, values$box_scatter_metric, values$box_scatter_fit,
+    #     input$pick_box_x, input$pick_box_y, input$pick_box_point_color,
+    #     input$pick_box_factors, input$factorA, input$factorB)
+     print("boxplots")
+     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric,
+                  fit = values$box_scatter_fit,
+                  parameter = input$pick_box_y, groupVariable = input$pick_box_x,
+                  pointColor = input$pick_box_point_color,
+                  factors = input$pick_box_factors,
+                  wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
+     if(class(plot) != "try-error") return(plot)
+     } else {
+       return(ggplot())
+     }
+   })
+  outputOptions(output, "boxplot", suspendWhenHidden = FALSE)
   
-  #### render scatterplot
-  # observeEvent(c(values$tables, input$pick_parameter, input$x_scatter, input$y_scatter), {
-  #   output$scatterplot <- renderPlotly({
-  #     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
-  #       plot = try(GRscatter(fitData = values$tables, metric = input$pick_parameter, xaxis = input$x_scatter,
-  #                            yaxis = input$y_scatter, # curves = "sigmoid",
-  #                            plotly = TRUE))
-  #       if(class(plot) != "try-error") return(plot)
-  #     } else {
-  #       return(ggplot())
-  #     }
-  #   })
-  #   outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
-  # }, ignoreInit = T, ignoreNULL = T)
-  
+    output$scatterplot <- renderPlotly({
+      req(values$input_case, values$tables, input$x_scatter, input$y_scatter,
+          input$pick_box_point_color, values$box_scatter_metric, values$box_scatter_fit)
+      print("scatterplot")
+      if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+        plot = try(GRscatter(fitData = values$tables,
+                             fit = values$box_scatter_fit,
+                             metric = values$box_scatter_metric, 
+                             xaxis = input$x_scatter,
+                             yaxis = input$y_scatter,
+                             color = input$pick_box_point_color,
+                             plot_type = "interactive"))
+        if(class(plot) != "try-error") return(plot)
+        return(plot)
+      } else {
+        return(ggplot())
+      }
+    })
+    outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
+    
   ################
   
   #### update plot options for box/scatter plots ##########
@@ -1250,24 +1365,28 @@ shinyServer(function(input, output,session) {
   }, ignoreInit = T, ignoreNULL = T)
   #### Update x and y axis options for scatterplot
   observeEvent(input$pick_var, {
+    req(input$pick_var)
     scatter_choices = unique(values$inData[[input$pick_var]])
     updateSelectInput(session, 'x_scatter', 'Select x-axis value', choices = scatter_choices)
     updateSelectizeInput(session, 'y_scatter', 'Select y-axis value', choices = scatter_choices)
   }, ignoreInit = T, ignoreNULL = T)
   #### Update x-axis choices for boxplot
   observeEvent(input$pick_box_x, {
+    req(input$pick_box_x)
     box_choices = unique(values$inData[[input$pick_box_x]])
     updateSelectizeInput(session, 'pick_box_factors', 'Show/hide data', choices = box_choices,
                          selected = box_choices[1:min(10, length(box_choices)) ])
   }, ignoreInit = T, ignoreNULL = T)
   #### Update boxplot selections for p-value comparison
   observeEvent(c(input$factorA,input$pick_box_factors), {
+    #req(input$factorA, input$pick_box_factors)
     picks = sort(input$pick_box_factors)
     picks1 = setdiff(picks, input$factorA)
     updateSelectizeInput(session, 'factorB', choices = picks1, selected = input$factorB)
   }, ignoreInit = T,  ignoreNULL = F)
   
   observeEvent(c(input$factorB,input$pick_box_factors), {
+    #req(input$factorB, input$pick_box_factors)
     picks = sort(input$pick_box_factors)
     picks1 = setdiff(picks, input$factorB)
     updateSelectizeInput(session, 'factorA', choices = picks1, selected = input$factorA)
@@ -1700,34 +1819,34 @@ shinyServer(function(input, output,session) {
 ######################
 
 #=========== Scatterplot drawing/clearing code ===========
-  observeEvent(input$plot_scatter, {
-    print('clearScatter = F')
-    values$clearScatter = F
-  })
-  observeEvent(c(input$plot_scatter,input$pick_parameter), {
-    output$plotlyScatter1 <- renderPlotly({
-      if(values$clearScatter) {
-         return()
-       } else {
-        isolate(drawScatter(input, values))
-      }
-    })
-  }, ignoreInit = T)
-  
-  observeEvent(input$analyzeButton, {
-    df_full <<- NULL
-    values$clearScatter = T
-  })
-  
-  observeEvent(input$clear, {
-    df_full <<- NULL
-    values$clearScatter = T
-  })
-  
-  observeEvent(input$pick_var, {
-    df_full <<- NULL
-    values$clearScatter = T
-  })
+  # observeEvent(input$plot_scatter, {
+  #   print('clearScatter = F')
+  #   values$clearScatter = F
+  # })
+  # observeEvent(c(input$plot_scatter,input$pick_parameter), {
+  #   output$plotlyScatter1 <- renderPlotly({
+  #     if(values$clearScatter) {
+  #        return()
+  #      } else {
+  #       isolate(drawScatter(input, values))
+  #     }
+  #   })
+  # }, ignoreInit = T)
+  # 
+  # observeEvent(input$analyzeButton, {
+  #   df_full <<- NULL
+  #   values$clearScatter = T
+  # })
+  # 
+  # observeEvent(input$clear, {
+  #   df_full <<- NULL
+  #   values$clearScatter = T
+  # })
+  # 
+  # observeEvent(input$pick_var, {
+  #   df_full <<- NULL
+  #   values$clearScatter = T
+  # })
   ##################
     
 ######## Run GRfit when analyze button is clicked ########
