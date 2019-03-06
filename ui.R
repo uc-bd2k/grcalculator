@@ -349,7 +349,7 @@ shinyUI(
               div(class = "eight wide column",
               tags$h5("Select variable to group dose-response curves"),
               selectizeInput('groupingVars', '', choices = c(), multiple = TRUE, width = "100%"),
-              tags$b( verbatimTextOutput("curve_groups", placeholder = F) ),
+              #tags$b( verbatimTextOutput("curve_groups", placeholder = F) ),
          div(class = "ui buttons",
               div(class = "ui bottom attached primary button action-button", 
                   id = "analyzeButton",

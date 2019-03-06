@@ -21,7 +21,9 @@ library(tictoc)
 source('functions/GRdrawDRC.app.R')
 source('functions/GRdrawDRCV2.app.R')
 source('functions/check_col_names.R')
-source('functions/GRdrawDRC_plotly.app.R')
+#source('functions/GRdrawDRC_plotly.app.R')
+
+
 
 prettyNumTable = function(df, digits = 3) {
   df %<>% dplyr::mutate_if(is.numeric, 
@@ -49,7 +51,6 @@ zipped_csv <- function(df_list, zippedfile, filenames, stamp) {
     unlink( paste0("temp",i) )
   }
 }
-######################
 
 ####### javascript code for modals ##########
 about.modal.js = "$('.ui.small.modal')
@@ -117,8 +118,10 @@ accordion.js = "$('.ui.accordion')
 ###############################
 
 shinyServer(function(input, output,session) {
+  ####### start shinyServer code and run javascript code ######
   runjs(tab.js)
   runjs(accordion.js)
+  runjs(upload.js)
   # initialize variables for saving various user inputs, parameters, etc.
   values <- reactiveValues(inData=NULL, GR_table = NULL, GR_table_show = NULL, 
                            parameter_table = NULL, parameter_table_show = NULL, 
@@ -133,21 +136,18 @@ shinyServer(function(input, output,session) {
                            box_vs_scatter = "boxplot",
                            group_vars = NULL)
   
-  ### file upload button
-  runjs(upload.js)
-  
   ### list curve groups for selected grouping variables
-  output$curve_groups = renderText({
-    req(input$groupingVars, values$inData)
-    grps = input$groupingVars
-    curves = apply(values$inData[, grps], 1, function(x) paste0(x, collapse = " ")) %>% unique()
-    ncurves = length(curves)
-    if(ncurves <= 2) {
-      return(paste0(ncurves, "curves:", paste0(curves, sep = ", ")))
-    } else {
-      return(paste0(ncurves, " curves: ", curves[1], " ... ", curves[length(curves)], sep = "") )
-    }
-  })
+  # output$curve_groups = renderText({
+  #   req(input$groupingVars, values$inData)
+  #   grps = input$groupingVars
+  #   curves = apply(values$inData[, grps], 1, function(x) paste0(x, collapse = " ")) %>% unique()
+  #   ncurves = length(curves)
+  #   if(ncurves <= 2) {
+  #     return(paste0(ncurves, "curves:", paste0(curves, sep = ", ")))
+  #   } else {
+  #     return(paste0(ncurves, " curves: ", curves[1], " ... ", curves[length(curves)], sep = "") )
+  #   }
+  # })
   
   #### update plot options for dose-response curve ##########
   observeEvent(input$analyzeButton, {
@@ -251,7 +251,7 @@ shinyServer(function(input, output,session) {
                            server = TRUE, selected= "experiment")
     }
   }, ignoreInit = T, ignoreNULL = T, priority = 900)
-  ###############
+  
   
   ########### code for input breadcrumbs ################
   observeEvent(input$import_button, {
@@ -338,7 +338,6 @@ shinyServer(function(input, output,session) {
     hideElement(id = "bc4_content")
   })
   
-  
   # Code to show/hide descriptions of input cases (division rate vs. initial cell counts)
   observeEvent(values$div_rate, {
     if(values$div_rate) {
@@ -376,6 +375,7 @@ shinyServer(function(input, output,session) {
       }
     }
   }, ignoreInit = T)
+  
   # observeEvent(values$input_case, {
   #   div_names = c("caseA_initial_desc", "caseA_div_desc", "caseB_initial_desc", "caseB_div_desc")
   #   if(values$input_case == "A" & !values$div_rate) { div_loc = 1 }
@@ -520,7 +520,6 @@ shinyServer(function(input, output,session) {
       toggleModal(session, 'import_fail', toggle = "open")
     }
   }, ignoreInit = T)
-  ####################
   
   
   
@@ -543,7 +542,6 @@ shinyServer(function(input, output,session) {
   observeEvent(input$contact, {
     runjs(contact.modal.js)
   })
-  ##############################
   
   ##### show and hide parts of UI #########
   ## hide boxplot/scatterplot buttons for now
@@ -674,10 +672,7 @@ shinyServer(function(input, output,session) {
   shinyjs::onclick("input_table_button", {
     shinyjs::hide("parameter_table_select")
   })
-  
-#######################
-  
-  
+
   ##### observe input data ##########
   observeEvent(values$inData, {
     ### reset initial state just in case 
@@ -712,9 +707,7 @@ shinyServer(function(input, output,session) {
   # observeEvent(values$inData, {
   #   showElement(id = "advanced_analysis", anim = T, animType = "fade")
   # })
-  ####################
-  
-  
+
   ######### show correct output data table on button click #############
   observeEvent(input$analyzeButton, {
     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
@@ -776,30 +769,12 @@ shinyServer(function(input, output,session) {
     if(identical(values$input_case, "static_vs_toxic")) {
       # curve_choices = 1:2
       # names(curve_choices) = c("GR static", "GR toxic")
-      if(pp == 1) values$parameter_table = values$parameters_all$GR$static
-      if(pp == 2) values$parameter_table = values$parameters_all$GR$toxic
+      if(pp == 1) values$parameter_table = values$parameters_all$GR$sigmoid$static
+      if(pp == 2) values$parameter_table = values$parameters_all$GR$sigmoid$toxic
     }
     values$parameter_table_show = prettyNumTable(values$parameter_table)
     values$current_data = values$parameter_table_show
   }, ignoreInit = T, ignoreNULL = T)
-  #### render current data table
-  # observeEvent(values$current_data, {
-  #   output$current_table = renderDataTable({ datatable(values$current_data,  extensions = c('Buttons'#, 'FixedHeader'
-  #                 ),
-  #    filter = 'top',
-  #    rownames = F, options = list(
-  #      dom = 'lBfrtip',
-  #      buttons = c('copy', 'csv', 'excel', 'colvis'),
-  #      initComplete = JS(
-  #        "function(settings, json) {",
-  #        "$(this.api().table().header()).css({'background-color': '#000', 'color': '#fff', 'width': '100px'});",
-  #        "}"),
-  #      searchHighlight = TRUE,
-  #      fixedHeader = TRUE,
-  #      autoWidth = TRUE))
-  #   }, server = FALSE)
-  #   outputOptions(output, "current_table", suspendWhenHidden = FALSE)
-  # }, ignoreNULL = F)
   
   output$gr_table = renderDataTable({ datatable(values$GR_table_show,  extensions = c('Buttons'#, 'FixedHeader'
   ),
@@ -833,9 +808,8 @@ shinyServer(function(input, output,session) {
   }, server = FALSE)
   outputOptions(output, "parameter_table", suspendWhenHidden = FALSE)
   
-########################
   
-  ### initialize listener for filter boxes
+  ######### main dose-response curve plot(s) ########
   toListen_drc <- reactive({
     req(input$groupingVars, values$tables)
     req(!is.null(unlist(input$groupingVars)))
@@ -895,9 +869,9 @@ shinyServer(function(input, output,session) {
                 }
               }
             } else {
-              filtered_drc$assays$GR$static %<>%
+              filtered_drc$assays$GR$sigmoid$static %<>%
                 dplyr::filter(!!df_colname %in% vals)
-              filtered_drc$assays$GR$toxic %<>%
+              filtered_drc$assays$GR$sigmoid$toxic %<>%
                 dplyr::filter(!!df_colname %in% vals)
             }
             filtered_drc$metadata$gr_table %<>%
@@ -1009,155 +983,6 @@ shinyServer(function(input, output,session) {
       })
       do.call(tagList, cols)
   })
-  # output$plots_grid_pages = renderUI({
-  #   n_pages = 10
-  #   div(class = "ui pagination menu", id = "drc_pages",
-  #       tags$a(class = "item", type = "firstItem", "«"),
-  #       tags$a(class = "item", type = "prevItem", "⟨"),
-  #       tags$a(class = "active item", 1, id = "drc_page1"),
-  #       lapply(2:n_pages, function(x) tags$a(class = "item", x,
-  #                                            id = paste0("drc_page", x)) ),
-  #       tags$a(class = "item", type = "nextItem", "⟩"),
-  #       tags$a(class = "item", type = "lastItem", "»")
-  #   )
-  # })
-  
-  ###### begin render main dose-response curve plot(s) ########
-  # observeEvent(c(input$nplots, values$tables, input$analyzeButton, toListen_drc2(),
-  #                values$grid_vs_single, facet_throttle(),
-  #                color_throttle(), input$drc2_metric, input$drc2_curves,
-  #                input$drc2_points, input$drc2_xrug, input$drc2_yrug, input$drc2_bars
-  #                ), {
-  # observeEvent(c(toListen_drc2(), button_throttle(), filter_data()), {
-  #   req(input$groupingVars, input$drc2_metric, input$drc2_points, input$drc2_facet,
-  #       input$drc2_xrug, input$drc2_yrug, input$drc2_bars, values$grid_vs_single, input$drc2_color, filter_data())
-  # 
-  #   if(identical(values$input_case,"static_vs_toxic")) {
-  #     ######### begin render plots for static vs toxic case ##########
-  #     if(identical(values$grid_vs_single, "grid")) {
-  #       #### render grid of plots
-  #       output$plots_grid <- renderUI({
-  #         plots = try(GRdrawDRCV2.app(fitData = filter_data(),
-  #                                 #metric = input$drc2_metric,
-  #                                 curves = input$drc2_curves,
-  #                                 points = input$drc2_points,
-  #                                 #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-  #                                 #facet = input$drc2_facet,
-  #                                 #bars = input$drc2_bars,
-  #                                 #color = color_throttle(),
-  #                                 plot_type = "static",
-  #                                 output_type = "separate"))
-  #         if(class(plots) != "try-error") {
-  #           legend = plots$legend
-  #           plots = plots$plot
-  #           output$plots_grid_legend = renderPlot(legend)
-  #         }
-  #         for (i in 1:length(plots)) {
-  #           local({
-  #             n <- i # Make local variable
-  #             plotname <- paste("plot", n , sep="")
-  #             output[[plotname]] <- renderPlot({
-  #               #ggplotly(plots[[n]], tooltip = "text")
-  #               plots[[n]]
-  #             })
-  #           })
-  #         }
-  #         #col.width <- round(16/input$ncol) # Calculate bootstrap column width
-  #         col.width <- 300
-  #         #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
-  #         #n.row = input$nrow
-  #         #n.col = input$ncol
-  #         cnter <<- 0 # Counter variable
-  #         #n_pages =  ceiling(n_total_plots/input$nplots)
-  #         cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
-  #           cnter    <<- cnter + 1
-  #           plotname <- paste("plot", cnter, sep="")
-  #           div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") ,
-  #               plotOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
-  #           )
-  #         })
-  #         do.call(tagList, cols)
-  #       })
-  #       #### render page buttons
-  #       output$plots_grid_pages = renderUI({
-  #         n_pages = 10
-  #         div(class = "ui pagination menu", id = "drc_pages",
-  #             tags$a(class = "item", type = "firstItem", "«"),
-  #             tags$a(class = "item", type = "prevItem", "⟨"),
-  #             tags$a(class = "active item", 1, id = "drc_page1"),
-  #             lapply(2:n_pages, function(x) tags$a(class = "item", x,
-  #                                                  id = paste0("drc_page", x)) ),
-  #             tags$a(class = "item", type = "nextItem", "⟩"),
-  #             tags$a(class = "item", type = "lastItem", "»")
-  #         )
-  #       })
-  #     }
-  #     ######## end render plots for static vs toxic case #######
-  #   } else if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
-  #     ######### begin render plots for case A and case B ##########
-  #       if(values$grid_vs_single == "grid") {
-  #         #### render grid of plots
-  #         output$plots_grid <- renderUI({
-  #           print("generating plots")
-  #           tic()
-  #           plots = try(GRdrawDRC.app(fitData = filter_data(), metric = input$drc2_metric,
-  #                                      curves = input$drc2_curves, points = input$drc2_points,
-  #                                      xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-  #                                      facet = input$drc2_facet, bars = input$drc2_bars,
-  #                                      color = color_throttle(), plot_type = "static",
-  #                                      output_type = "separate"))
-  #           toc()
-  #           if(class(plots) != "try-error") {
-  #             legend = plots$legend
-  #             plots = plots$plot
-  #             output$plots_grid_legend = renderPlot(legend)
-  #           }
-  #           print("ggplotly and plot layout")
-  #           tic()
-  #           for (i in 1:length(plots)) {
-  #             local({
-  #               n <- i # Make local variable
-  #               plotname <- paste("plot", n , sep="")
-  #               output[[plotname]] <- renderPlot({
-  #                 #ggplotly(plots[[n]], tooltip = "text")
-  #                 plots[[n]]
-  #               })
-  #             })
-  #           }
-  #           toc()
-  #           #col.width <- round(16/input$ncol) # Calculate bootstrap column width
-  #           col.width <- 250
-  #           #n.col <- ceiling(length(plots)/input$ncol) # calculate number of rows
-  #           #n.row = input$nrow
-  #           #n.col = input$ncol
-  #           cnter <<- 0 # Counter variable
-  #           #n_pages =  ceiling(n_total_plots/input$nplots)
-  #           cols  <- lapply(1:min(as.numeric(input$nplots), length(plots) ), function(i) {
-  #             cnter    <<- cnter + 1
-  #             plotname <- paste("plot", cnter, sep="")
-  #             div(class = "ui column", style = paste0("flex: 0 0 ",col.width,"px; padding: 0px;") ,
-  #                 plotOutput(plotname,width = col.width, height = col.width) %>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
-  #             )
-  #           })
-  #           do.call(tagList, cols)
-  #         })
-  #         #### render page buttons
-  #         output$plots_grid_pages = renderUI({
-  #           n_pages = 10
-  #           div(class = "ui pagination menu", id = "drc_pages",
-  #               tags$a(class = "item", type = "firstItem", "«"),
-  #               tags$a(class = "item", type = "prevItem", "⟨"),
-  #               tags$a(class = "active item", 1, id = "drc_page1"),
-  #               lapply(2:n_pages, function(x) tags$a(class = "item", x,
-  #                                                    id = paste0("drc_page", x)) ),
-  #               tags$a(class = "item", type = "nextItem", "⟩"),
-  #               tags$a(class = "item", type = "lastItem", "»")
-  #           )
-  #         })
-  #       }
-  #   }
-  # }, ignoreInit = T, ignoreNULL = T)
-  ######### end render main dose-response curve plot(s) ########
   
   #### render curve filter options
   observeEvent(input$analyzeButton, {
@@ -1185,10 +1010,9 @@ shinyServer(function(input, output,session) {
 
     values$filters_loaded = T
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
+
   
-  ###############
-  
-  #### download buttons for example data
+  ######### download buttons for example data #######
   output$dl_caseA = downloadHandler(
     filename = function() {"caseA_example.csv"},
     content = function(con) {
@@ -1352,8 +1176,6 @@ shinyServer(function(input, output,session) {
     })
     outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
     
-  ################
-  
   #### update plot options for box/scatter plots ##########
   observeEvent(input$analyzeButton, {
     ### scatter plot
@@ -1392,8 +1214,6 @@ shinyServer(function(input, output,session) {
     updateSelectizeInput(session, 'factorA', choices = picks1, selected = input$factorA)
   }, ignoreInit = T,  ignoreNULL = F)
   
-  ##################
-  
   ####### p-values for boxplots ###########
   observeEvent(c(input$factorA, input$factorB, input$pick_box_y, input$wilcox_method), {
     wil_data = values$parameter_table
@@ -1418,9 +1238,8 @@ shinyServer(function(input, output,session) {
       values$wilcox = NULL
     }
   })
-  ###############
   
-############ code for loading data ##############
+  ############ code for loading data ##############
   # Code for loading example data for input Case A
   observeEvent(input$loadExample, {
     removeClass(id = "loadExample_SvT", class = "active")
@@ -1575,7 +1394,6 @@ shinyServer(function(input, output,session) {
     print(head(values$inData))
     # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
-  ##############################
   
   
   ############ Code for checking input and providing feedback to user ###############
@@ -1698,11 +1516,9 @@ shinyServer(function(input, output,session) {
       )
     }
   })
-  ################################
   
-  ############## old download button code ##########
   
-#========== Download button data tables
+  ############## download output button code ##########
   files_all = list()
   observeEvent(input$dl_output_button, {
     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
@@ -1722,7 +1538,7 @@ shinyServer(function(input, output,session) {
       )
     }
     if(identical(values$input_case, "static_vs_toxic")) {
-      GR = values$tables$assays$GR
+      GR = values$tables$assays$GR$sigmoid
       files_all <<- list(
         input_data = values$inData,
         GR_table = values$GR_table,
@@ -1748,7 +1564,7 @@ shinyServer(function(input, output,session) {
   })
 
 
-#========== Download buttons for DRC plots
+  ############## old download image button code ##########
   output$downloadDRC = downloadHandler(
       filename = function() {
         if(input$drcImageType == '.pdf') {
@@ -1816,43 +1632,9 @@ shinyServer(function(input, output,session) {
       }
     }
   )
-######################
-
-#=========== Scatterplot drawing/clearing code ===========
-  # observeEvent(input$plot_scatter, {
-  #   print('clearScatter = F')
-  #   values$clearScatter = F
-  # })
-  # observeEvent(c(input$plot_scatter,input$pick_parameter), {
-  #   output$plotlyScatter1 <- renderPlotly({
-  #     if(values$clearScatter) {
-  #        return()
-  #      } else {
-  #       isolate(drawScatter(input, values))
-  #     }
-  #   })
-  # }, ignoreInit = T)
-  # 
-  # observeEvent(input$analyzeButton, {
-  #   df_full <<- NULL
-  #   values$clearScatter = T
-  # })
-  # 
-  # observeEvent(input$clear, {
-  #   df_full <<- NULL
-  #   values$clearScatter = T
-  # })
-  # 
-  # observeEvent(input$pick_var, {
-  #   df_full <<- NULL
-  #   values$clearScatter = T
-  # })
-  ##################
     
-######## Run GRfit when analyze button is clicked ########
+  ######## Run GRfit when analyze button is clicked ########
   observeEvent(input$analyzeButton, {
-    #df_full <<- NULL
-    #all_inputs <- names(input)
     values$tables <- try(GRfit(values$inData, input$groupingVars, force = input$force, cap = input$cap, case = values$input_case))
     if(class(values$tables)!="try-error") {
       values$parameters_all = GRgetMetrics(values$tables)
@@ -1860,69 +1642,12 @@ shinyServer(function(input, output,session) {
       values$parameter_table_show = values$parameter_table
       values$GR_table = GRgetValues(values$tables)
       values$GR_table_show = prettyNumTable(values$GR_table)
-      ######### edit parameter tables ##########
-      # values$parameter_table <- GRgetMetrics(tables)
-      # values$GR_table <- GRgetValues(tables)
-      # parameters_show <- GRgetMetrics(tables)
-      # 
-      # values$GR_table_show <- values$GR_table
-      # values$GR_table_show$GRvalue <- as.numeric(prettyNum(values$GR_table_show$GRvalue, digits = 3))
-      # values$GR_table_show$log10_concentration <- as.numeric(prettyNum(values$GR_table_show$log10_concentration, digits = 3))
-      # values$GR_table_show$rel_cell_count <- as.numeric(prettyNum(values$GR_table_show$rel_cell_count, digits = 3))
-      # test_gr <<- values$GR_table
-      # print("finishedGR")
-      # 
-      # values$parameter_table$GR50[is.infinite(values$parameter_table$GR50)] = NA
-      # values$parameter_table$h_GR[values$parameter_table$h_GR == 0.01] = NA
-      # values$parameter_table$`log10(GR50)` = log10(values$parameter_table$GR50)
-      # values$parameter_table$`log2(h_GR)` = log2(values$parameter_table$h_GR)
-      # 
-      # values$parameter_table$IC50[is.infinite(values$parameter_table$IC50)] = NA
-      # values$parameter_table$h[values$parameter_table$h == 0.01] = NA
-      # values$parameter_table$`log10(IC50)` = log10(values$parameter_table$IC50)
-      # values$parameter_table$`log2(h)` = log2(values$parameter_table$h)
-      # 
-      # #values$parameter_table$`log10(EC50)` = log10(values$parameter_table$GEC50)
-      # 
-      # # For compatibility with shinyLi dose-response grid visualization
-      # #values$parameter_table$Hill = values$parameter_table$h_GR
-      # #values$parameter_table$`log2(Hill)` = log2(values$parameter_table$h_GR)
-      # 
-      # test_ref <<- values$parameter_table
-      # #values$parameter_table_show <- temp_parameter_table[[2]]
-      # 
-      # parameters_show$GR50 = as.numeric(prettyNum(parameters_show$GR50, digits = 3))
-      # parameters_show$GRmax = as.numeric(prettyNum(parameters_show$GRmax, digits = 3))
-      # parameters_show$GR_AOC = as.numeric(prettyNum(parameters_show$GR_AOC, digits = 3))
-      # parameters_show$GEC50 = as.numeric(prettyNum(parameters_show$GEC50, digits = 3))
-      # parameters_show$GRinf = as.numeric(prettyNum(parameters_show$GRinf, digits = 3))
-      # parameters_show$h_GR = as.numeric(prettyNum(parameters_show$h_GR, digits = 3))
-      # parameters_show$r2_GR = as.numeric(prettyNum(parameters_show$r2_GR, digits = 3))
-      # parameters_show$pval_GR = as.numeric(prettyNum(parameters_show$pval_GR, digits = 3))
-      # parameters_show$flat_fit_GR = as.numeric(prettyNum(parameters_show$flat_fit_GR, digits = 3))
-      # 
-      # parameters_show$IC50 = as.numeric(prettyNum(parameters_show$IC50, digits = 3))
-      # parameters_show$Emax = as.numeric(prettyNum(parameters_show$Emax, digits = 3))
-      # parameters_show$AUC = as.numeric(prettyNum(parameters_show$AUC, digits = 3))
-      # parameters_show$EC50 = as.numeric(prettyNum(parameters_show$EC50, digits = 3))
-      # parameters_show$Einf = as.numeric(prettyNum(parameters_show$Einf, digits = 3))
-      # parameters_show$h = as.numeric(prettyNum(parameters_show$h, digits = 3))
-      # parameters_show$r2_rel_cell = as.numeric(prettyNum(parameters_show$r2_rel_cell, digits = 3))
-      # parameters_show$pval_rel_cell = as.numeric(prettyNum(parameters_show$pval_rel_cell, digits = 3))
-      # parameters_show$flat_fit_rel_cell = as.numeric(prettyNum(parameters_show$flat_fit_rel_cell, digits = 3))
-      # 
-      # values$parameter_table_show <- parameters_show
-      # #=========================
-      # test_ref_show <<- values$parameter_table_show
-      # print("finishedParams")
-      ###############
     } else {
       # When the GRfit function fails for some reason
       err = attributes(values$tables)$condition
       output$input_error = renderText(paste("There was an error in the GR value calculation. Please check that your data is in the correct form.", "\n", err))
     }
   }, ignoreInit = T, ignoreNULL = T, priority = 100)
-  ###############
 
   #### allow large files to be uploaded
   options(shiny.maxRequestSize=100*1024^2)

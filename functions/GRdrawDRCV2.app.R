@@ -23,8 +23,8 @@ GRdrawDRCV2.app = function(fitData,
   # data frame for points
   fit_df = fitData$metadata$gr_table
   # data frame for metrics, to make curves and rugs
-  params_GR_s = fitData$assays$GR$static
-  params_GR_d = fitData$assays$GR$toxic
+  params_GR_s = fitData$assays$GR$sigmoid$static
+  params_GR_d = fitData$assays$GR$sigmoid$toxic
   
   # get grouping variables
   group_vars = GRmetrics::GRgetGroupVars(fitData)
@@ -33,10 +33,10 @@ GRdrawDRCV2.app = function(fitData,
   assertthat::assert_that(color %in% c("experiment", group_vars), 
                           msg = "'color' must be either 'experiment' or one of the grouping variables")
   color = dplyr::ensym(color)
-  id = unique(c(group_vars, "time", "concentration"))
+  id = unique(c(group_vars, "treatment_duration__hrs", "concentration"))
   data = fit_df %>%
     reshape2::melt(id.vars = id,
-                   measure.vars = c("GR_s", "GR_d", "GR_naive", "GR_combined"),
+                   measure.vars = c("GR_static", "GR_toxic", "GRvalue"),
                    value.name = "GRvalue", variable.name = "GR_metric"
                     )
   # filter to only selected experiments
@@ -57,7 +57,7 @@ GRdrawDRCV2.app = function(fitData,
   ### what should I do with GR values with concentration zero?
   #ctrl_df = data %>% dplyr::filter(Conc == 0)
   grp = syms(c(id, "GR_metric"))
-  #exp_sym = syms(c(group_vars, "time"))
+  #exp_sym = syms(c(group_vars, "treatment_duration__hrs"))
   exp_sym = syms(group_vars)
   data_mean = data %>%
     dplyr::group_by(!!!grp) %>%
@@ -66,11 +66,11 @@ GRdrawDRCV2.app = function(fitData,
   data_mean %<>%
     dplyr::mutate(experiment = paste(!!!exp_sym)) %>%
     dplyr::filter(concentration > 0) %>%
-    dplyr::filter(GR_metric %in% c("GR_d", "GR_s"))
+    dplyr::filter(GR_metric %in% c("GR_toxic", "GR_static"))
   data %<>%
     dplyr::mutate(experiment = paste(!!!exp_sym)) %>%
     dplyr::filter(concentration > 0) %>%
-    dplyr::filter(GR_metric %in% c("GR_d", "GR_s"))
+    dplyr::filter(GR_metric %in% c("GR_toxic", "GR_static"))
   
   min = min(data$concentration, na.rm = TRUE)
   max = max(data$concentration, na.rm = TRUE)
@@ -112,12 +112,12 @@ GRdrawDRCV2.app = function(fitData,
     purrr::pmap_dfr(.l = curve_inputs_GR_s, 
                     .f = .create_GR_s_data)) %>%
       dplyr::left_join(data_for_join_GR_s, by = "experiment") %>%
-    dplyr::mutate(GR_metric = "GR_s")
+    dplyr::mutate(GR_metric = "GR_static")
   curve_data_all_GR_d = suppressWarnings(
     purrr::pmap_dfr(.l = curve_inputs_GR_d, 
                     .f = .create_GR_d_data)) %>%
     dplyr::left_join(data_for_join_GR_d, by = "experiment") %>%
-    dplyr::mutate(GR_metric = "GR_d")
+    dplyr::mutate(GR_metric = "GR_toxic")
   curve_data_all = dplyr::bind_rows(curve_data_all_GR_s, curve_data_all_GR_d)
   n_plots = length(unique(data$experiment))
   if(n_plots > 25) warning("Too many plots [change warning message later]")
@@ -139,9 +139,9 @@ GRdrawDRCV2.app = function(fitData,
       dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # curves
   }
   ### make sure facets are in the correct order
-  curve_data_all %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
-  data %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
-  data_mean %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_s"))
+  curve_data_all %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_static"))
+  data %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_static"))
+  data_mean %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_static"))
   
   
   
@@ -205,7 +205,7 @@ GRdrawDRCV2.app = function(fitData,
     ### get legend only
     ### call create plot function once to output one plot object
     #leg_groups = unique(data[[color]])
-    leg_groups = c("GR_s", "GR_d")
+    leg_groups = c("GR_static", "GR_toxic")
     leg_len = length(leg_groups)
     leg_colors = scales::hue_pal()(leg_len)
     names(leg_colors) = leg_groups
@@ -231,7 +231,7 @@ GRdrawDRCV2.app = function(fitData,
     out = purrr::pmap(.l = data_input_list, .f = .create_plots)
     return(list(plot = out, legend = out_legend))
   } else {
-    # leg_groups = c("GR_s", "GR_d")
+    # leg_groups = c("GR_static", "GR_toxic")
     # leg_len = length(leg_groups)
     # leg_colors = scales::hue_pal()(leg_len)
     # names(leg_colors) = leg_groups
