@@ -1086,16 +1086,16 @@ shinyServer(function(input, output,session) {
     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       if(values$box_scatter_metric == "GR") {
         if(values$box_scatter_fit == "biphasic") {
-          new_choices = c("GRinf_1", "GRinf_2", "GRmax", "GEC50_1", "GEC50_2")
+          new_choices = c("GRinf_1", "GRinf_2", "GRmax", "h_GR_1", "h_GR_2", "GR50", "GEC50_1", "GEC50_2", "GR_AOC")
         } else {
-          new_choices = c("GRinf", "GRmax", "GR50", "GEC50", "h_GR", "GR_AOC")
+          new_choices = c("GRinf", "GRmax", "h_GR", "GR50", "GEC50", "GR_AOC")
         }
       }
       if(values$box_scatter_metric == "rel_cell") {
         if(values$box_scatter_fit == "biphasic") {
-          new_choices = c("Einf_1", "Einf_2", "Emax", "EC50_1", "EC50_2")
+          new_choices = c("Einf_1", "Einf_2", "Emax", "h_1", "h_2", "IC50", "EC50_1", "EC50_2", "AUC")
         } else {
-          new_choices = c("Einf", "Emax", "IC50", "EC50", "h", "AUC")
+          new_choices = c("Einf", "Emax", "h", "IC50", "EC50", "AUC")
         }
       }
     }
@@ -1111,16 +1111,16 @@ shinyServer(function(input, output,session) {
     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       if(values$box_scatter_metric == "GR") {
         if(values$box_scatter_fit == "biphasic") {
-          new_choices = c("GRinf_1", "GRinf_2", "GRmax", "GEC50_1", "GEC50_2")
+          new_choices = c("GRinf_1", "GRinf_2", "GRmax", "h_GR_1", "h_GR_2", "GEC50_1", "GEC50_2", "GR_AOC")
         } else {
-          new_choices = c("GRinf", "GRmax", "GR50", "GEC50", "h_GR", "GR_AOC")
+          new_choices = c("GRinf", "GRmax", "h_GR", "GR50", "GEC50", "GR_AOC")
         }
       }
       if(values$box_scatter_metric == "rel_cell") {
         if(values$box_scatter_fit == "biphasic") {
-          new_choices = c("Einf_1", "Einf_2", "Emax", "EC50_1", "EC50_2")
+          new_choices = c("Einf_1", "Einf_2", "Emax", "h_1", "h_2", "EC50_1", "EC50_2", "AUC")
         } else {
-          new_choices = c("Einf", "Emax", "IC50", "EC50", "h", "AUC")
+          new_choices = c("Einf", "Emax", "h", "IC50", "EC50", "AUC")
         }
       }
     }
