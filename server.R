@@ -160,7 +160,8 @@ shinyServer(function(input, output,session) {
   }, ignoreNULL = T, ignoreInit = T)
   observeEvent(input$analyzeButton, {
     if(values$input_case == "static_vs_toxic") {
-      curve_types = list(GR ="GR")
+      curve_types = list(`GR static and toxic` = "GR_static_and_toxic",
+                         GR ="GR", `Relative cell count` = "rel_cell")
     } else {
       curve_types = list(GR ="GR", `Relative cell count` = "rel_cell")
     }
@@ -170,7 +171,7 @@ shinyServer(function(input, output,session) {
   #### update rug choices for drc plots
   observeEvent(c(input$drc2_metric, input$drc2_curves), {
     req(input$drc2_metric, input$drc2_curves, values$input_case)
-    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+    #if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       if(input$drc2_metric == "GR") {
         if(input$drc2_curves == "biphasic") {
           new_xrug = c("none", "GEC50_1", "GEC50_2")
@@ -184,15 +185,14 @@ shinyServer(function(input, output,session) {
         } else {
           new_xrug = c("none", "IC50", "EC50")
         }
-      }
-    } else {
+      } else {
       new_xrug = c("none")
-    }
+      }
     if(!identical(values$xrug_choices, new_xrug)) values$xrug_choices = new_xrug
   })
   observeEvent(c(input$drc2_metric, input$drc2_curves), {
     req(input$drc2_metric, input$drc2_curves, values$input_case)
-    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+    #if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       if(input$drc2_metric == "GR") {
         if(input$drc2_curves == "biphasic") {
           new_yrug = c("none", "GRinf_1", "GRinf_2", "GRmax")
@@ -206,10 +206,9 @@ shinyServer(function(input, output,session) {
         } else {
           new_yrug = c("none", "Einf", "Emax")
         }
-      }
-    } else {
+      } else {
       new_yrug = c("none")
-    }
+      }
     if(!identical(values$yrug_choices, new_yrug)) values$yrug_choices = new_yrug
   })
   observe({
@@ -235,12 +234,18 @@ shinyServer(function(input, output,session) {
                          server = TRUE, selected=input$groupingVars[1])
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   ### update color variable
-  observeEvent(c(input$analyzeButton, input$single_button, input$grid_button), {
-    req(values$grid_vs_single, values$input_case, input$groupingVars)
+  observeEvent(c(input$analyzeButton, input$single_button, input$grid_button,
+                 input$drc2_metric), {
+    req(values$grid_vs_single, values$input_case, input$groupingVars, input$drc2_metric)
     if(values$grid_vs_single == "grid") {
       if(values$input_case == "static_vs_toxic") {
-        updateSelectizeInput(session, 'drc2_color', choices = "GR_metric", 
-                             server = TRUE, selected= "GR_metric")
+        if(input$drc2_metric %in% c("GR", "rel_cell")) {
+          updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
+                               server = TRUE, selected= "experiment")
+        } else {
+          updateSelectizeInput(session, 'drc2_color', choices = "GR_metric", 
+                               server = TRUE, selected= "GR_metric")
+        }
         
       } else {
         updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
@@ -250,7 +255,7 @@ shinyServer(function(input, output,session) {
       updateSelectizeInput(session, 'drc2_color', choices = c("experiment", input$groupingVars), 
                            server = TRUE, selected= "experiment")
     }
-  }, ignoreInit = T, ignoreNULL = T, priority = 900)
+  }, ignoreInit = T, ignoreNULL = T, priority = 9000)
   
   
   ########### code for input breadcrumbs ################
@@ -709,20 +714,20 @@ shinyServer(function(input, output,session) {
   # })
 
   ######### show correct output data table on button click #############
-  observeEvent(input$analyzeButton, {
-    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
-      curve_choices = 1:8
-      names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
-                               "Traditional sigmoid normal", "Traditional sigmoid low", 
-                               "Traditional sigmoid high", "Traditional biphasic")
-    }
-    if(identical(values$input_case, "static_vs_toxic")) {
-      curve_choices = 1:2
-      names(curve_choices) = c("GR static", "GR toxic")
-    }
-    updateSelectizeInput(session, inputId = "parameter_table_select", choices = curve_choices,
-                         selected = 1)
-  })
+  # observeEvent(input$analyzeButton, {
+  #   if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+  #     curve_choices = 1:8
+  #     names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+  #                              "Traditional sigmoid normal", "Traditional sigmoid low", 
+  #                              "Traditional sigmoid high", "Traditional biphasic")
+  #   }
+  #   if(identical(values$input_case, "static_vs_toxic")) {
+  #     curve_choices = 1:4
+  #     names(curve_choices) = c("GR static", "GR toxic", "GR", "Traditional sigmoid normal")
+  #   }
+  #   updateSelectizeInput(session, inputId = "parameter_table_select", choices = curve_choices,
+  #                        selected = 1)
+  # })
   observeEvent(input$gr_table_button, {
     values$current_table_button = "gr_table_button"
     #values$current_data = values$GR_table_show
@@ -771,6 +776,8 @@ shinyServer(function(input, output,session) {
       # names(curve_choices) = c("GR static", "GR toxic")
       if(pp == 1) values$parameter_table = values$parameters_all$GR$sigmoid$static
       if(pp == 2) values$parameter_table = values$parameters_all$GR$sigmoid$toxic
+      if(pp == 3) values$parameter_table = values$parameters_all$GR$sigmoid$normal
+      if(pp == 4) values$parameter_table = values$parameters_all$rel_cell$sigmoid$normal
     }
     values$parameter_table_show = prettyNumTable(values$parameter_table)
     values$current_data = values$parameter_table_show
@@ -835,10 +842,10 @@ shinyServer(function(input, output,session) {
       for(i in 1:length(toListen_drc2())) {
         vals = toListen_drc2()[[i]]
         df_colname = sym(names(toListen_drc2())[i])
-        #test <<- filtered_drc
+        test <<- filtered_drc
         if(length(vals) > 0) {
           if(sum(!vals %in% filtered_drc$metadata$gr_table[[df_colname]]) == 0) {
-            if(values$input_case %in% c("A", "B")) {
+            #if(values$input_case %in% c("A", "B")) {
               if(input$drc2_metric == "GR") {
                 if(input$drc2_curves == "sigmoid") {
                   filtered_drc$assays$GR$sigmoid$normal %<>%
@@ -853,7 +860,7 @@ shinyServer(function(input, output,session) {
                   filtered_drc$assays$GR$biphasic$normal %<>%
                     dplyr::filter(!!df_colname %in% vals)
                 }
-              } else {
+              } else if(input$drc2_metric == "rel_cell") {
                 if(input$drc2_curves == "sigmoid") {
                   filtered_drc$assays$rel_cell$sigmoid$normal %<>%
                     dplyr::filter(!!df_colname %in% vals)
@@ -867,13 +874,13 @@ shinyServer(function(input, output,session) {
                   filtered_drc$assays$rel_cell$biphasic$normal %<>%
                     dplyr::filter(!!df_colname %in% vals)
                 }
+              } else {
+                filtered_drc$assays$GR$sigmoid$static %<>%
+                  dplyr::filter(!!df_colname %in% vals)
+                filtered_drc$assays$GR$sigmoid$toxic %<>%
+                  dplyr::filter(!!df_colname %in% vals)
               }
-            } else {
-              filtered_drc$assays$GR$sigmoid$static %<>%
-                dplyr::filter(!!df_colname %in% vals)
-              filtered_drc$assays$GR$sigmoid$toxic %<>%
-                dplyr::filter(!!df_colname %in% vals)
-            }
+            #} 
             filtered_drc$metadata$gr_table %<>%
               dplyr::filter(!!df_colname %in% vals)
           }
@@ -902,17 +909,31 @@ shinyServer(function(input, output,session) {
           single_plot$plot
         }
     } else {
-      single_plot = try(GRdrawDRCV2.app(fitData = filter_data(), 
-                                      #metric = input$drc2_metric, 
-                                      curves = input$drc2_curves,
-                                      points = input$drc2_points,
-                                      #xrug = input$drc2_xrug,
-                                      #yrug = input$drc2_yrug,
-                                      #facet = "none", 
-                                      #bars = input$drc2_bars,
-                                      color = color_throttle(),
-                                      plot_type = "static",
-                                      output_type = "together"))
+      if(input$drc2_metric %in% c("GR", "rel_cell")) {
+        single_plot = try(GRdrawDRC.app(fitData = filter_data(), 
+                                          metric = input$drc2_metric, 
+                                          curves = input$drc2_curves,
+                                          points = input$drc2_points,
+                                          xrug = input$drc2_xrug,
+                                          yrug = input$drc2_yrug,
+                                          facet = "none", 
+                                          bars = input$drc2_bars,
+                                          color = color_throttle(),
+                                          plot_type = "static",
+                                          output_type = "together"))
+      } else {
+        single_plot = try(GRdrawDRCV2.app(fitData = filter_data(), 
+                                          #metric = input$drc2_metric, 
+                                          curves = input$drc2_curves,
+                                          points = input$drc2_points,
+                                          #xrug = input$drc2_xrug,
+                                          #yrug = input$drc2_yrug,
+                                          #facet = "none", 
+                                          #bars = input$drc2_bars,
+                                          color = color_throttle(),
+                                          plot_type = "static",
+                                          output_type = "together"))
+      }
       if(class(single_plot) != "try-error") {
         #ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
         single_plot$plot
@@ -923,16 +944,25 @@ shinyServer(function(input, output,session) {
   
   drc_grid_plots = reactive({
     if(identical(values$input_case,"static_vs_toxic")) {
-      try(GRdrawDRCV2.app(fitData = filter_data(),
-                          #metric = input$drc2_metric,
-                          curves = input$drc2_curves,
-                          points = input$drc2_points,
-                          #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
-                          #facet = input$drc2_facet,
-                          #bars = input$drc2_bars,
-                          #color = color_throttle(),
-                          plot_type = "static",
-                          output_type = "separate"))
+      if(input$drc2_metric %in% c("GR", "rel_cell")) {
+        plots = try(GRdrawDRC.app(fitData = filter_data(), metric = input$drc2_metric,
+                                  curves = input$drc2_curves, points = input$drc2_points,
+                                  xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                                  facet = input$drc2_facet, bars = input$drc2_bars,
+                                  color = color_throttle(), plot_type = "static",
+                                  output_type = "separate"))
+      } else {
+        try(GRdrawDRCV2.app(fitData = filter_data(),
+                            #metric = input$drc2_metric,
+                            curves = input$drc2_curves,
+                            points = input$drc2_points,
+                            #xrug = input$drc2_xrug, yrug = input$drc2_yrug,
+                            #facet = input$drc2_facet,
+                            #bars = input$drc2_bars,
+                            #color = color_throttle(),
+                            plot_type = "static",
+                            output_type = "separate"))
+      }
     } else {
       plots = try(GRdrawDRC.app(fitData = filter_data(), metric = input$drc2_metric,
                                 curves = input$drc2_curves, points = input$drc2_points,
@@ -1060,15 +1090,20 @@ shinyServer(function(input, output,session) {
                         "Traditional sigmoid normal", "Traditional sigmoid low",
                         "Traditional sigmoid high", "Traditional biphasic")
     } else {
-      curve_choices = 1:2
-      names(curve_choices) = c("GR static", "GR toxic")
+      curve_choices = 1:4
+      names(curve_choices) = c("GR static", "GR toxic", "GR", "Traditional sigmoid normal")
     }
     updateSelectInput(session, "box_scatter_fit", choices = curve_choices)
+    updateSelectizeInput(session, inputId = "parameter_table_select", choices = curve_choices,
+                         selected = 1)
   })
   
   observeEvent(input$box_scatter_fit, {
     req(values$input_case, input$box_scatter_fit)
     if(values$input_case %in% c("A", "B")) {
+      ### choices are names(curve_choices) = c("GR sigmoid normal", "GR sigmoid low", "GR sigmoid high", "GR biphasic",
+      # "Traditional sigmoid normal", "Traditional sigmoid low",
+      # "Traditional sigmoid high", "Traditional biphasic")
       if(input$box_scatter_fit %in% 1:4) values$box_scatter_metric = "GR"
       if(input$box_scatter_fit %in% 5:8) values$box_scatter_metric = "rel_cell"
       if(input$box_scatter_fit %in% c(1, 5)) values$box_scatter_fit = "sigmoid"
@@ -1076,14 +1111,19 @@ shinyServer(function(input, output,session) {
       if(input$box_scatter_fit %in% c(3, 7)) values$box_scatter_fit = "sigmoid_high"
       if(input$box_scatter_fit %in% c(4, 8)) values$box_scatter_fit = "biphasic"
     } else {
-      
+      ## choices are c("GR static", "GR toxic", "GR", "rel_cell")
+      if(input$box_scatter_fit %in% 1:3) values$box_scatter_metric = "GR"
+      if(input$box_scatter_fit %in% 4) values$box_scatter_metric = "rel_cell"
+      if(input$box_scatter_fit %in% 3) values$box_scatter_fit = "sigmoid"
+      if(input$box_scatter_fit %in% 1) values$box_scatter_fit = "static"
+      if(input$box_scatter_fit %in% 2) values$box_scatter_fit = "toxic"
     }
   }, ignoreInit = F, ignoreNULL = T, priority = 1000)
   
   #### update choices for boxplot parameters
   observeEvent(c(values$box_scatter_metric, values$box_scatter_fit), {
     req(values$box_scatter_metric, values$box_scatter_fit, values$input_case)
-    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+    #if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       if(values$box_scatter_metric == "GR") {
         if(values$box_scatter_fit == "biphasic") {
           new_choices = c("GRinf_1", "GRinf_2", "GRmax", "h_GR_1", "h_GR_2", "GR50", "GEC50_1", "GEC50_2", "GR_AOC")
@@ -1098,7 +1138,7 @@ shinyServer(function(input, output,session) {
           new_choices = c("Einf", "Emax", "h", "IC50", "EC50", "AUC")
         }
       }
-    }
+    #}
     if(!identical(values$pick_box_y, new_choices)) {
       values$pick_box_y = new_choices
       updateSelectInput(session, "pick_box_y", choices = new_choices)
@@ -1108,7 +1148,7 @@ shinyServer(function(input, output,session) {
   ### update scatter choices
   observeEvent(c(values$box_scatter_metric, values$box_scatter_fit), {
     req(values$box_scatter_metric, values$box_scatter_fit, values$input_case)
-    if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+    #if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       if(values$box_scatter_metric == "GR") {
         if(values$box_scatter_fit == "biphasic") {
           new_choices = c("GRinf_1", "GRinf_2", "GRmax", "h_GR_1", "h_GR_2", "GEC50_1", "GEC50_2", "GR_AOC")
@@ -1123,7 +1163,7 @@ shinyServer(function(input, output,session) {
           new_choices = c("Einf", "Emax", "h", "IC50", "EC50", "AUC")
         }
       }
-    }
+    #}
     if(!identical(values$y_scatter, new_choices)) {
       values$y_scatter = new_choices
       updateSelectInput(session, "y_scatter", choices = new_choices,
@@ -1134,7 +1174,7 @@ shinyServer(function(input, output,session) {
       updateSelectInput(session, "x_scatter", choices = new_choices,
                         selected = new_choices[2])
     }
-  })
+  }, ignoreInit = T, ignoreNULL = T)
   
   # ### render boxplot
    output$boxplot <- renderPlotly({
@@ -1142,7 +1182,7 @@ shinyServer(function(input, output,session) {
     #     input$pick_box_x, input$pick_box_y, input$pick_box_point_color,
     #     input$pick_box_factors, input$factorA, input$factorB)
      print("boxplots")
-     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+     #if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric,
                   fit = values$box_scatter_fit,
                   parameter = input$pick_box_y, groupVariable = input$pick_box_x,
@@ -1150,9 +1190,9 @@ shinyServer(function(input, output,session) {
                   factors = input$pick_box_factors,
                   wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
      if(class(plot) != "try-error") return(plot)
-     } else {
-       return(ggplot())
-     }
+     # } else {
+     #   return(ggplot())
+     # }
    })
   outputOptions(output, "boxplot", suspendWhenHidden = FALSE)
   
@@ -1160,7 +1200,11 @@ shinyServer(function(input, output,session) {
       req(values$input_case, values$tables, input$x_scatter, input$y_scatter,
           input$pick_box_point_color, values$box_scatter_metric, values$box_scatter_fit)
       print("scatterplot")
-      if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
+      print("fit")
+      print(values$box_scatter_fit)
+      print("metric")
+      print(values$box_scatter_metric)
+      #if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
         plot = try(GRscatter(fitData = values$tables,
                              fit = values$box_scatter_fit,
                              metric = values$box_scatter_metric, 
@@ -1168,11 +1212,11 @@ shinyServer(function(input, output,session) {
                              yaxis = input$y_scatter,
                              color = input$pick_box_point_color,
                              plot_type = "interactive"))
-        if(class(plot) != "try-error") return(plot)
-        return(plot)
-      } else {
-        return(ggplot())
-      }
+        if(class(plot) != "try-error") {
+          return(plot)
+        } else {
+          return(ggplot())
+        }
     })
     outputOptions(output, "scatterplot", suspendWhenHidden = FALSE)
     
@@ -1390,7 +1434,7 @@ shinyServer(function(input, output,session) {
     div_rates = as.numeric(unlist(strsplit(input$div_rate, "\n")))
     values$div_rate_test = ifelse(sum(is.na(div_rates)) == 0, T, F)
     values$inData$division_time = as.numeric(mapvalues(values$inData$cell_line, values$cell_lines, div_rates))
-    values$inData$treatment_duration = as.numeric(input$treatment_duration)
+    values$inData$treatment_duration__hrs = as.numeric(input$treatment_duration__hrs)
     print(head(values$inData))
     # output$input_table <- renderDataTable(datatable(values$inData, rownames = F))
   })
@@ -1487,7 +1531,7 @@ shinyServer(function(input, output,session) {
     caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
     caseB_params = c('concentration', 'cell_count', 'time')
     time0_param = 'cell_count__time0'
-    div_params = c('treatment_duration', 'division_time')
+    div_params = c('treatment_duration__hrs', 'division_time')
     if(identical(values$input_case, "A")) {
         delete_cols = which(colnames(values$inData) %in% c(caseA_params, time0_param, div_params))
         updateSelectizeInput(
@@ -1538,12 +1582,15 @@ shinyServer(function(input, output,session) {
       )
     }
     if(identical(values$input_case, "static_vs_toxic")) {
-      GR = values$tables$assays$GR$sigmoid
+      GR = values$tables$assays$GR
+      trad = values$tables$assays$rel_cell
       files_all <<- list(
         input_data = values$inData,
         GR_table = values$GR_table,
-        GR_static = GR$static,
-        GR_toxic = GR$toxic
+        GR_static = GR$sigmoid$static,
+        GR_toxic = GR$sigmoid$toxic,
+        GR_sigmoid_normal = GR$sigmoid$normal, 
+        trad_sigmoid_normal = trad$sigmoid$normal
       )
     }
     print("files for download:")

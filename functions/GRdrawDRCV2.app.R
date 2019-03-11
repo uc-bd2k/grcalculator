@@ -1,4 +1,4 @@
-GRdrawDRCV2.app = function(fitData,
+GRdrawDRCV2.app = function(fitData, 
                        points = c("average", "all", "none"),
                        curves = c("sigmoid", "line", "none"),
                        color = "experiment",
@@ -33,7 +33,7 @@ GRdrawDRCV2.app = function(fitData,
   assertthat::assert_that(color %in% c("experiment", group_vars), 
                           msg = "'color' must be either 'experiment' or one of the grouping variables")
   color = dplyr::ensym(color)
-  id = unique(c(group_vars, "treatment_duration__hrs", "concentration"))
+  id = unique(c(group_vars, "concentration"))
   data = fit_df %>%
     reshape2::melt(id.vars = id,
                    measure.vars = c("GR_static", "GR_toxic", "GRvalue"),

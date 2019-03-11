@@ -1,4 +1,5 @@
-GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), experiments = list(),
+GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"), 
+                          experiments = list(),
                       min = "auto", max = "auto",
                       color = "experiment",
                       points = c("average", "all", "none"),
