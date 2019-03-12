@@ -1,4 +1,4 @@
-"cell_line","treatment","concentration","cell_count","cell_count__ctrl","division_time","treatment_duration"
+"cell_line","treatment","concentration","cell_count","cell_count__ctrl","division_time","treatment_duration__hrs"
 "lineA","drugA",0.001,1131,1212.5,34,72
 "lineA","drugA",0.003162,1205,1212.5,34,72
 "lineA","drugA",0.01,1021,1212.5,34,72

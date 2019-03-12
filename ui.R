@@ -320,7 +320,7 @@ shinyUI(
                           tags$i(class = "dropdown icon"), "Case B Example"
                       ),
                       div(class = "content active",
-                          tags$img(src = "images/data_examples/caseB_blur_div.png", width = "90%",
+                          tags$img(src = "images/data_examples/caseB_div_blur.png", width = "90%",
                                    style = "float: center;")
                       )
                   ),

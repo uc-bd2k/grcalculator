@@ -1178,9 +1178,9 @@ shinyServer(function(input, output,session) {
   
   # ### render boxplot
    output$boxplot <- renderPlotly({
-    # req(values$input_case, values$tables, values$box_scatter_metric, values$box_scatter_fit,
-    #     input$pick_box_x, input$pick_box_y, input$pick_box_point_color,
-    #     input$pick_box_factors, input$factorA, input$factorB)
+    req(values$input_case, values$tables, values$box_scatter_metric, values$box_scatter_fit,
+        input$pick_box_x, input$pick_box_y, input$pick_box_point_color,
+        input$pick_box_factors)
      print("boxplots")
      #if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       plot = try(GRbox(fitData = values$tables, metric = values$box_scatter_metric,
@@ -1366,13 +1366,18 @@ shinyServer(function(input, output,session) {
     inFile <- input$uploadData
     if (is.null(inFile)) {return(NULL)
       } else if(values$separator == '\t'){
-      if(input$euro_in == T) {values$inData <- read_tsv(inFile$datapath, locale = locale(decimal_mark = ','))
-      } else {values$inData <- read_tsv(inFile$datapath)}
+      #if(input$euro_in == T) {
+      #  values$inData <- read_tsv(inFile$datapath, locale = locale(decimal_mark = ','))
+      #} else {
+        values$inData <- read_tsv(inFile$datapath)
+       # }
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     } else if(values$separator == ',') {
-      if(input$euro_in == T) {values$inData <- read_csv2(inFile$datapath)
-      } else {values$inData <- read_csv(inFile$datapath)}
+      #if(input$euro_in == T) {values$inData <- read_csv2(inFile$datapath)
+      #} else {
+        values$inData <- read_csv(inFile$datapath)
+        #}
       # Get rid of blank rows at the end of a file
       values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
     }
@@ -1400,19 +1405,19 @@ shinyServer(function(input, output,session) {
       if (is.null(inFile)) {
         return(NULL)
       } else if(values$separator == '\t'){
-        if(input$euro_in == T) {
-          values$inData <- read_tsv(inFile, locale = locale(decimal_mark = ','))
-        } else {
+        #if(input$euro_in == T) {
+        #  values$inData <- read_tsv(inFile, locale = locale(decimal_mark = ','))
+        #} else {
           values$inData <- read_tsv(inFile)
-        }
+        #}
         # Get rid of blank rows at the end of a file
         values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
       } else if(values$separator == ',') {
-        if(input$euro_in == T) {
-          values$inData <- read_csv2(inFile)
-        } else {
+        #if(input$euro_in == T) {
+        #  values$inData <- read_csv2(inFile)
+        #} else {
           values$inData <- read_csv(inFile)
-        }
+        #}
         # Get rid of blank rows at the end of a file
         values$inData <- values$inData[rowSums(is.na(values$inData)) != ncol(values$inData),]
       }
@@ -1446,7 +1451,7 @@ shinyServer(function(input, output,session) {
     if(identical(values$input_case, "A") || identical(values$input_case, "B")) {
       # Check input table column names for slight misspellings
       caseA_cols = c("cell_line","treatment", "concentration", "cell_count", "cell_count__ctrl", "cell_count__time0")
-      caseB_cols = c("cell_line","treatment", "concentration", "cell_count", "time")
+      caseB_cols = c("cell_line","treatment", "concentration", "cell_count", "treatment_duration__hrs")
       if(values$input_case == "A" & !values$div_rate) {cols = caseA_cols}
       if(values$input_case == "A" & values$div_rate) {cols = caseA_cols[1:5]}
       if(values$input_case == "B") {cols = caseB_cols}
@@ -1494,7 +1499,7 @@ shinyServer(function(input, output,session) {
         df2[2,1] = "Rows with concentration equal to zero (control cell counts)"
         df2[2,2] = ifelse (sum(values$inData$concentration == 0) > 0, T, F)
         df2[2,1] = "Rows with time equal to zero (initial cell counts)"
-        df2[2,2] = ifelse (sum(values$inData$time == 0) > 0, T, F)
+        df2[2,2] = ifelse (sum(values$inData$treatment_duration__hrs == 0) > 0, T, F)
       }
       check1_fail = F
       check2_fail = F
@@ -1529,11 +1534,12 @@ shinyServer(function(input, output,session) {
                                "cell_count__time0", "dead_count", "dead_count__ctrl",
                                "dead_count__time0")
     caseA_params = c('concentration', 'cell_count', 'cell_count__ctrl')
-    caseB_params = c('concentration', 'cell_count', 'time')
+    caseB_params = c('concentration', 'cell_count', 'treatment_duration__hrs')
     time0_param = 'cell_count__time0'
     div_params = c('treatment_duration__hrs', 'division_time')
     if(identical(values$input_case, "A")) {
-        delete_cols = which(colnames(values$inData) %in% c(caseA_params, time0_param, div_params))
+        delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'cell_count__ctrl', 'cell_count__time0', 'treatment_duration__hrs', 'division_time'))
+                              #c(caseA_params, time0_param, div_params))
         updateSelectizeInput(
           session, 'groupingVars',
           choices = colnames(values$inData)[-delete_cols],
@@ -1542,7 +1548,8 @@ shinyServer(function(input, output,session) {
         )
     }
     if(identical(values$input_case, "B")) {
-      delete_cols = which(colnames(values$inData) %in% c(caseB_params, div_params))
+      delete_cols = which(colnames(values$inData) %in% c('concentration', 'cell_count', 'treatment_duration__hrs', 'division_time'))
+                            #c(caseB_params, div_params))
       updateSelectizeInput(
         session, 'groupingVars',
         choices = colnames(values$inData)[-delete_cols],

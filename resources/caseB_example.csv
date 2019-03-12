@@ -1,4 +1,4 @@
-cell_line,treatment,time,concentration,cell_count
+cell_line,treatment,treatment_duration__hrs,concentration,cell_count
 lineA,-,0,0,294
 lineA,-,0,0,318
 lineA,-,0,0,287
