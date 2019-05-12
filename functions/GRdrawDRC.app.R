@@ -103,8 +103,9 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"),
   }
   if(min == "auto") min = min(data$concentration, na.rm = TRUE)
   if(max == "auto") max = max(data$concentration, na.rm = TRUE)
-  # define x support for curve
-  len = (log10(max) - log10(min))*20
+  # define x support for curve -- with a given number of points between each log value
+  points_per_log10 = 10
+  len = (log10(max) - log10(min))*points_per_log10
   concentration = 10^(seq(log10(min) - 1, log10(max) + 1, length.out = len))
   # define function for sigmoid curve mapping
   .create_curve_data = function(EC50, Einf, h, fit, flat, experiment, cc) {

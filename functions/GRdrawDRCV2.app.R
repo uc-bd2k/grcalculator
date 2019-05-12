@@ -74,8 +74,9 @@ GRdrawDRCV2.app = function(fitData,
   
   min = min(data$concentration, na.rm = TRUE)
   max = max(data$concentration, na.rm = TRUE)
-  # define x support for curve
-  len = (log10(max) - log10(min))*20
+  # define x support for curve -- with a given number of points between each log value
+  points_per_log10 = 10
+  len = (log10(max) - log10(min))*points_per_log10
   concentration = 10^(seq(log10(min) - 1, log10(max) + 1, length.out = len))
   # define functions for sigmoid curve mapping
   .create_GR_s_data = function(EC50, Einf, h, fit, flat, experiment, cc) {

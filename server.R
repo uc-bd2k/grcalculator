@@ -4,7 +4,8 @@ library(plotly)
 library(ggplot2)
 library(readr)
 #library(GRmetrics)
-devtools::load_all("../GRmetrics/")
+#devtools::load_all("../GRmetrics/")
+library(GRmetrics)
 library(magrittr)
 library(stringr)
 library(DT)
@@ -245,7 +246,7 @@ shinyServer(function(input, output,session) {
                          server = TRUE, selected=input$groupingVars[1])
   }, ignoreInit = T, ignoreNULL = T, priority = 1000)
   ### update color variable
-  observeEvent(c(input$analyzeButton, input$single_button, input$grid_button,
+  observeEvent(c(input$analyzeButton, #input$single_button, input$grid_button,
                  input$drc2_metric), {
     req(values$grid_vs_single, fixedValues$input_case, input$groupingVars, input$drc2_metric)
     if(values$grid_vs_single == "grid") {
@@ -900,7 +901,7 @@ shinyServer(function(input, output,session) {
     filtered_drc
   })
   
-  output$single_drc = renderPlot({
+  output$single_drc = renderPlotly({
     req(filter_data(), input$drc2_curves, input$drc2_metric, input$drc2_points, input$drc2_xrug, input$drc2_yrug,
         input$drc2_bars, color_throttle(), fixedValues$input_case)
     if(fixedValues$input_case != "static_vs_toxic") {
@@ -916,8 +917,8 @@ shinyServer(function(input, output,session) {
                                       plot_type = "static",
                                       output_type = "together"))
         if(class(single_plot) != "try-error") {
-          #ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
-          single_plot$plot
+          ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
+          #single_plot$plot
         }
     } else {
       if(input$drc2_metric %in% c("GR", "rel_cell")) {
@@ -946,12 +947,12 @@ shinyServer(function(input, output,session) {
                                           output_type = "together"))
       }
       if(class(single_plot) != "try-error") {
-        #ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
-        single_plot$plot
+        ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
+        #single_plot$plot
       }
     }
   })
-  #outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
+  outputOptions(output, "single_drc", suspendWhenHidden = FALSE)
   
   drc_grid_plots = reactive({
     if(identical(fixedValues$input_case,"static_vs_toxic")) {
@@ -1040,7 +1041,7 @@ shinyServer(function(input, output,session) {
               style = "min-width:150px;",
           selectizeInput(codeOutput, input$groupingVars[i], choices = drc_choices,
                          width = "140px",
-                         multiple = TRUE, selected = drc_choices[1:min(5, length(drc_choices))])
+                         multiple = TRUE, selected = drc_choices[1:min(2, length(drc_choices))])
           )
         })
       } else code_output_list <- list()

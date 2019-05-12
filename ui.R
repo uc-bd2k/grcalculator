@@ -99,9 +99,50 @@ shinyUI(
                       tags$img(src = "images/GRcalculator-logo_v2.png", width = "250px", style = "float: left;"),
                       includeMarkdown("www/GettingStarted.md"),
                       div(class = "ui bottom attached buttons",
-                          tags$button(class = "ui grey button action-button", id = "instructions_button", "Instructions"),
+                          #tags$button(class = "ui grey button action-button", id = "instructions_button", "Instructions"),
                           tags$button(class="ui teal labeled icon button action-button", tags$i(class="right arrow icon"), "Start", id = "start_button")
-                      )
+                      ),
+                      includeHTML("www/instructions/formatting.html")
+                      # tags$h3("Instructions"),
+                      # div(class = "ui styled fluid active accordion",
+                      #     div(class = "title", 
+                      #       tags$h4(
+                      #         tags$i(class = "dropdown icon"), "Formatting input files")
+                      #     ),
+                      #     div(class = "content",
+                      #         includeMarkdown("www/instructions/formatting.md"),
+                      #         div(class = "accordion",
+                      #             div(class = "title", 
+                      #                 tags$h4(
+                      #                   tags$i(class = "dropdown icon"), "Using (un-treated) cell division time instead of initial cell count")
+                      #             ),
+                      #             div(class = "content",
+                      #                 includeMarkdown("www/instructions/initial_cell_count.md")
+                      #             )
+                      #         )
+                      #     )
+                      # ),
+                      # br(),
+                      # div(class = "ui styled fluid active accordion",
+                      #     div(class = "title",
+                      #         tags$h4(
+                      #           tags$i(class = "dropdown icon"), "Step-by-step guide")
+                      #     ),
+                      #     div(class = "content",
+                      #         #includeMarkdown("www/instructions/formatting.md")
+                      #         tags$p()
+                      #     )
+                      # ),
+                      # br(),
+                      # div(class = "ui styled fluid active accordion",
+                      #     div(class = "title", 
+                      #         tags$h4(
+                      #           tags$i(class = "dropdown icon"), "Static/Toxic GR")
+                      #     ),
+                      #     div(class = "content",
+                      #         includeMarkdown("www/instructions/formatting.md")
+                      #     )
+                      # )
                 )
               
           ),
@@ -506,7 +547,7 @@ shinyUI(
                           div(class = "ui basic center aligned segment", id = "single_segment",
                               tags$style(type='text/css', "#single_drc { display: inline-block }"),
                               div(class = "twelve wide column",
-                                  plotOutput("single_drc", width = "800px") #%>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
+                                  plotlyOutput("single_drc", width = "800px") #%>% withSpinner(type = 3, color = "#009999", color.background = "#ffffff")
                               )
                           )
                        # )
