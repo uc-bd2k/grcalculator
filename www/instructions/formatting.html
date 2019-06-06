@@ -1,3 +1,4 @@
+
 <h3>Instructions</h3>
 <div class="ui styled fluid active accordion">
   <div class="title">
@@ -15,6 +16,7 @@
         </h4>
       </div>
       <div class="active content">
+        <font size="3">
     <h4>File types (.csv or .tsv)</h4>
 
 <p>Input files may be either comma- or tab-separated text files (.csv or .tsv).</p>
@@ -34,6 +36,7 @@
 <p><b>Note that "cell_count__ctrl" and "cell_count__time0" have one underscore between "cell" and "count", and two underscores after "count".</b></p>
 <p>You may find an example dataset <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseA_example.csv">here</a>.</p>
 <img src = "images/data_examples/caseA_blur.png" width = "700px">
+</font>
 </div>
 </div>
     <div class="accordion">
@@ -43,11 +46,14 @@
           Using (un-treated) cell division time instead of initial cell count
         </h4>
       </div>
-      <div class="content"><p>The purpose of measuring cell count at the beginning of the assay is to allow for estimation of growth-rates of treated and un-treated cells. In place of this measurement you may separately measure the growth-rate of each (un-treated) cell line.</p>
+      <div class="content">
+        <font size="3">
+          <p>The purpose of measuring cell count at the beginning of the assay is to allow for estimation of growth-rates of treated and un-treated cells. In place of this measurement you may separately measure the growth-rate of each (un-treated) cell line.</p>
 <p>In this case, you may swap the <b>"cell_count__time0"</b> column with two columns: <b>"treatment_duration__hrs"</b> – the length of the assay (in hours), and <b>"division_time"</b> - the number of hours it takes cells from each (untreated) cell line to double in population.</p>
 <p><b>Note that "cell_count__ctrl" and "cell_count__time0" have one underscore between "cell" and "count", and two underscores after "count".</b></p>
 <p>You may find an example dataset <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseA_div_example.csv">here</a>.</p>
 <img src = "images/data_examples/caseA_div_blur.png" width = "700px">
+</font>
     </div>
   </div>
   <div class="accordion">
@@ -57,9 +63,12 @@
           Alternative format: one cell-count per line
         </h4>
       </div>
-      <div class="content"><p>The formatting above is recommended, but if you prefer, you may format your input data with only one column per line for cell counts <b>(Case B)</b>. In this case, only the <b>"cell_count"</b> column should be included <b>(no "cell_count__ctrl" or "cell_count__time0" columns)</b>. Un-treated measurements should be indicated by a dash "-" in the <b>"treatment"</b> column and a "0" in the <b>"concentration"</b> column. A <b>"treatment_duration__hrs"</b> column must be included <b>(two underscores after "duration")</b>, with "0" indicating measurements at the beginning of the assay and a number of hours (e.g. "72" for a 3-day assay) for measurements at the end of the assay.</p>
+      <div class="content">
+        <font size="3">
+        <p>The formatting above is recommended, but if you prefer, you may format your input data with only one column per line for cell counts <b>(Case B)</b>. In this case, only the <b>"cell_count"</b> column should be included <b>(no "cell_count__ctrl" or "cell_count__time0" columns)</b>. Un-treated measurements should be indicated by a dash "-" in the <b>"treatment"</b> column and a "0" in the <b>"concentration"</b> column. A <b>"treatment_duration__hrs"</b> column must be included <b>(two underscores after "duration")</b>, with "0" indicating measurements at the beginning of the assay and a number of hours (e.g. "72" for a 3-day assay) for measurements at the end of the assay.</p>
 <p>You may find example datasets for this formatting with the case when one has <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseB_example.csv">initial cell counts</a> or when one instead has estimates of <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseB_div_example.csv">cell division time</a>.</p>
 <img src = "images/data_examples/caseB_blur.png" width = "700px">
+</font>
     </div>
   </div>
   
@@ -73,6 +82,7 @@
     </h4>
   </div>
   <div class="content">
+    <font size="3">
 <!--
 <div id="TOC">
 <ul>
@@ -144,6 +154,7 @@
 </div>
 </div>
   -->
+  </font>
   </div>
 </div>
 
@@ -155,6 +166,43 @@
     </h4>
   </div>
   <div class="content">
-    <p>testing</p>
+    <font size="3">
+          <p>The original GR method detailed in <a href="https://dx.doi.org/10.1038/nmeth.3853">Hafner et al. (2016)</a> only takes into account living cells. However, when toxicity and cell death occurs, it may be informative to model this as well. To take this into account, we have extended our method for situations in which one has measures of the number of dead cells as well as living cells. We separate the "GR" into two components: a static component <font color="light blue"><b>GR<sub>static</sub></b></font>, which measures the how much <font color="light blue"><b>cell growth rate is slowed compared to control</sub></b></font>, and a toxic component <font color="red"><b>GR<sub>toxic</sub></b></font>, which measures how much <font color="red"><b>cell death rate is increased compared to control</sub></b></font>.</p>
+      <p>Definitions:</p>
+      <ul>
+        <li><b><i>x(c,t)</i></b> = the amount of <b><i>viable cells</i></b> at time <i>t</i> at drug concentration <i>c</i> &#8193; (column: <i><b>cell_count</b></i>)</li>
+        <li><b><i>d(c,t)</i></b> = the amount of <b><i>dead cells</i></b> at time <i>t</i> at drug concentration <i>c</i> &#8193; (column: <i><b>dead_cell_count</b></i>)</li>
+        <li><b><i>x<sub>0</sub></i></b> = <i>x(0,0)</i> = starting amount of <b><i>viable cells</i></b> &#8193; (column: <i><b>cell_count__time0</b></i>)</li>
+        <li><b><i>d<sub>0</sub></i></b> = <i>d(0,0)</i> = starting amount of <b><i>dead cells</i></b> &#8193; (column:<i> <b>dead_cell_count__time0</b></i>)</li>
+        <li><b><i>x<sub>ctrl</sub></i></b> = <i>x(0,t)</i> = amount of <b><i> un-treated viable cells</i></b> at time <i>t</i> &#8193; (column: <i><b>cell_count__ctrl</b></i>)</li>
+        <li><b><i>d<sub>ctrl</sub></i></b> = <i>d(0,t)</i> amount of <b><i>dead  un-treated cells</i></b> at time <i>t</i> &#8193; (column: <i><b>dead_cell_count__ctrl</b></i>)</li>
+      </ul>
+    <p>For a full overview of the original GR method, see <a href="/grtutorial/">here</a>. Briefly, the growth-rate inhibition is given by the ratio of the growth-rate of the treated cells <b><i>k(c)</i></b> to that of the untreated cells <b><i>k(0)</i></b>. We normalize this ratio by exponentiating it and subtracting one so that it falls between -1 and 1 for growth-inhibiting and cytotoxic treatments.
+    <!--<b><i>GR(c) = 1</i></b> means cells treated at concentration <i>c</i> grow at the same rate as un-treated cells, <b><i>GR(c) = 0</i></b> means the cell population treated at concentration <i>c</i> has completely stopped growing (cytostatic), and <b><i>GR(c) < 0</i></b> means the treated cells are dying (cytotoxic), possibly in addition to slowed growth-rate, and the cell population is falling. --></p>
+    <!--    <center><img src="images/equations/GR_value.svg" align = "center" height="50px" style="padding-bottom:10px;"></center> -->
+        <center><img src="images/GR_rates_final.png" align = "center" height="200px" style="padding-bottom:10px;"></center>
+    <p>Because it is difficult to measure the growth-rate at any one time, we use the starting population and endpoint measures to estimate growth-rate. Using the definitions above, we can calculate the growth-rate of the un-treated control as <b><i>k(0) = (1/t)log<sub>2</sub>(x<sub>ctrl</sub>/x<sub>0</sub>)</i></b> and the treated cells as <b><i>k(c) = (1/t)log<sub>2</sub>(x(c)/x<sub>0</sub>)</i></b>, giving the formula for <b><i>GR(c)</i></b></p>
+     <!--   <center><img src="images/equations/gr_and_gr_ctrl.svg" height="120px" style="padding-bottom:10px;"></center> -->
+             <center><img src="images/GR_endpoints_final.png" align = "center" height="200px" style="padding-bottom:10px;"></center>
+             <p>These values are used to fit a dose-response curve with an upper asymptote at 1.</p>
+        <center><img src="images/GR_curve_annotated.png" align = "center" height="250px" style="padding-bottom:10px;"></center>
+        <p>We fit a logistic dose-response curve to the GR values, with log(concentration) as the x-axis... [description of curve metrics with image]</p>
+<p>In order to differentiate between the effects of slowed growth and toxicity, we introduce the static and toxic GR. We start by modifying our model of cell population growth to separate total population growth into two parts, a growth rate <b><i>k<sub>s</sub></i></b> and a death rate <b><i>k<sub>d</sub></i></b>.
+</p>
+  <center><img src="images/gr_models.png" align = "center" height="250px" style="padding-bottom:10px;"></center>
+<p>To derive these, we describe the rates of change with a system of ordinary differential equations (ODEs):
+  <center><img src="images/gr_diffeq.png" align = "center" height="150px" style="padding-bottom:10px;"></center>
+  <p>Using the initial conditions for the population of live cells <b><i>x<sub>0</sub> = x(0,0)</i></b> and dead cells <b><i>d<sub>0</sub> = d(0,0)</i></b>, we solve this system for <b><i>k<sub>s</sub></i></b> and <b><i>k<sub>d</sub></i></b>.</p>
+    <center><img src="images/gr_diffeq_sol.png" align = "center" height="300px" style="padding-bottom:10px;"></center>
+  <p>As before, for <font color="light blue"><b>GR<sub>static</sub></b></font> we use the ratio of the treated growth-rate to the un-treated growth rate <b><i>k<sub>s</sub>(c)/k<sub>s</sub>(0)</i></b>. Again, we exponentiate it and subtract 1 to bound our values for the curve. Since <font color="light blue"><b>GR<sub>static</sub></b></font> only characterizes slowed population growth and not cell death, it is bounded between 0 and 1. For <font color="red"><b>GR<sub>toxic</sub></b></font>, we expect the un-treated death rate <b><i>k<sub>d</sub>(0)</i></b> to be close to zero, so we use the difference of the death rates <b><i>k<sub>d</sub>(c) - k<sub>d</sub>(0)</i></b> instead of the ratio to make a more robust measure. As with <font color="light blue"><b>GR<sub>static</sub></b></font>, we exponentiate and subtract 1 so that <font color="red"><b>GR<sub>toxic</sub></b></font> will be bounded between 0 and -1.</p>
+    <center><img src="images/gr_vs_gr_sd.png" align = "center" height="275px" style="padding-bottom:10px;"></center>
+    <p>Again, we fit curves... [description of curve metrics with image]</p>
+  <!--
+<p>For GR<sub>static</sub> and GR<sub>toxic</sub>, the situation is a bit more complex. We will state the formulas and then explain their derivation.</p>
+    <center><img src="images/equations/GR_static_and_toxic_full.svg" align = "center" height="120px" style="padding-bottom:10px;"></center>
+    <p>where D<sub>ratio</sub> and D<sub>ratio_ctrl</sub> are given by:</p>
+    <center><img src="images/equations/D_ratio.svg" align = "center" height="120px" style="padding-bottom:10px;"></center>
+    -->
+    </font>
   </div>
 </div>

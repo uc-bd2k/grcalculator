@@ -1,0 +1,3 @@
+The purpose of measuring cell count at the beginning of the assay is to allow for estimation of growth-rates of treated and un-treated cells. In place of this measurement you may separately measure the growth-rate of each (un-treated) cell line. In this case, you may swap the “cell\_count\_\_time0” column with two columns: “treatment\_duration\_\_hrs” – the length of the assay (in hours), and “division\_time” - the number of hours it takes cells from each (untreated) cell line to double in population.
+You may find an example dataset <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseA_div_example.csv">here</a>.
+[case A div live cells only picture]
