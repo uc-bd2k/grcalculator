@@ -104,7 +104,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"),
   if(min == "auto") min = min(data$concentration, na.rm = TRUE)
   if(max == "auto") max = max(data$concentration, na.rm = TRUE)
   # define x support for curve -- with a given number of points between each log value
-  points_per_log10 = 10
+  points_per_log10 = 20
   len = (log10(max) - log10(min))*points_per_log10
   concentration = 10^(seq(log10(min) - 1, log10(max) + 1, length.out = len))
   # define function for sigmoid curve mapping
@@ -203,6 +203,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"),
     curve_data_all %<>% dplyr::mutate_if(is.numeric, function(x) signif(x,3)) %>%
       dplyr::mutate_at(group_vars, function(x) factor(x, levels = sort(unique(x)))) # curves
   }
+  #return(list(data = data, data_mean = data_mean, parameterTable = parameterTable, curve_data_all = curve_data_all))
   # initialize plot
   p = ggplot2::ggplot()
   # add curves to the plot

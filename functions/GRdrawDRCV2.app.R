@@ -75,7 +75,7 @@ GRdrawDRCV2.app = function(fitData,
   min = min(data$concentration, na.rm = TRUE)
   max = max(data$concentration, na.rm = TRUE)
   # define x support for curve -- with a given number of points between each log value
-  points_per_log10 = 10
+  points_per_log10 = 20
   len = (log10(max) - log10(min))*points_per_log10
   concentration = 10^(seq(log10(min) - 1, log10(max) + 1, length.out = len))
   # define functions for sigmoid curve mapping
@@ -143,6 +143,7 @@ GRdrawDRCV2.app = function(fitData,
   curve_data_all %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_static"))
   data %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_static"))
   data_mean %<>% mutate(GR_metric = as.factor(GR_metric) %>% relevel(ref = "GR_static"))
+  #return(list(data = data, data_mean = data_mean, parameterTable = parameterTable, curve_data_all = curve_data_all))
   
   
   

@@ -3,7 +3,6 @@ library(shinyjs)
 library(plotly)
 library(ggplot2)
 library(readr)
-#library(GRmetrics)
 #devtools::load_all("../GRmetrics/")
 library(GRmetrics)
 library(magrittr)
@@ -13,6 +12,7 @@ library(formattable)
 library(shinycssloaders)
 library(dplyr)
 library(tictoc)
+library(crosstalk)
 
 #source('functions/drawPopup.R')
 #source('functions/drawDRC.R', local = T)
@@ -892,7 +892,7 @@ shinyServer(function(input, output,session) {
                 filtered_drc$assays$GR$sigmoid$toxic %<>%
                   dplyr::filter(!!df_colname %in% vals)
               }
-            #} 
+            #}
             filtered_drc$metadata$gr_table %<>%
               dplyr::filter(!!df_colname %in% vals)
           }
@@ -904,7 +904,10 @@ shinyServer(function(input, output,session) {
   output$single_drc = renderPlotly({
     req(filter_data(), input$drc2_curves, input$drc2_metric, input$drc2_points, input$drc2_xrug, input$drc2_yrug,
         input$drc2_bars, color_throttle(), fixedValues$input_case)
+    single_plot = NULL
+    print("1")
     if(fixedValues$input_case != "static_vs_toxic") {
+      print("2")
       single_plot = try(GRdrawDRC.app(fitData = filter_data(), 
                                       metric = input$drc2_metric, 
                                       curves = input$drc2_curves,
@@ -916,11 +919,13 @@ shinyServer(function(input, output,session) {
                                       color = color_throttle(),
                                       plot_type = "static",
                                       output_type = "together"))
-        if(class(single_plot) != "try-error") {
-          ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
+      test_plot <<- single_plot
+        if(!identical(class(single_plot), "try-error")) {
+          ggplotly(single_plot$plot, tooltip = "text")# %>% toWebGL()
           #single_plot$plot
         }
     } else {
+      print("3")
       if(input$drc2_metric %in% c("GR", "rel_cell")) {
         single_plot = try(GRdrawDRC.app(fitData = filter_data(), 
                                           metric = input$drc2_metric, 
@@ -933,7 +938,9 @@ shinyServer(function(input, output,session) {
                                           color = color_throttle(),
                                           plot_type = "static",
                                           output_type = "together"))
+        test_plot <<- single_plot
       } else {
+        print("4")
         single_plot = try(GRdrawDRCV2.app(fitData = filter_data(), 
                                           #metric = input$drc2_metric, 
                                           curves = input$drc2_curves,
@@ -945,9 +952,10 @@ shinyServer(function(input, output,session) {
                                           color = color_throttle(),
                                           plot_type = "static",
                                           output_type = "together"))
+        test_plot <<- single_plot
       }
-      if(class(single_plot) != "try-error") {
-        ggplotly(single_plot$plot, tooltip = "text") %>% toWebGL()
+      if(!identical(class(single_plot), "try-error")) {
+        ggplotly(single_plot$plot, tooltip = "text")# %>% toWebGL()
         #single_plot$plot
       }
     }
@@ -1213,7 +1221,7 @@ shinyServer(function(input, output,session) {
                   pointColor = input$pick_box_point_color,
                   factors = input$pick_box_factors,
                   wilA = input$factorA, wilB = input$factorB, plotly = TRUE))
-     if(class(plot) != "try-error") return(plot)
+     if(!identical(class(plot), "try-error")) return(plot)
      # } else {
      #   return(ggplot())
      # }
@@ -1236,7 +1244,7 @@ shinyServer(function(input, output,session) {
                              yaxis = input$y_scatter,
                              color = input$pick_box_point_color,
                              plot_type = "interactive"))
-        if(class(plot) != "try-error") {
+        if(!identical(class(plot), "try-error")) {
           return(plot)
         } else {
           return(ggplot())
