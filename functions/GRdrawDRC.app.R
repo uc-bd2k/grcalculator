@@ -14,7 +14,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"),
                       output_type = c("together", "separate")#,
                       #legend = c("none", "right", "only")
                       ) {
-  tic("drawing plots - making data frames")
+  #tic("drawing plots - making data frames")
   # make all inputs length 1
   metric = metric[1]
   points = points[1]
@@ -326,9 +326,9 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"),
     if(plot_type == "interactive") return(plotly::ggplotly(p))
     if(plot_type == "static") return(p + ggplot2::theme(aspect.ratio = 1))
   }
-  toc()
+  #toc()
   if(output_type == "separate") {
-    tic("separate plots")
+    #tic("separate plots")
     ### get legend only
     ### call create plot function once to output one plot object
     leg_groups = unique(data[[color]])
@@ -368,10 +368,10 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"),
                            legend = "none", leg_colors = leg_colors_list, 
                            color = lapply(1:length(unique( data[[facet_char]] )), function(x) return(color) ))
     out = purrr::pmap(.l = data_input_list, .f = .create_plots)
-    toc()
+    #toc()
     return(list(plot = out, legend = out_legend))
   } else if(identical(output_type, "together")) {
-    tic("one plot")
+    #tic("one plot")
     leg_groups = unique(data[[color]])
     leg_len = length(leg_groups)
     leg_colors = scales::hue_pal()(leg_len)
@@ -382,7 +382,7 @@ GRdrawDRC.app <- function(fitData, metric = c("GR", "rel_cell"),
                         parameterTable = parameterTable, curve_data_all = curve_data_all,
                         legend = "right", leg_colors = leg_colors,
                         color = color)
-    toc()
+    #toc()
     return(list(plot = out))
   }
 }
