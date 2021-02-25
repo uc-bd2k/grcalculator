@@ -12,7 +12,7 @@
       <div class="active title">
         <h4 style = "color:black">
           <i class="dropdown icon"></i>
-          Case A (default, preferred) - multiple cell counts per row 
+          Case A (recommended) - multiple cell counts per row 
         </h4>
       </div>
       <div class="active content">
@@ -27,11 +27,11 @@
 
 <h5>Metadata columns: <font color="blue">1) cell_line &emsp; 2) treatment &emsp; 3) concentration </font></h5>
 
-<p>The columns "cell_line", "treatment", and "concentration" are always required, but you may also have other metadata columns. For example, <a href = "https://github.com/uc-bd2k/grcalculator/blob/master/resources/Heiser_al_GRmetrics_wSubType_Taxol.tsv">this dataset</a> from Heiser et al. contains column for clinical subtype (HR+, Her2amp, etc.) and molecular subtypes (Luminal, Basal, etc.). </p>
+<p>The columns "cell_line", "treatment", and "concentration" are always required, but you may also have other metadata columns. For example, <a href = "https://github.com/uc-bd2k/grcalculator/blob/master/resources/Heiser_al_GRmetrics_wSubType_Taxol.tsv">this dataset</a> from Heiser et al.<a href="https://doi.org/10.1073/pnas.1018854108">[3]</a></sup> contains column for clinical subtype (HR+, Her2amp, etc.) and molecular subtypes (Luminal, Basal, etc.). </p>
 
 <h5>Cell count columns: <font color="blue">1) cell_count &emsp; 2) cell_count__ctrl &emsp; 3) cell_count__time0</font></h5>
 
-<p>In the simplest case, the GR metrics method (Hafner et al. [add link]) requires only live cell counts, or some surrogate of cell count such as cell-titer glo. We require end-of-assay counts for cells at each treated concentration <b>("cell_count")</b> as well as counts of corresponding un-treated cells <b>("cell_count__ctrl")</b> and beginning-of-assay counts <b>("cell_count__time0")</b>. The control and beginning-of-assay counts may be repeated as necessary.
+<p>In the simplest case, the GR metrics method requires only live cell counts, or some surrogate of cell count such as cell-titer glo. We require end-of-assay counts for cells at each treated concentration <b>("cell_count")</b> as well as end-of-assay counts of corresponding un-treated cells <b>("cell_count__ctrl")</b> and beginning-of-assay counts <b>("cell_count__time0")</b>. The control and beginning-of-assay counts may be repeated as necessary.
 </p>
 <p><b>Note that "cell_count__ctrl" and "cell_count__time0" have one underscore between "cell" and "count", and two underscores after "count".</b></p>
 <p>You may find an example dataset <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseA_example.csv">here</a>.</p>
@@ -60,13 +60,13 @@
       <div class="title">
         <h4 style = "color:black">
           <i class="dropdown icon"></i>
-          Alternative format: one cell-count per line
+          Alternative format (Case B) - one cell-count per line
         </h4>
       </div>
       <div class="content">
         <font size="3">
         <p>The formatting above is recommended, but if you prefer, you may format your input data with only one column per line for cell counts <b>(Case B)</b>. In this case, only the <b>"cell_count"</b> column should be included <b>(no "cell_count__ctrl" or "cell_count__time0" columns)</b>. Un-treated measurements should be indicated by a dash "-" in the <b>"treatment"</b> column and a "0" in the <b>"concentration"</b> column. A <b>"treatment_duration__hrs"</b> column must be included <b>(two underscores after "duration")</b>, with "0" indicating measurements at the beginning of the assay and a number of hours (e.g. "72" for a 3-day assay) for measurements at the end of the assay.</p>
-<p>You may find example datasets for this formatting with the case when one has <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseB_example.csv">initial cell counts</a> or when one instead has estimates of <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseB_div_example.csv">cell division time</a>.</p>
+<p>You may find example datasets with this formatting for the case where one has <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseB_example.csv">initial cell counts</a> or where one instead has estimates of <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseB_div_example.csv">cell division time</a>.</p>
 <img src = "images/data_examples/caseB_blur.png" width = "700px">
 </font>
     </div>

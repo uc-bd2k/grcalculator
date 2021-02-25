@@ -11,7 +11,7 @@
       <div class="active title">
         <h4 style = "color:black">
           <i class="dropdown icon"></i>
-          Case A (default, preferred) - multiple cell counts per row 
+          Case A (recommended) - multiple cell counts per row 
         </h4>
       </div>
       <div class="active content">
@@ -23,13 +23,13 @@
 
 <p>The first line in the input file needs to contain column names that exactly match those in our example files.</p>
 
-<h5>Metadata columns: <font color="blue">1) cell_line &emsp; 2) treatment &emsp; 3) concentration </font></h5>
+<h5>Metadata columns: <font color="blue">1) cell_line   2) treatment   3) concentration </font></h5>
 
-<p>The columns "cell_line", "treatment", and "concentration" are always required, but you may also have other metadata columns. For example, <a href = "https://github.com/uc-bd2k/grcalculator/blob/master/resources/Heiser_al_GRmetrics_wSubType_Taxol.tsv">this dataset</a> from Heiser et al. contains column for clinical subtype (HR+, Her2amp, etc.) and molecular subtypes (Luminal, Basal, etc.). </p>
+<p>The columns "cell_line", "treatment", and "concentration" are always required, but you may also have other metadata columns. For example, <a href = "https://github.com/uc-bd2k/grcalculator/blob/master/resources/Heiser_al_GRmetrics_wSubType_Taxol.tsv">this dataset</a> from Heiser et al.<a href="https://doi.org/10.1073/pnas.1018854108">[3]</a></sup> contains column for clinical subtype (HR+, Her2amp, etc.) and molecular subtypes (Luminal, Basal, etc.). </p>
 
-<h5>Cell count columns: <font color="blue">1) cell_count &emsp; 2) cell_count__ctrl &emsp; 3) cell_count__time0</font></h5>
+<h5>Cell count columns: <font color="blue">1) cell_count   2) cell_count__ctrl   3) cell_count__time0</font></h5>
 
-<p>In the simplest case, the GR metrics method (Hafner et al. [add link]) requires only live cell counts, or some surrogate of cell count such as cell-titer glo. We require end-of-assay counts for cells at each treated concentration <b>("cell_count")</b> as well as counts of corresponding un-treated cells <b>("cell_count__ctrl")</b> and beginning-of-assay counts <b>("cell_count__time0")</b>. The control and beginning-of-assay counts may be repeated as necessary.
+<p>In the simplest case, the GR metrics method requires only live cell counts, or some surrogate of cell count such as cell-titer glo. We require end-of-assay counts for cells at each treated concentration <b>("cell_count")</b> as well as end-of-assay counts of corresponding un-treated cells <b>("cell_count__ctrl")</b> and beginning-of-assay counts <b>("cell_count__time0")</b>. The control and beginning-of-assay counts may be repeated as necessary.
 </p>
 <p><b>Note that "cell_count__ctrl" and "cell_count__time0" have one underscore between "cell" and "count", and two underscores after "count".</b></p>
 <p>You may find an example dataset <a href = "https://raw.githubusercontent.com/uc-bd2k/grcalculator/update/resources/caseA_example.csv">here</a>.</p>
@@ -62,6 +62,16 @@
 <img src = "images/data_examples/caseB_blur.png" width = "700px">
     </div>
   </div>
+
+
+
+    
+  
+
+    
+  
+
+    
   
 </div>
 </div>
@@ -76,6 +86,8 @@
     <p>testing</p>
   </div>
 </div>
+
+
 
 <div class="ui styled fluid active accordion">
   <div class="title">
