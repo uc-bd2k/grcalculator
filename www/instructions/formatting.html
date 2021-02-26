@@ -230,10 +230,31 @@
           constrain the upper asymptote of the curve to a value of 1 because we would expect no change in growth rate for extremely low concentrations. GR values greater than one are allowed, but we constrain the fitted curve to less
           than one since we focus on growth-inhibiting and cytotoxic treatments. For treatments that promote growth, and for treatments that poorly fit a logistic curve, we fit a flat horizontal line.
         </p>
+        <center><img src="images/rel_viability_vs_gr_curve.png" align="center" height="350px" style="padding-bottom:10px;"></center>
+        <p>
+          Just like percent viability curves, GR curves can be summarized by a number of metrics. In place of <b><i>IC<sub>50</sub></i></b>, the measure of concentration that gives 50% relative viability, we report <b><i>GR<sub>50</sub></i></b>, the concentration at which growth is reduced by 50% (where the GR curve intersects 0.5). In place of <b><i>E<sub>inf</sub></i></b>, the lower asymptote of the relative viability curve (the maximal theoretical drug effect), we report <b><i>GR<sub>inf</sub></i></b>, the lower asymptote of the GR curve. And so on.
+        </p>
+        <p>
+          Traditional summary statistics of the relative viability curve include
+        </p>
+        <p>
+          <center>
+          <b><i>IC<sub>50</sub></i></b>, <b><i>E<sub>inf</sub></i></b>, <b><i>E<sub>max</sub></i></b>,<b><i>EC<sub>50</sub></i></b>, <b><i>h</i></b> (the Hill coefficient), and <b><i>AUC</i></b> (area under the curve).
+          </center>
+        </p>
+        <p>
+          We report analagous statistics for each GR curve
+        </p>
+        <p>
+          <center>
+          <b><i>GR<sub>50</sub></i></b>, <b><i>GR<sub>inf</sub></i></b>, <b><i>GR<sub>max</sub></i></b>, <b><i>GEC<sub>50</sub></i></b>, <b><i>h<sub>GR</sub></i></b>, and <b><i>GR<sub>AOC</sub></i></b> (area over the GR curve).
+          </center>
+        </p>
+        <p>
+          You may find more information about each of these metrics in the <a href="/grtutorial/">tutorial section</a>.
+        </p>
             <!--<b><i>GR(c) = 1</i></b> means cells treated at concentration <i>c</i> grow at the same rate as un-treated cells, <b><i>GR(c) = 0</i></b> means the cell population treated at concentration <i>c</i> has completely stopped growing (cytostatic), and <b><i>GR(c) < 0</i></b> means the treated cells are dying (cytotoxic), possibly in addition to slowed growth-rate, and the cell population is falling. -->
-            </p>
             <!--    <center><img src="images/equations/GR_value.svg" align = "center" height="50px" style="padding-bottom:10px;"></center> -->
-      </p>
     </font>
   </div>
 </div>
@@ -286,8 +307,10 @@
     <center><img src="images/GR_static_toxic_growth.png" align="center" height="275px" style="padding-bottom:10px;"></center>
     <center><img src="images/GR_static_toxic_fitted_curves.png" align="center" height="275px" style="padding-bottom:10px;"></center>
     <p>
-      As with the original GR curves, we extract curve parameters to summarize the dose-response of the viable and dead cell populations.
-      [list new curve parameters and give basic definitions]
+      As with the original GR curves, we extract summary metrics from the <font color="light blue"><b>GR<sub>static</sub></b></font> and <font color="red"><b>GR<sub>toxic</sub></b></font> curves such as <b><i>GR<sub>50</sub></i></b>, <b><i>GR<sub>inf</sub></i></b>, <b><i>GR<sub>AOC</sub></i></b>, etc. These metrics summarize the growth response of the viable and dead cell populations, respectively.
+    </p>
+    <p>
+       All of these parameters are defined in the same was as for the original GR curves, with a few small changes. Since the <font color="red"><b>GR<sub>toxic</sub></b></font> curve is bounded between 0 and -1, its <b><i>GR<sub>50</sub></i></b> is defined as the concentration at which it crosses the y = -0.5 line. Similarly, it's <b><i>GR<sub>AOC</sub></i></b> value is defined as the area above the curve, but below zero.
     </p>
 
   <!--
