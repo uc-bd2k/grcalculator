@@ -230,6 +230,9 @@
           constrain the upper asymptote of the curve to a value of 1 because we would expect no change in growth rate for extremely low concentrations. GR values greater than one are allowed, but we constrain the fitted curve to less
           than one since we focus on growth-inhibiting and cytotoxic treatments. For treatments that promote growth, and for treatments that poorly fit a logistic curve, we fit a flat horizontal line.
         </p>
+            <!--<b><i>GR(c) = 1</i></b> means cells treated at concentration <i>c</i> grow at the same rate as un-treated cells, <b><i>GR(c) = 0</i></b> means the cell population treated at concentration <i>c</i> has completely stopped growing (cytostatic), and <b><i>GR(c) < 0</i></b> means the treated cells are dying (cytotoxic), possibly in addition to slowed growth-rate, and the cell population is falling. -->
+            </p>
+            <!--    <center><img src="images/equations/GR_value.svg" align = "center" height="50px" style="padding-bottom:10px;"></center> -->
       </p>
     </font>
   </div>
@@ -244,7 +247,7 @@
   </div>
   <div class="content">
     <font size="3">
-          <p>The original GR method detailed in <a href="https://dx.doi.org/10.1038/nmeth.3853">Hafner et al. (2016)</a> only takes into account living cells. However, when toxicity and cell death occurs, it may be informative to model this as well. To take this into account, we have extended our method for situations in which one has measures of the number of dead cells as well as living cells. We separate the "GR" into two components: a static component <font color="light blue"><b>GR<sub>static</sub></b></font>, which measures the how much <font color="light blue"><b>cell growth rate is slowed compared to control</sub></b></font>, and a toxic component <font color="red"><b>GR<sub>toxic</sub></b></font>, which measures how much <font color="red"><b>cell death rate is increased compared to control</sub></b></font>.</p>
+          <p>The original GR method detailed in <a href="https://dx.doi.org/10.1038/nmeth.3853">Hafner et al. (2016)</a> only takes into account living cells. However, when toxicity and cell death occurs, it may be informative to model this as well. To take this into account, we have extended our method for situations in which one has estimates of the number of dead cells as well as living cells. We separate the "GR" into two components: a static component <font color="light blue"><b>GR<sub>static</sub></b></font>, which measures the how much <font color="light blue"><b>viable cell growth rate is slowed compared to control</sub></b></font>, and a toxic component <font color="red"><b>GR<sub>toxic</sub></b></font>, which measures how much <font color="red"><b>cell death rate is increased compared to control</sub></b></font>.</p>
       <p>Definitions:</p>
       <ul>
         <li><b><i>x(c,t)</i></b> = the amount of <b><i>viable cells</i></b> at time <i>t</i> at drug concentration <i>c</i> &#8193; (column: <i><b>cell_count</b></i>)</li>
@@ -253,21 +256,40 @@
         <li><b><i>d<sub>0</sub></i></b> = <i>d(0,0)</i> = starting amount of <b><i>dead cells</i></b> &#8193; (column:<i> <b>dead_cell_count__time0</b></i>)</li>
         <li><b><i>x<sub>ctrl</sub></i></b> = <i>x(0,t)</i> = amount of <b><i> un-treated viable cells</i></b> at time <i>t</i> &#8193; (column: <i><b>cell_count__ctrl</b></i>)</li>
         <li><b><i>d<sub>ctrl</sub></i></b> = <i>d(0,t)</i> amount of <b><i>dead  un-treated cells</i></b> at time <i>t</i> &#8193; (column: <i><b>dead_cell_count__ctrl</b></i>)</li>
+        <li><b><i>k<sub>s</sub>(c,t)</i></b> = the "cytostatic" growth-rate of the cell population, i.e. the rate of change of viable cells, for treatment concentration <i>c</i> at time <i>t</i></li>
+        <li><b><i>k<sub>d</sub>(c,t)</i></b> = the "cytotoxic" growth-rate of the cell population, i.e. the rate of change of dead cells, for treatment concentration <i>c</i> at time <i>t</i></li>
+        <li><b><i>k(c,t)</i></b> = <b><i>k<sub>s</sub>(c,t)</i></b> + <b><i>k<sub>d</sub>(c,t)</i></b> = the overall growth-rate of the cell population for treatment concentration <i>c</i> at time <i>t</i></li>
+        <li><b><i>t</i></b> = the duration of the assay in hours</li>
       </ul>
-    <p>For a full overview of the original GR method, see <a href="/grtutorial/">here</a>. Briefly, the growth-rate inhibition is given by the ratio of the growth-rate of the treated cells <b><i>k(c)</i></b> to that of the untreated cells <b><i>k(0)</i></b>. We normalize this ratio by exponentiating it and subtracting one so that it falls between -1 and 1 for growth-inhibiting and cytotoxic treatments.
-    <!--<b><i>GR(c) = 1</i></b> means cells treated at concentration <i>c</i> grow at the same rate as un-treated cells, <b><i>GR(c) = 0</i></b> means the cell population treated at concentration <i>c</i> has completely stopped growing (cytostatic), and <b><i>GR(c) < 0</i></b> means the treated cells are dying (cytotoxic), possibly in addition to slowed growth-rate, and the cell population is falling. --></p>
-    <!--    <center><img src="images/equations/GR_value.svg" align = "center" height="50px" style="padding-bottom:10px;"></center> -->
-        
-<p>In order to differentiate between the effects of slowed growth and toxicity, we introduce the static and toxic GR. We start by modifying our model of cell population growth to separate total population growth into two parts, a growth rate <b><i>k<sub>s</sub></i></b> and a death rate <b><i>k<sub>d</sub></i></b>.
-</p>
-  <center><img src="images/gr_models.png" align = "center" height="250px" style="padding-bottom:10px;"></center>
-<p>To derive these, we describe the rates of change with a system of ordinary differential equations (ODEs):
-  <center><img src="images/gr_diffeq.png" align = "center" height="150px" style="padding-bottom:10px;"></center>
-  <p>Using the initial conditions for the population of live cells <b><i>x<sub>0</sub> = x(0,0)</i></b> and dead cells <b><i>d<sub>0</sub> = d(0,0)</i></b>, we solve this system for <b><i>k<sub>s</sub></i></b> and <b><i>k<sub>d</sub></i></b>.</p>
+    <p>
+      In order to differentiate between the effects of slowed growth and toxicity, we introduce the static and toxic GR. We start by modifying our model of cell population growth to separate total population growth into two parts, a growth rate <b><i>k<sub>s</sub></i></b> and a death rate <b><i>k<sub>d</sub></i></b>.
+    </p>
+    <center><img src="images/gr_models.png" align = "center" height="250px" style="padding-bottom:10px;"></center>
+    <p>
+      To derive these, we describe the rates of change with a system of ordinary differential equations (ODEs):
+      <center><img src="images/gr_diffeq.png" align = "center" height="150px" style="padding-bottom:10px;"></center>
+    </p>
+    <p>
+      Using the initial conditions for the population of live cells <b><i>x<sub>0</sub> = x(0,0)</i></b> and dead cells <b><i>d<sub>0</sub> = d(0,0)</i></b>, we solve this system for <b><i>k<sub>s</sub></i></b> and <b><i>k<sub>d</sub></i></b>.
+    </p>
     <center><img src="images/gr_diffeq_sol.png" align = "center" height="300px" style="padding-bottom:10px;"></center>
-  <p>As before, for <font color="light blue"><b>GR<sub>static</sub></b></font> we use the ratio of the treated growth-rate to the un-treated growth rate <b><i>k<sub>s</sub>(c)/k<sub>s</sub>(0)</i></b>. Again, we exponentiate it and subtract 1 to bound our values for the curve. Since <font color="light blue"><b>GR<sub>static</sub></b></font> only characterizes slowed population growth and not cell death, it is bounded between 0 and 1. For <font color="red"><b>GR<sub>toxic</sub></b></font>, we expect the un-treated death rate <b><i>k<sub>d</sub>(0)</i></b> to be close to zero, so we use the difference of the death rates <b><i>k<sub>d</sub>(c) - k<sub>d</sub>(0)</i></b> instead of the ratio to make a more robust measure. As with <font color="light blue"><b>GR<sub>static</sub></b></font>, we exponentiate and subtract 1 so that <font color="red"><b>GR<sub>toxic</sub></b></font> will be bounded between 0 and -1.</p>
+    <p>
+      For <font color="light blue"><b>GR<sub>static</sub></b></font>, the cytostatic part of growth-rate inhibition, we consider the ratio of the treated growth-rate among viable cells to the un-treated growth rate <b><i>k<sub>s</sub>(c)/k<sub>s</sub>(0)</i></b>. Again, we exponentiate it and subtract 1 to bound our values for the curve. Since <font color="light blue"><b>GR<sub>static</sub></b></font> only characterizes slowed population growth and not cell death, it is bounded between 1 and 0.
+    </p>
+    <p>
+      For <font color="red"><b>GR<sub>toxic</sub></b></font>, we expect the un-treated death rate <b><i>k<sub>d</sub>(0)</i></b> to be close to zero, so to make a more robust measure we use the difference of the death rates <b><i>k<sub>d</sub>(c) - k<sub>d</sub>(0)</i></b> rather than their ratio. As with <font color="light blue"><b>GR<sub>static</sub></b></font>, we exponentiate and subtract 1. This makes it so that <font color="red"><b>GR<sub>toxic</sub></b></font> is bounded between 0 and -1.
+    </p>
     <center><img src="images/gr_vs_gr_sd.png" align = "center" height="275px" style="padding-bottom:10px;"></center>
-    <p>Again, we fit curves... [description of curve metrics with image]</p>
+    <p>
+      As with the original GR method, we fit logistic curves to model the <font color="light blue"><b>GR<sub>static</sub></b></font> and <font color="red"><b>GR<sub>toxic</sub></b></font> values as a function of the log treatment concentration.
+    </p>
+    <center><img src="images/GR_static_toxic_growth.png" align="center" height="275px" style="padding-bottom:10px;"></center>
+    <center><img src="images/GR_static_toxic_fitted_curves.png" align="center" height="275px" style="padding-bottom:10px;"></center>
+    <p>
+      As with the original GR curves, we extract curve parameters to summarize the dose-response of the viable and dead cell populations.
+      [list new curve parameters and give basic definitions]
+    </p>
+
   <!--
 <p>For GR<sub>static</sub> and GR<sub>toxic</sub>, the situation is a bit more complex. We will state the formulas and then explain their derivation.</p>
     <center><img src="images/equations/GR_static_and_toxic_full.svg" align = "center" height="120px" style="padding-bottom:10px;"></center>
