@@ -10,7 +10,7 @@ library(DT)
 
 shinyUI(
   semanticPage(
-    title = "Online Dose-response GR Calculator",
+    title = "Online GR Calculator",
     shinyjs::useShinyjs(),
     suppressDependencies("bootstrap"),
     # Fix for mobile viewing
@@ -69,11 +69,11 @@ shinyUI(
     ######## instructions modal end #########
    div(class = "ui container", style = "width: inherit!important; display: flex; min-height: 100vh; flex-direction: column;",
         ######### top menu start ########
-        div(class = "ui top attached inverted seven item stackable menu",  style = "flex: 0.1;",
+        div(class = "ui top attached inverted six item stackable menu",  style = "flex: 0.1;",
             div(class = "ui center aligned container",
                 a(class = "item", img(class = "logo", src = "dcic.png"),
                   href = "http://lincs-dcic.org/"),
-                a(class = "item", "Home", href = "/grtutorial/Home.html", style = "font-size: 16px; padding: 5px; margin: 0px;"),
+                #a(class = "item", "Home", href = "/grtutorial/Home.html", style = "font-size: 16px; padding: 5px; margin: 0px;"),
                 a(class = "item", "About GR Metrics", href = "/grtutorial/", style = "font-size: 16px; padding: 5px; margin: 0px;"),
                 a(class = "item", "Online GR Calculator", href = "/grcalculator/", style = "font-size: 16px; padding: 5px; margin: 0px;"),
                 a(class = "item", "LINCS Dose-Response Datasets", href = "/grbrowser/", style = "font-size: 16px; padding: 5px; margin: 0px;"),
@@ -613,8 +613,8 @@ shinyUI(
         )
 ,
           ######### footer start #########
-        div(class = "ui bottom attached inverted footer segment", style = "margin: 0px; flex: 1;",
-            div(class = "ui center aligned container",
+        div(class = "ui bottom attached inverted footer segment", style = "margin: 0px; flex: 1; position:sticky;",
+            div(class = "ui center aligned container", style = "height: 50px",
                 div(class = "ui horizontal inverted large divided link list",
                     a(class = "item", div(class = "action-button", "About", id = "about") ),
                     a(class = "item", div(class = "action-button", "Contact Us", id = "contact")),

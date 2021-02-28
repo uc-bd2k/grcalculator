@@ -11,6 +11,8 @@ library(DT)
 library(formattable)
 library(shinycssloaders)
 library(dplyr)
+library(clipr)
+library(rclipboard)
 #library(tictoc)
 #library(crosstalk)
 
@@ -119,7 +121,7 @@ accordion.js = "$('.ui.accordion')
 
 ###############################
 
-shinyServer(function(input, output,session) {
+shinyServer(function(input, output, session) {
   ####### start shinyServer code and run javascript code ######
   runjs(tab.js)
   runjs(accordion.js)
