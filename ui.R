@@ -40,6 +40,19 @@ shinyUI(
             includeMarkdown("www/about.md")
         )
     ),
+    #### support modal start #########
+    div(class = "ui large modal", id = "support_modal",
+        div(class = "header", "Support",
+            div(class = "actions", style = "float: right; display: inline-block; vertical-align: top;",
+                div(class = "ui red basic circular cancel icon button", uiicon(type = "window close"))
+            )
+        ),
+        div(class = "ui center aligned basic segment", style = "padding-top:0px;",
+            includeHTML("www/support.html")
+        )
+    ),
+    ######## support modal end #########
+
     ######## about modal end #########
     #### contact modal start #########
     div(class = "ui mini modal", id = "contact_modal",
@@ -77,7 +90,7 @@ shinyUI(
                 a(class = "item", "About GR Metrics", href = "/grtutorial/", style = "font-size: 16px; padding: 5px; margin: 0px;"),
                 a(class = "item", "Online GR Calculator", href = "/grcalculator/", style = "font-size: 16px; padding: 5px; margin: 0px;"),
                 a(class = "item", "LINCS Dose-Response Datasets", href = "/grbrowser/", style = "font-size: 16px; padding: 5px; margin: 0px;"),
-                a(class = "item", "Support", href = "/grtutorial/support.html", style = "font-size: 16px; padding: 5px; margin: 0px;"),
+                a(class = "item action-button", "Support", id="support", style = "font-size: 16px; padding: 5px; margin: 0px;"),
                 a(class = "item", img(class = "logo", src = "logo_harvard_150.png"),
                   href = "http://sorger.med.harvard.edu" )
             )

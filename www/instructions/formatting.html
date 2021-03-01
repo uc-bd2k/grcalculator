@@ -322,3 +322,30 @@
     </font>
   </div>
 </div>
+
+<div class="ui styled fluid active accordion">
+  <div class="title">
+    <h4 style = "color:black">
+      <i class="dropdown icon"></i>
+      Biphasic dose-response curves <div class="ui red horizontal label">New</div>
+    </h4>
+  </div>
+  <div class="content">
+    <font size="3">
+      <p>
+        In the original growth-response inhibition (GR) model, GR values are fitted to a 3-parameter sigmoidal curve.
+        This models a situation in which the dose-response effect of a perturbagen starts as exponential at lower concentrations and, as concentration increases, reduces to linear and then finally levels off as the effect saturates at higher concentrations.
+      </p>
+      <p>
+        The GR curve has a lower asymptote, <b><i>GR<sub>inf</sub></i></b>, which models the maximum effect, <b><i>GEC<sub>50</sub></i></b>, the concentration of the curve's inflection point, and <b><i>h<sub>GR</sub></i></b>, the steepness of the curve.
+      </p>
+      <p>
+        However, in some cases cell response may be better modeled by two "phases" of growth inhibition, in which a perturbagen has two separate effects at lower and higher concentrations.
+        In this update, we have added the option to fit a "biphasic" curve, which models growth-response separately at lower and higher concentrations.
+      </p>
+      <p>
+        For this curve, we fit six parameters. The part of the curve at lower concentrations has one set of parameters (<b><i>GR<sub>inf</sub></i></b>, <b><i>GEC<sub>50</sub></i></b>, and <b><i>h<sub>GR</sub></i></b>), while the part of the curve at higher concentrations has another.
+      </p>
+    </font>
+  </div>
+</div>

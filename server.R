@@ -75,6 +75,12 @@ import.modal.js = "$('.ui.small.modal')
 })
 $('#import_modal').modal('show')
 ;"
+support.modal.js = "$('.ui.large.modal')
+.modal({
+    blurring: false
+})
+$('#support_modal').modal('show')
+;"
 
 example.modal.js = "$('.ui.mini.modal')
 .modal({
@@ -545,6 +551,12 @@ shinyServer(function(input, output, session) {
   ############ initialize modals ################
   observeEvent(input$instructions_button, {
     runjs(instructions.modal.js)
+  })
+  observeEvent(input$support, {
+    runjs(support.modal.js)
+  })
+  observeEvent(input$support2, {
+    runjs(support.modal.js)
   })
 
   observeEvent(input$download_plot_drc.modal_button, {
